@@ -1,0 +1,26 @@
+# Environment and secrets
+.env
+
+# Output files (too large/ephemeral for git)
+outputs/
+*.jsonl
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Editor
+.vscode/
+.idea/
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db

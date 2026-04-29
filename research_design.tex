@@ -1,0 +1,285 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{array}
+
+\hypersetup{colorlinks=true, linkcolor=blue!60!black, citecolor=blue!60!black, urlcolor=blue!60!black}
+
+\newcommand{\note}[1]{\textcolor{red!70!black}{\textbf{[Note:} #1\textbf{]}}}
+
+\title{\textbf{Do LLMs Know What Predicts Human Attitudes?}\\[6pt]
+\large A Cross-National Test of Feature Selection Through Abstract Reasoning\\[12pt]
+\normalsize \textit{Research Design Document --- Draft for Co-Author Discussion}}
+
+\author{[Authors]\\[4pt]
+\small Draft: March 2026 \quad $\cdot$ \quad Status: Pre-implementation}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+We propose a study that tests whether large language models understand what shapes human attitudes and behaviour. We use cross-national survey data as a testbed, but the underlying question is broader: can models reason about the structure of human opinion well enough to guide social science research? Given a target survey question, can a model identify what respondent characteristics would help predict the response? And does that reasoning adapt across populations, or does the model apply a universal template? We test this by asking models to identify, from prior knowledge alone, what information they would need about a respondent to predict how that person answers a given question. We evaluate their selections against empirically computed ground truth from six cross-national surveys covering 130 countries. This document describes the motivation, experimental design, evaluation metrics, and implementation plan.
+\end{abstract}
+
+
+%% ============================================================
+\section{Motivation}
+%% ============================================================
+
+\subsection{The Gap Between Prediction and Understanding}
+
+The literature on LLMs as simulated survey respondents has established a consistent finding. Models approximate group-level opinion distributions for well-represented populations but systematically flatten individual-level heterogeneity \citep{hu2025simbench, wang2025large, bisbee2024synthetic}. Our own prior work confirms this across 13 models, 130 countries, and 267 survey questions \citep{paper1}. No model approached majority-class accuracy. All produced less diverse responses than humans.
+
+These findings leave a central question unanswered. When a model predicts that a respondent will ``trust the national parliament,'' does it understand which features of that respondent are relevant? Or does it simply reproduce a base rate? A model that knows ``40\% of Kenyans trust parliament'' but not \textit{which} Kenyans, and why, offers nothing beyond existing survey marginals.
+
+This distinction matters for deployment. If models understand the conditional structure of attitudes, they can complement social science research even without substituting for respondents. They could guide survey design, identify relevant variables, or flag when predictive structure shifts across populations. If they lack this understanding, they are unreliable even for these roles.
+
+\subsection{Why Feature Selection Tests Understanding}
+
+We operationalise ``understanding of conditional structure of attitudes'' through a feature selection task. We present models with a target survey question and ask them to reason about what respondent characteristics would help predict the response. We then compare their selections against empirically computed ground truth.
+
+Feature selection is, we argue, more diagnostic than prediction accuracy alone for testing whether models understand the conditional structure of human attitudes. Prediction accuracy conflates two things: knowing what information matters (selection) and using it effectively (prediction). A model might predict well via universal heuristics without understanding when those heuristics break down across populations. Our design disentangles these through a decoupled evaluation (Section~\ref{sec:evaluation}).
+
+Critically, we do not provide models with a list of candidate features to choose from. Recent work shows that LLMs can select predictive features from a provided list with performance rivalling LASSO \citep{jeong2024llmselect}. That is a constrained selection task: given these options, which matter? Our task is harder. Models must reason from prior knowledge about what they would want to know, without seeing available variables. This mirrors the real research design problem of deciding what to measure before data exist — a stage at which data-driven methods cannot help.
+
+\subsection{The Cross-National Dimension}
+
+The key test is whether models can identify how predictive structure \textit{varies} across populations. Corruption experience predicts institutional trust in West Africa. Service satisfaction predicts it in Scandinavia. A model that requests the same features for both populations applies a universal template. A model that adapts its requests to match actual cross-national variation demonstrates conditional understanding.
+
+This connects to our prior finding of ``conditional stereotyping'' \citep{paper1}. We showed that explicit geographic cues improved prediction for some regions while degrading it for others. The present study tests whether a similar pattern operates at the reasoning level. Do models reason differently about different populations? When they do, does that align with empirical reality or reflect stereotypic priors?
+
+
+%% ============================================================
+\section{What We Are Testing}
+\label{sec:what}
+%% ============================================================
+
+We test three capabilities, in order of importance.
+
+\subsection{Test 1: Selection Quality}
+
+The basic competence test. When a model reasons freely about what would predict a target, do its requests align with empirically important features?
+
+We present the model with a target survey question. The model outputs a structured list of information it would want to know about the respondent. We map these requests to available survey variables (Section~\ref{sec:mapping}) and compare against ground truth importance rankings (Section~\ref{sec:oracle}). If model-selected features capture most of the available predictive signal, the model has sound prior knowledge about attitude structure. If they capture little, the model's knowledge is superficial or wrong.
+
+\subsection{Test 2: Cross-National Adaptation}
+
+The signature test. Does the model request different features for different countries on the same target? Do those differences track actual cross-national variation in predictive structure?
+
+We obtain model feature requests under two conditions. In the \textbf{unprompted} condition, the model receives only the target question. We record whether it spontaneously requests geographic context. In the \textbf{country-provided} condition, the model receives the target question plus the respondent's country before reasoning. We observe whether knowing the country changes what other features it requests.
+
+The comparison produces a behavioural taxonomy. Models that spontaneously request geographic context and adapt when given it are ``context-aware and adaptive.'' Models that never mention geography and do not change are ``context-unaware and rigid.'' Intermediate cases are informative about partial understanding. The critical evaluation: in the country-provided condition, do per-country feature requests align with per-country ground truth?
+
+\subsection{Test 3: Complexity Calibration}
+
+The meta-cognitive test. Do models request more features for complex targets and fewer where a small feature set suffices?
+
+We record the number of features each model requests ($k$) as a dependent variable and correlate it with ground truth properties: number of features needed to reach 90\% of ceiling accuracy, target entropy, and ceiling accuracy. If $k$ tracks complexity, the model calibrates its reasoning. If $k$ is constant, the model applies a fixed template.
+
+
+%% ============================================================
+\section{Models and Prompting}
+\label{sec:models}
+%% ============================================================
+
+\subsection{Model Selection}
+
+We evaluate four open-weight models spanning scale, architecture, and training paradigm (Table~\ref{tab:models}). Our prior work established that model choice explains only 1.3\% of performance variance in individual-level prediction across 13 models \citep{paper1}. This study prioritises evaluation depth over model breadth. Four models suffice to test whether reasoning quality scales with size and whether reasoning-specific training helps.
+
+\begin{table}[h]
+\centering
+\caption{Model selection. DeepSeek-V3.1 and Qwen 3 32B were top performers in Paper 1. Qwen 3 32B and QwQ-32B share parameter count, isolating the effect of reasoning training. Qwen 3 4B and 32B share the same family, isolating scale. All served via SGLang.}
+\label{tab:models}
+\begin{tabular}{llrl}
+\toprule
+\textbf{Model} & \textbf{Role in design} & \textbf{Parameters} & \textbf{Type} \\
+\midrule
+DeepSeek-V3.1 & Frontier (MoE) & 685B (37B active) & Instruction-tuned \\
+Qwen 3 32B & Strong mid-range & 32B & Instruction-tuned \\
+QwQ-32B & Reasoning comparison & 32B & Reasoning-trained \\
+Qwen 3 4B & Lower bound & 4B & Instruction-tuned \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Prompt Template}
+
+All models receive the same prompt. The prompt asks the model to reason about what it would need to know, without revealing available variables. This keeps the task generative. Table~\ref{tab:prompts} shows the template for both experimental conditions.
+
+Reasoning models (QwQ-32B) will naturally produce an extended thinking trace before the JSON output. Instruction-tuned models will output the list directly. We extract and evaluate only the final structured JSON. However, we save all reasoning traces as qualitative data for analysis of reasoning patterns.
+
+\begin{table}[h]
+\centering
+\caption{Prompt template. \texttt{\{target\_question\}} and \texttt{\{country\}} are filled per instance. The prompt avoids mentioning surveys, variable names, or datasets.}
+\label{tab:prompts}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.6cm} p{10.5cm}}
+\toprule
+\textbf{Component} & \textbf{Template text} \\
+\midrule
+System &
+\texttt{You are a social science researcher.} \\
+\midrule
+Unprompted\newline(Test 2, Cond. 1) &
+\texttt{A survey asks respondents: ``\{target\_question\}'' You want to predict how a respondent will answer. What information about the respondent would you need? Output a JSON list where each item describes one piece of information you would want to know.} \\
+\midrule
+Country-provided\newline(Test 2, Cond. 2) &
+\texttt{A survey asks respondents in \{country\}: ``\{target\_question\}'' You want to predict how a respondent in \{country\} will answer. What information about the respondent would you need? Output a JSON list where each item describes one piece of information you would want to know.} \\
+\bottomrule
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
+\subsection{Ablations}
+
+\textbf{Reasoning ablation.} The Qwen 3 32B vs. QwQ-32B comparison confounds reasoning training with the act of producing a trace before answering. To disentangle these, we run the instruction-tuned models with an additional CoT instruction: \texttt{``Think step by step about what factors would influence how someone answers this question, then output your list.''} This yields a clean decomposition. \textbf{Qwen 3 32B (standard) vs. Qwen 3 32B (CoT)} measures the value of elicited reasoning. \textbf{Qwen 3 32B (CoT) vs. QwQ-32B} measures the additional value of reasoning training, holding trace production constant.
+
+\textbf{Recognition ablation.} We run a condition where models see the full list of available survey variables and select from them. This connects to \citet{jeong2024llmselect} and provides a natural upper bound on selection quality. The gap between generative and recognition performance measures the cost of reasoning from prior knowledge versus choosing from a known set.
+
+
+%% ============================================================
+\section{Evaluation Design}
+\label{sec:evaluation}
+%% ============================================================
+
+\subsection{Selection Alignment}
+
+We measure how much predictive signal the model's selected features capture. For each target $\times$ country, let $I(f)$ denote the ground truth importance of feature $f$, and let $S_{\text{model}}$ and $S_{\text{oracle}}$ denote the model-selected and oracle top-$k$ feature sets at the same $k$ the model chose. The primary metric is \textbf{captured importance}:
+
+\begin{equation}
+\text{CI} = \frac{\sum_{f \in S_{\text{model}}} I(f)}{\sum_{f \in S_{\text{oracle}}} I(f)}
+\end{equation}
+
+This weights features by actual contribution. We report \textbf{MI rank correlation} (Spearman $\rho$) as a complementary metric.
+
+\subsection{Downstream Prediction}
+
+Selection alignment alone is insufficient because multiple feature subsets can carry similar information. We train identical XGBoost models \citep{chen2016xgboost} using four feature sets per target $\times$ country: (1) oracle top-$k$ (ceiling), (2) model-selected features, (3) random-$k$ averaged over 50 draws, and (4) all features (upper bound). The gap between oracle and model-selected is the \textbf{cost of imperfect reasoning}. The gap between model-selected and random is the \textbf{value of reasoning}.
+
+\subsection{Decoupled Selection $\times$ Prediction}
+\label{sec:decoupled}
+
+To separate ``knowing what matters'' from ``using it effectively,'' we cross feature source with prediction method:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+ & \textbf{LLM prediction} & \textbf{XGBoost prediction} \\
+\midrule
+\textbf{Model-selected features} & Full LLM pipeline & Selection quality only \\
+\textbf{Oracle-selected features} & Prediction quality only & Ceiling \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+This isolates whether the bottleneck is selection, prediction, or both.
+
+
+%% ============================================================
+\section{Ground Truth: Empirical Predictive Structure}
+\label{sec:oracle}
+%% ============================================================
+
+\textbf{Permutation importance (primary).} We compute feature importance per target $\times$ country using permutation importance from gradient-boosted trees \citep{fisher2019permutation}. For each feature, we shuffle its values and measure the drop in prediction accuracy. We use permutation importance rather than impurity-based measures because the latter are biased toward high-cardinality features \citep{strobl2007bias}, which is relevant for survey data containing both 7-point scales and binary items. Implementation: XGBoost with 5-fold CV, hyperparameters tuned per cell via grid search.
+
+\textbf{Mutual information (complementary).} MI between each target and all candidate features provides a model-free validity check \citep{kraskov2004estimating}. If conclusions hold under both metrics, results are robust to oracle choice.
+
+\textbf{Cross-national variation.} All computations are per-country. For each target, we report the average pairwise rank correlation of importance rankings across countries. High correlation = universal structure. Low correlation = culturally contingent structure. Cross-national adaptation by models is meaningful only for targets where structure actually varies. For countries with insufficient respondents, we aggregate to the regional level based on a threshold set during piloting.
+
+
+%% ============================================================
+\section{Mapping Pipeline}
+\label{sec:mapping}
+%% ============================================================
+
+Models reason abstractly (``their economic situation''). Evaluation requires mapping to concrete survey variables (``Q15: household income bracket''). This mapping mediates all downstream evaluation.
+
+\textbf{Stage 1: Embedding retrieval.} Embed each model request and all candidate survey questions. Retrieve top-$n$ candidates by cosine similarity above a minimum threshold.
+
+\textbf{Stage 2: Model-guided selection.} Present candidates back to the model for disambiguation. The model selects from the shortlist. Requests with no candidates above threshold are recorded as unmappable.
+
+\textbf{Validation.} 300+ annotated request-variable pairs, 3 annotators, structured coding: correct, partial, incorrect, unmappable-insightful, unmappable-vacuous. We report Cohen's $\kappa$ and Fleiss' $\kappa$, plus a sensitivity analysis (strict vs. lenient inclusion). The insightful-to-vacuous ratio among unmappable requests distinguishes genuine survey coverage gaps from hallucinated relevance.
+
+
+%% ============================================================
+\section{Data and Targets}
+%% ============================================================
+
+\textbf{Data.} Six cross-national surveys from Paper 1 \citep{paper1}: WVS, Afrobarometer, Arab Barometer, Asian Barometer, ESS, and Latinobar\'{o}metro. 130 countries, ${\sim}$1,000 respondents per country per survey. All harmonised into seven thematic sections and 32 topic tags.
+
+\textbf{Target selection.} Empirically driven. Step 1: compute permutation importance for all candidate targets on a country subset. Characterise by non-demographic signal, predictor diversity, and cross-national variation. Step 2: select 30--40 targets stratified across sections, prioritising high signal and high variation. Ensure coverage across response formats.
+
+
+%% ============================================================
+\section{Implementation Plan}
+\label{sec:pilot}
+%% ============================================================
+
+\textbf{Phase 0: Feasibility.} All subsequent work is contingent on two pilots.
+
+\begin{enumerate}[noitemsep]
+    \item[0a.] \textbf{Ground truth variation.} One survey, 5 targets, 5--10 countries. Compute permutation importance. Check: does importance vary across countries?
+    \item[0b.] \textbf{End-to-end reasoning.} Same 5 targets $\times$ 3 countries, all four models. Manual mapping. Check: does reasoning relate to predictive structure?
+\end{enumerate}
+
+Proceed only if both show signal.
+
+\textbf{Phase 1: Infrastructure.}
+
+\begin{enumerate}[noitemsep]
+    \item Permutation importance and MI computation for all targets $\times$ countries.
+    \item Target selection based on screening results.
+    \item Embedding-based mapping pipeline with second-pass model selection.
+    \item Mapping validation study (300+ annotated pairs, 3 annotators).
+    \item Traditional ML baselines with oracle-selected features.
+\end{enumerate}
+
+\textbf{Phase 2: Core Experiment.}
+
+\begin{enumerate}[noitemsep]
+    \item Run all models in both conditions (unprompted and country-provided).
+    \item Run reasoning and recognition ablations.
+    \item Map model requests to survey variables via validated pipeline.
+    \item Compute selection alignment (captured importance, rank correlation).
+    \item Train downstream prediction models with model-selected vs. oracle features.
+    \item Run decoupled selection $\times$ prediction analysis.
+    \item Analyse cross-national adaptation, complexity calibration, unmappable patterns.
+\end{enumerate}
+
+\textbf{Phase 3: Analysis and Writing.}
+
+\begin{enumerate}[noitemsep]
+    \item \textbf{Empirical predictive structure} (brief): cross-national variation in what predicts what. Sets the stage.
+    \item \textbf{Model reasoning quality} (core): selection alignment, downstream prediction, behavioural taxonomy from country conditions.
+    \item \textbf{Where reasoning succeeds and fails}: cross-topic analysis connecting to Paper 1's topic hierarchy.
+\end{enumerate}
+
+
+%% ============================================================
+\section{Open Questions}
+%% ============================================================
+
+\begin{enumerate}[noitemsep]
+    \item \textbf{Target count.} 30--40 proposed. Feasible given compute? Work backward from cost.
+    \item \textbf{Embedding model.} Pilot multiple options (MiniLM, BGE, E5) for mapping?
+    \item \textbf{Venue.} ICML/NeurIPS (method), EMNLP (NLP-for-social-science), or journal (substantive)?
+    \item \textbf{Release.} Commit to releasing importance rankings, selection traces, pipeline, validation set?
+    \item \textbf{Paper 1 coupling.} Conditional stereotyping bridge vs. independent submission flexibility.
+\end{enumerate}
+
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

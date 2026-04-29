@@ -1,0 +1,10 @@
+openai>=1.0
+git+https://github.com/Oxford-LLMs-Research/synthetic_sampling.git@19b5566083008ef5aff38a7b31654d1421fa6a73
+sentence-transformers
+xgboost
+scikit-learn
+pandas
+numpy
+scipy
+python-dotenv
+pyaml
