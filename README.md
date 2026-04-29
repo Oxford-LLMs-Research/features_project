@@ -129,7 +129,7 @@ Re-running skips any cell whose outputs already exist. Delete a cell's directory
 
 ## Oracle step — extension point for teammates
 
-The oracle (`phase0b_oracle.py`) is the step colleagues are refining. It is fully decoupled from the rest of the pipeline via the cache contract:
+The oracle (`phase0b_oracle.py`) is fully decoupled from the rest of the pipeline via the cache contract:
 
 **To plug in a pre-computed or alternative oracle**, place a CSV at `outputs/<target>_<country>/oracle.csv` with these columns:
 
