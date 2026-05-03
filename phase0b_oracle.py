@@ -38,7 +38,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 
-def _clean_question_columns(
+def clean_question_columns(
     df: pd.DataFrame,
     country_col: str,
     admin_cols: frozenset[str],
@@ -58,6 +58,9 @@ def _clean_question_columns(
             if coerced.notna().mean() > 0.5:
                 cleaned[col] = coerced.where(coerced >= 0)
     return cleaned
+
+
+_clean_question_columns = clean_question_columns
 
 
 def compute_oracle(
@@ -112,7 +115,7 @@ def compute_oracle(
             f"Actual values in data: {sorted(data[country_col].dropna().unique().tolist())}"
         )
 
-    country_data = _clean_question_columns(country_data, country_col, admin_cols)
+    country_data = clean_question_columns(country_data, country_col, admin_cols)
 
     if country_data.columns.duplicated().any():
         country_data = country_data.loc[:, ~country_data.columns.duplicated()]
