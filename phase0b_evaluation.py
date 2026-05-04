@@ -79,7 +79,11 @@ def evaluate_feature_set(
     y_raw = df[target_var]
 
     # Label-encode any text columns so XGBoost receives only numeric data.
-    for col in X.select_dtypes(include="object").columns:
+    text_cols = [
+        col for col in X.columns
+        if not pd.api.types.is_numeric_dtype(X[col])
+    ]
+    for col in text_cols:
         col_le = LabelEncoder()
         non_null = X[col].notna()
         X.loc[non_null, col] = col_le.fit_transform(X.loc[non_null, col])

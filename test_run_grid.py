@@ -6,10 +6,10 @@ import run_grid
 def test_run_grid_exports_question_column_cleaner():
     df = pd.DataFrame(
         {
-            "COUNTRY": ["A", "A"],
-            "RESP_ID": [1, 2],
-            "Q1": ["1", "-1"],
-            "Q2": ["Agree", "Disagree"],
+            "COUNTRY": ["A", "A", "A"],
+            "RESP_ID": [1, 2, 3],
+            "Q1": ["1", "-1", "2"],
+            "Q2": ["Agree", "Disagree", "Agree"],
         }
     )
 
@@ -21,5 +21,6 @@ def test_run_grid_exports_question_column_cleaner():
 
     assert cleaned["Q1"].iloc[0] == 1.0
     assert pd.isna(cleaned["Q1"].iloc[1])
-    assert cleaned["Q2"].tolist() == ["Agree", "Disagree"]
-    assert cleaned["RESP_ID"].tolist() == [1, 2]
+    assert cleaned["Q1"].iloc[2] == 2.0
+    assert cleaned["Q2"].tolist() == ["Agree", "Disagree", "Agree"]
+    assert cleaned["RESP_ID"].tolist() == [1, 2, 3]

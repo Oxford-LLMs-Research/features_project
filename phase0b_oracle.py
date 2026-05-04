@@ -38,6 +38,13 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 
+def _is_text_dtype(series: pd.Series) -> bool:
+    return (
+        pd.api.types.is_object_dtype(series)
+        or pd.api.types.is_string_dtype(series)
+    )
+
+
 def _clean_question_columns(
     df: pd.DataFrame,
     country_col: str,
@@ -50,7 +57,7 @@ def _clean_question_columns(
     cleaned = df.copy()
     q_cols = [c for c in cleaned.columns if c not in admin_cols and c != country_col]
     for col in q_cols:
-        if not pd.api.types.is_object_dtype(cleaned[col]):
+        if pd.api.types.is_numeric_dtype(cleaned[col]):
             cleaned[col] = pd.to_numeric(cleaned[col], errors="coerce")
             cleaned[col] = cleaned[col].where(cleaned[col] >= 0)
         else:
@@ -133,7 +140,7 @@ def compute_oracle(
         and c != target_var
         and c != country_col
         and (pd.api.types.is_numeric_dtype(country_data[c])
-             or pd.api.types.is_object_dtype(country_data[c]))
+             or _is_text_dtype(country_data[c]))
     ]
 
     X = country_data[feat_cols].copy()
@@ -143,7 +150,7 @@ def compute_oracle(
         print(f"  Dropped {len(all_missing)} fully-missing features")
         X = X.drop(columns=all_missing)
 
-    text_cols = [c for c in X.columns if pd.api.types.is_object_dtype(X[c])]
+    text_cols = [c for c in X.columns if _is_text_dtype(X[c])]
     if text_cols:
         print(f"  Label-encoding {len(text_cols)} text column(s)")
         for col in text_cols:
