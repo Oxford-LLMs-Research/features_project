@@ -39,6 +39,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
+from phase0b_oracle import _clean_question_columns as clean_question_columns
 from phase0b_oracle import compute_oracle
 
 load_dotenv()
