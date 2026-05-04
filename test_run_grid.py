@@ -19,6 +19,7 @@ def test_run_grid_exports_question_column_cleaner():
         admin_cols=frozenset({"COUNTRY", "RESP_ID"}),
     )
 
-    assert cleaned["Q1"].tolist() == [1.0, None]
+    assert cleaned["Q1"].iloc[0] == 1.0
+    assert pd.isna(cleaned["Q1"].iloc[1])
     assert cleaned["Q2"].tolist() == ["Agree", "Disagree"]
     assert cleaned["RESP_ID"].tolist() == [1, 2]
