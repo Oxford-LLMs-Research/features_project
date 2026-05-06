@@ -1,9 +1,9 @@
-"""Phase 0a feature-importance heterogeneity analysis for ESS.
+"""Feature-importance heterogeneity analysis for ESS.
 
 This script implements the following steps:
 - load/filter ESS data and metadata,
 - build target-specific feature pools with semantic similarity exclusion,
-- fit country-specific XGBoost classifiers,
+- fit country-specific autogluon classifiers,
 - compute held-out permutation importances,
 - compute cross-country rank correlations,
 - produce heatmaps and CSV outputs.
@@ -19,6 +19,11 @@ import textwrap
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Tuple
+from uuid import uuid4
+import os
+import shutil
+import tempfile
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -42,7 +47,7 @@ AUTOGLUON_TIME_LIMIT = 180
 AUTOGLUON_RUNTIME_MODES = {
     "quick": {"preset": "medium_quality", "time_limit": 60},
     "balanced": {"preset": "good_quality", "time_limit": 180},
-    "best": {"preset": "best_quality", "time_limit": 600},
+    "best": {"preset": "best_quality", "time_limit": 2400},
 }
 
 # Set to B_COUNTRY for WVS and cntry for ESS.
@@ -56,7 +61,7 @@ MIN_NORMALIZED_FEATURE_ENTROPY = 0.0
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_PATH = SCRIPT_DIR / "data/ess/ESS10_with_consolidations.csv"
 METADATA_PATH = SCRIPT_DIR / "data/ess/ess10_profiles_metadata.json"
-OUTPUT_DIR = SCRIPT_DIR / "tests/permutation_importance_ESS_10_outputs"
+OUTPUT_DIR = SCRIPT_DIR / "tests/permutation_importance_ESS_10_outputs_autogluon"
 
 
 COUNTRY_CODES = {
@@ -446,6 +451,7 @@ def evaluate_and_importance(
     model_output_dir: Path,
     autogluon_preset: str,
     autogluon_time_limit: int,
+    num_gpus: int = 0,
 ) -> Tuple[pd.DataFrame, float]:
     """Fit AutoGluon and compute held-out feature importance."""
     if len(y_train) < 2 or y_train.nunique() < 2:
@@ -453,39 +459,63 @@ def evaluate_and_importance(
     if len(y_test) < 1:
         raise ValueError("No valid test rows after preprocessing.")
 
-    model_output_dir.mkdir(parents=True, exist_ok=True)
+    # Use system temp directory to avoid Dropbox file-lock issues during cleanup.
+    # AutoGluon will create many intermediate files; keeping them outside Dropbox prevents
+    # sync conflicts and permission errors when Ray tries to clean up.
+    temp_dir = tempfile.mkdtemp(prefix="autogluon_fit_")
+    run_output_dir = Path(temp_dir)
 
     train_data = X_train.copy()
     test_data = X_test.copy()
     train_data["__label__"] = pd.Categorical(y_train.astype(str))
     test_data["__label__"] = pd.Categorical(y_test.astype(str), categories=train_data["__label__"].cat.categories)
 
-    predictor = TabularPredictor(
-        label="__label__",
-        problem_type="multiclass",
-        eval_metric="accuracy",
-        path=str(model_output_dir),
-    ).fit(
-        train_data=train_data,
-        presets=autogluon_preset,
-        time_limit=autogluon_time_limit,
-        verbosity=0,
-    )
+    try:
+        predictor = TabularPredictor(
+            label="__label__",
+            problem_type="multiclass",
+            eval_metric="accuracy",
+            path=str(run_output_dir),
+        ).fit(
+            train_data=train_data,
+            presets=autogluon_preset,
+            time_limit=autogluon_time_limit,
+            num_gpus=num_gpus,
+            verbosity=0,
+        )
 
-    eval_result = predictor.evaluate(test_data, silent=True)
-    test_accuracy = float(eval_result.get("accuracy", np.nan))
+        # Export AutoGluon leaderboard for this target-country cell.
+        leaderboard = predictor.leaderboard(test_data, silent=True)
+        leaderboard.to_csv(run_output_dir / "leaderboard.csv", index=False)
 
-    fi = predictor.feature_importance(test_data, silent=True)
-    if fi.empty:
-        raise ValueError("AutoGluon returned empty feature importance.")
+        eval_result = predictor.evaluate(test_data, silent=True)
+        test_accuracy = float(eval_result.get("accuracy", np.nan))
 
-    fi = fi.reset_index().rename(columns={"index": "feature_variable"})
-    if "importance" not in fi.columns:
-        raise ValueError("AutoGluon feature importance output missing 'importance' column.")
-    if "stddev" not in fi.columns:
-        fi["stddev"] = 0.0
+        fi = predictor.feature_importance(test_data, silent=True)
+        if fi.empty:
+            raise ValueError("AutoGluon returned empty feature importance.")
 
-    return fi[["feature_variable", "importance", "stddev"]], test_accuracy
+        fi = fi.reset_index().rename(columns={"index": "feature_variable"})
+        if "importance" not in fi.columns:
+            raise ValueError("AutoGluon feature importance output missing 'importance' column.")
+        if "stddev" not in fi.columns:
+            fi["stddev"] = 0.0
+
+        # Return feature importance DataFrame and test accuracy
+        return fi[["feature_variable", "importance", "stddev"]], test_accuracy
+    finally:
+        # Clean up temp directory with retry logic to handle lingering file locks.
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                shutil.rmtree(run_output_dir, ignore_errors=False)
+                break
+            except (OSError, PermissionError):
+                if attempt < max_retries - 1:
+                    time.sleep(0.5)  # Brief delay before retry
+                else:
+                    # On final attempt, suppress error to prevent pipeline failure
+                    shutil.rmtree(run_output_dir, ignore_errors=True)
 
 
 def build_rank_correlations(
@@ -642,7 +672,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--runtime-mode",
         type=str,
-        default="balanced",
+        default="best",
         choices=["quick", "balanced", "best"],
         help="AutoGluon runtime profile: quick, balanced, or best.",
     )
@@ -651,6 +681,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=0,
         help="Optional override for AutoGluon time limit (seconds). If 0, uses runtime-mode default.",
+    )
+    parser.add_argument(
+        "--auto-detect-gpu",
+        action="store_true",
+        default=False,
+        help="Auto-detect and use one GPU if available; otherwise force CPU.",
     )
     return parser.parse_args()
 
@@ -669,8 +705,9 @@ def run(
     targets: List[str],
     output_prefix: str,
     max_cells_per_run: int = 0,
-    runtime_mode: str = "balanced",
+    runtime_mode: str = "best",
     autogluon_time_limit: int = 0,
+    auto_detect_gpu: bool = False,
 ) -> None:
     df, metadata = load_inputs()
     df = df[df[COUNTRY_COL].isin(COUNTRY_CODES.keys())].copy()
@@ -682,6 +719,21 @@ def run(
     print(f"AutoGluon runtime mode: {runtime_mode} (preset={autogluon_preset}, time_limit={resolved_time_limit}s)")
 
     similarity_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+    # Resolve GPU availability if requested
+    def _detect_gpu_available() -> bool:
+        try:
+            import torch
+
+            return torch.cuda.is_available()
+        except Exception:
+            return shutil.which("nvidia-smi") is not None
+
+    gpu_available = _detect_gpu_available()
+    num_gpus_resolved = 1 if (auto_detect_gpu and gpu_available) else 0
+
+    print(f"GPU available to Python: {gpu_available}")
+    print(f"AutoGluon num_gpus: {num_gpus_resolved}")
 
     ckpt_importance_path = OUTPUT_DIR / f"{output_prefix}_checkpoint_importance.csv"
     ckpt_cells_path = OUTPUT_DIR / f"{output_prefix}_checkpoint_cells.csv"
@@ -866,6 +918,7 @@ def run(
                     OUTPUT_DIR / "autogluon_models" / output_prefix / target_var / country_code,
                     autogluon_preset,
                     resolved_time_limit,
+                    num_gpus=num_gpus_resolved,
                 )
                 cv_mean = test_accuracy
                 cv_std = 0.0
@@ -883,6 +936,29 @@ def run(
                             "importance_std": float(fi_row["stddev"]),
                         }
                     )
+
+                # Save per-cell oracle.csv and feature_pool for compatibility with run_grid.py
+                project_outputs = SCRIPT_DIR / "outputs"
+                cell_out_dir = project_outputs / f"{target_var}_{country_name}"
+                cell_out_dir.mkdir(parents=True, exist_ok=True)
+
+                oracle_records = [
+                    {
+                        "target_variable": target_var,
+                        "country": country_code,
+                        "feature_variable": str(fi_row["feature_variable"]),
+                        "importance_mean": float(fi_row["importance"]),
+                        "importance_std": float(fi_row["stddev"]),
+                        "majority_baseline": round(float(majority_baseline), 4),
+                    }
+                    for _, fi_row in fi_df.iterrows()
+                ]
+                if oracle_records:
+                    pd.DataFrame(oracle_records).to_csv(cell_out_dir / "oracle.csv", index=False)
+                    pd.DataFrame({"feature_variable": fi_df["feature_variable"].astype(str)}).to_csv(
+                        cell_out_dir / "feature_pool.csv", index=False
+                    )
+                    print(f"  ✓ Saved oracle to {cell_out_dir / 'oracle.csv'}")
 
                 cell_results.append(
                     CellResult(
@@ -1043,7 +1119,9 @@ if __name__ == "__main__":
         max_cells_per_run=args.max_cells_per_run,
         runtime_mode=args.runtime_mode,
         autogluon_time_limit=args.autogluon_time_limit,
+        auto_detect_gpu=args.auto_detect_gpu,
     )
-
-# Script level run option for testing purposes
-# run(targets=TARGET_QUESTIONS, output_prefix="phase0a", max_cells_per_run=0)
+    
+    
+    
+# run(targets=TARGET_QUESTIONS, output_prefix="oracle_test_ESS_autogluon_constant_feature_pool_run_2", max_cells_per_run=0, runtime_mode="balanced", autogluon_time_limit=600, auto_detect_gpu=False)
