@@ -170,6 +170,14 @@ If the file exists, `run_grid.py` loads it and skips `compute_oracle()` entirely
 
 **To modify the oracle method**, edit `phase0b_oracle.py` directly. The function signature and return types must stay the same. Key hyperparameters (`n_splits`, `n_repeats`, `random_state`) are passed per cell and are intentionally not fixed globally — optimal values vary by question complexity and country sample size.
 
+AutoGluon alternative: [phase0b_oracle_autogluon.py](phase0b_oracle_autogluon.py) writes the same `oracle.csv` cache files but uses AutoGluon permutation importance. It supports CLI flags for `--random-state` (default 42), `--similarity-threshold` (0.85), `--test-size` (0.2), `--max-missingness-threshold` (0.2), `--min-normalized-feature-entropy` (0.0), and `--enforce-identical-feature-pool` (false).
+
+Example (WVS, 5 targets × 5 countries):
+
+```bash
+python phase0b_oracle_autogluon.py --survey wvs --targets Q47 Q57 Q199 Q235 Q164 --countries Germany Nigeria Japan Brazil Egypt
+```
+
 ---
 
 ## Evaluation design
