@@ -15,17 +15,20 @@ compute_oracle() returns:
 
 Cache contract
 --------------
-run_grid.py writes oracle_df to outputs/<target>_<country>/oracle.csv and
-reloads it on subsequent runs. To plug in a pre-computed oracle (e.g. from
+run_grid.py writes oracle_df to outputs/<target>_<country>/oracle.csv (shared
+across LLM runs) and reloads it on subsequent runs. LLM-only artefacts use
+outputs/<target>_<country>/llm__<tag>/.
+To plug in a pre-computed oracle (e.g. from
 a different method or tuned hyperparameters), place a CSV with the columns
 above at that path before running the pipeline — compute_oracle() will be
 skipped automatically.
 
 Hyperparameters
 ---------------
-n_splits    — CV folds for permutation importance (default 5)
-n_repeats   — shuffle repeats per feature per fold (default 10)
+n_splits     — CV folds for permutation importance (default 5)
+n_repeats    — shuffle repeats per feature per fold (default 10)
 random_state — global seed (default 42)
+xgb_nthread  — passed to XGBoost ``nthread`` when set (reduces contention when grid cells overlap)
 
 These are passed per cell from run_grid.py. Per-cell tuning is intentional:
 optimal values vary by question complexity and sample size.
@@ -38,25 +41,110 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 
+# Substring patterns (case-insensitive) used to identify codes in metadata
+# whose label indicates a missing / non-substantive response. These pad
+# every column with spurious classes if not stripped before modelling
+# (Asianbarometer codes 7/8/9, ESS code 7/8/9, etc.).
+_MISSING_LABEL_PATTERNS: tuple[str, ...] = (
+    "missing",
+    "no answer",
+    "not applicable",
+    "not asked",
+    "refused",
+    "refusal",
+    "don't know",
+    "do not know",
+    "do not understand",
+    "can't choose",
+    "cannot choose",
+    "decline",
+    "inap",
+    "no contesta",
+    "no sabe",
+    "no response",
+)
+
+
+def _missing_codes_from_metadata(metadata: dict | None) -> dict[str, set]:
+    """
+    Build {var_code: {missing_code_str, missing_code_int, ...}} from the survey
+    metadata's value labels. A code is "missing" if its label matches any of
+    _MISSING_LABEL_PATTERNS (case-insensitive substring match). Each code is
+    stored as both the original string and (where parseable) the int form, so
+    that DataFrame columns of either dtype can be filtered.
+    """
+    out: dict[str, set] = {}
+    if not metadata:
+        return out
+    for section in metadata.values():
+        if not isinstance(section, dict):
+            continue
+        for var_code, info in section.items():
+            if not isinstance(info, dict):
+                continue
+            values = info.get("values") or {}
+            if not isinstance(values, dict):
+                continue
+            missing: set = set()
+            for code_str, label in values.items():
+                label_norm = str(label).strip().lower()
+                if any(p in label_norm for p in _MISSING_LABEL_PATTERNS):
+                    missing.add(str(code_str))
+                    missing.add(str(code_str).strip())
+                    try:
+                        missing.add(int(str(code_str)))
+                    except (TypeError, ValueError):
+                        pass
+                    try:
+                        missing.add(float(str(code_str)))
+                    except (TypeError, ValueError):
+                        pass
+            if missing:
+                out[var_code] = missing
+    return out
+
+
 def _clean_question_columns(
     df: pd.DataFrame,
     country_col: str,
     admin_cols: frozenset[str],
+    metadata: dict | None = None,
 ) -> pd.DataFrame:
     """
     Coerce numeric-coded columns to float and map negative values (missing codes) to NaN.
     Genuine text-label columns are left intact for label encoding downstream.
+
+    If metadata is provided, also drop value codes whose metadata label matches
+    a missing-response pattern (e.g. "Don't know", "Decline to answer",
+    "Can't choose"). These are typically positive integers (7/8/9 in
+    Asianbarometer, 77/88/99 in others) and would otherwise be treated as
+    substantive classes by XGBoost.
     """
     cleaned = df.copy()
+    missing_by_var = _missing_codes_from_metadata(metadata)
+
     q_cols = [c for c in cleaned.columns if c not in admin_cols and c != country_col]
     for col in q_cols:
         if not pd.api.types.is_object_dtype(cleaned[col]):
             cleaned[col] = pd.to_numeric(cleaned[col], errors="coerce")
             cleaned[col] = cleaned[col].where(cleaned[col] >= 0)
+            mc = missing_by_var.get(col)
+            if mc:
+                cleaned[col] = cleaned[col].where(~cleaned[col].isin(mc))
         else:
             coerced = pd.to_numeric(cleaned[col], errors="coerce")
             if coerced.notna().mean() > 0.5:
                 cleaned[col] = coerced.where(coerced >= 0)
+                mc = missing_by_var.get(col)
+                if mc:
+                    cleaned[col] = cleaned[col].where(~cleaned[col].isin(mc))
+            else:
+                mc = missing_by_var.get(col)
+                if mc:
+                    mc_str = {str(v).strip() for v in mc}
+                    cleaned[col] = cleaned[col].where(
+                        ~cleaned[col].astype(str).str.strip().isin(mc_str)
+                    )
     return cleaned
 
 
@@ -70,6 +158,7 @@ def compute_oracle(
     n_splits: int = 5,
     n_repeats: int = 10,
     random_state: int = 42,
+    xgb_nthread: int | None = None,
 ) -> tuple[pd.DataFrame, list[str]]:
     """
     Compute permutation importances for target_var in country_code.
@@ -85,6 +174,7 @@ def compute_oracle(
     n_splits    : CV folds
     n_repeats   : permutation repeats per feature per fold
     random_state: random seed
+    xgb_nthread : optional threads for XGBoost inside each fold/classifier fit
 
     Returns
     -------
@@ -98,11 +188,20 @@ def compute_oracle(
     from sklearn.model_selection import KFold
 
     def make_clf():
-        return xgb.XGBClassifier(
-            n_estimators=300, max_depth=4, learning_rate=0.1,
-            subsample=0.8, colsample_bytree=0.8, min_child_weight=5,
-            random_state=random_state, eval_metric="mlogloss", verbosity=0,
-        )
+        clf_kw: dict = {
+            "n_estimators": 300,
+            "max_depth": 4,
+            "learning_rate": 0.1,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8,
+            "min_child_weight": 5,
+            "random_state": random_state,
+            "eval_metric": "mlogloss",
+            "verbosity": 0,
+        }
+        if xgb_nthread is not None:
+            clf_kw["nthread"] = int(xgb_nthread)
+        return xgb.XGBClassifier(**clf_kw)
 
     country_data = data[data[country_col] == country_code].copy()
     print(f"  n (before dropping missing target): {len(country_data)}")
@@ -112,7 +211,7 @@ def compute_oracle(
             f"Actual values in data: {sorted(data[country_col].dropna().unique().tolist())}"
         )
 
-    country_data = _clean_question_columns(country_data, country_col, admin_cols)
+    country_data = _clean_question_columns(country_data, country_col, admin_cols, metadata)
 
     if country_data.columns.duplicated().any():
         country_data = country_data.loc[:, ~country_data.columns.duplicated()]

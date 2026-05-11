@@ -2,9 +2,9 @@
 Grid analysis for the 5 targets x 5 countries Phase 0b run.
 
 Reads from ``outputs/``:
-  - grid_summary.csv          : one row per (target, country, condition)
-  - {TARGET}_{COUNTRY}_disambig.json : per-cell LLM feature selection + mapping
-  - {TARGET}_{COUNTRY}_oracle.csv    : per-cell permutation importance table
+  - grid_summary__<survey_id>__<tag>.csv (or legacy grid_summary__<survey_id>.csv)
+  - outputs/<target>_<country>/llm__<tag>/disambig.json : per-cell LLM feature selection + mapping
+  - outputs/<target>_<country>/oracle.csv : per-cell permutation importance table
 
 Produces the tables and numbers used by phase0b_grid_findings.md.
 
@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 import numpy as np
 import pandas as pd
@@ -26,6 +26,7 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 GRID_CSV = OUTPUTS_DIR / "grid_summary.csv"
+MULTI_SURVEY_SUMMARY_CSV = OUTPUTS_DIR / "grid_summary__all_surveys.csv"
 
 TARGETS = ["Q47", "Q57", "Q199", "Q235", "Q164"]
 COUNTRIES = ["Germany", "Nigeria", "Japan", "Brazil", "Egypt"]
@@ -54,16 +55,77 @@ def load_grid_summary(path: Path = GRID_CSV) -> pd.DataFrame:
     return df
 
 
+def list_per_survey_summary_paths(outputs_dir: Path = OUTPUTS_DIR) -> list[Path]:
+    """grid_summary files selected for analysis (one per survey when possible)."""
+    from output_layout import collect_grid_summary_paths
+
+    return collect_grid_summary_paths(outputs_dir)
+
+
+def load_multi_survey_summary(
+    paths: Iterable[Path] | None = None,
+    *,
+    outputs_dir: Path = OUTPUTS_DIR,
+    exclude_aggregated: bool = True,
+) -> pd.DataFrame:
+    """
+    Concatenate per-survey grid summaries with a ``survey`` column.
+    Skips ``grid_summary__all_surveys.csv`` when ``exclude_aggregated`` is True.
+    """
+    if paths is None:
+        paths = list_per_survey_summary_paths(outputs_dir)
+    if exclude_aggregated:
+        paths = [p for p in paths if p.name != MULTI_SURVEY_SUMMARY_CSV.name]
+    from output_layout import parse_grid_summary_stem
+
+    frames: list[pd.DataFrame] = []
+    for path in paths:
+        stem = path.stem
+        prefix = "grid_summary__"
+        if not stem.startswith(prefix):
+            continue
+        try:
+            survey_id, run_tag = parse_grid_summary_stem(stem)
+        except ValueError:
+            continue
+        if survey_id == "all_surveys":
+            continue
+        df = pd.read_csv(path)
+        df.insert(0, "survey", survey_id)
+        if run_tag:
+            df["llm_run_tag"] = run_tag
+        df["cell"] = df["target"].astype(str) + "_" + df["country"].astype(str)
+        frames.append(df)
+    if not frames:
+        return pd.DataFrame()
+    return pd.concat(frames, ignore_index=True)
+
+
+def write_multi_survey_summary(
+    out_path: Path = MULTI_SURVEY_SUMMARY_CSV,
+    **kwargs: Any,
+) -> pd.DataFrame:
+    """Build long-format multi-survey dataframe and save to CSV."""
+    df = load_multi_survey_summary(**kwargs)
+    if df.empty:
+        return df
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(out_path, index=False)
+    return df
+
+
 def load_disambig(target: str, country: str) -> list[dict]:
-    path = OUTPUTS_DIR / f"{target}_{country}_disambig.json"
-    if not path.exists():
+    from output_layout import resolve_llm_artifact
+
+    path = resolve_llm_artifact(OUTPUTS_DIR, target, country, "disambig.json")
+    if path is None or not path.exists():
         return []
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def load_oracle(target: str, country: str) -> pd.DataFrame | None:
-    path = OUTPUTS_DIR / f"{target}_{country}_oracle.csv"
+    path = OUTPUTS_DIR / f"{target}_{country}" / "oracle.csv"
     if not path.exists():
         return None
     return pd.read_csv(path)
@@ -504,5 +566,12 @@ def _print_report(results: dict) -> None:
 
 
 if __name__ == "__main__":
+    import sys
+
+    if "--write-multi-summary" in sys.argv:
+        out = write_multi_survey_summary()
+        print(f"Wrote {MULTI_SURVEY_SUMMARY_CSV} ({len(out)} rows)")
+        sys.exit(0)
+
     results = run_all()
     _print_report(results)

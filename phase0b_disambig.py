@@ -31,12 +31,18 @@ def format_candidates(candidates: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def parse_disambig_response(raw: str, n_candidates: int) -> int | None:
+def parse_disambig_response(raw: str | None, n_candidates: int) -> int | None:
     """
     Parse the LLM response into a candidate index or None.
     Returns index (0-based) or None for 'none'.
     """
+    if raw is None:
+        return None
+    if not isinstance(raw, str):
+        raw = str(raw)
     cleaned = raw.strip().upper()
+    if not cleaned:
+        return None
 
     if "NONE" in cleaned:
         return None
@@ -55,7 +61,8 @@ def disambiguate_single(
     candidates: list[dict],
     generate_fn,
     model: str,
-    max_tokens: int = 16,
+    # Large cap: Kimi-style models may consume budget before the visible letter / "none".
+    max_tokens: int = 8192,
     temperature: float = 0.0,
 ) -> dict:
     """
@@ -76,24 +83,31 @@ def disambiguate_single(
     )
 
     messages = [{"role": "user", "content": prompt}]
-    raw = generate_fn(messages, max_tokens=max_tokens, temperature=temperature)
+    raw = generate_fn(
+        messages, max_tokens=max_tokens, temperature=temperature, usage_phase="disambig"
+    )
+    if raw is None:
+        raw_s = ""
+    elif isinstance(raw, str):
+        raw_s = raw.strip()
+    else:
+        raw_s = str(raw).strip()
 
-    idx = parse_disambig_response(raw, len(candidates))
+    idx = parse_disambig_response(raw_s, len(candidates))
 
     if idx is not None and idx < len(candidates):
         return {
             "selected_code": candidates[idx]["var_code"],
             "selected_text": candidates[idx]["question_text"],
             "selected_rank": idx,
-            "raw_response": raw.strip(),
+            "raw_response": raw_s,
         }
-    else:
-        return {
-            "selected_code": None,
-            "selected_text": None,
-            "selected_rank": None,
-            "raw_response": raw.strip(),
-        }
+    return {
+        "selected_code": None,
+        "selected_text": None,
+        "selected_rank": None,
+        "raw_response": raw_s,
+    }
 
 
 def disambiguate_mappings(

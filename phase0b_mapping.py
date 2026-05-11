@@ -4,8 +4,23 @@ Maps LLM-generated feature descriptions to WVS survey variables via cosine simil
 """
 
 import json
+import threading
 import numpy as np
 from pathlib import Path
+
+# SentenceTransformer is not thread-safe to construct concurrently (multiple grid
+# workers can hit meta-tensor / device race). Load once per model name under lock.
+_sent_trf_lock = threading.Lock()
+_sent_trf_models: dict[str, object] = {}
+
+
+def _get_sentence_transformer(model_name: str):
+    with _sent_trf_lock:
+        if model_name not in _sent_trf_models:
+            from sentence_transformers import SentenceTransformer
+
+            _sent_trf_models[model_name] = SentenceTransformer(model_name)
+        return _sent_trf_models[model_name]
 
 
 def extract_survey_variables(metadata: dict, exclude_sections: list[str] = None) -> dict[str, str]:
@@ -33,8 +48,7 @@ def extract_survey_variables(metadata: dict, exclude_sections: list[str] = None)
 
 def build_embeddings(texts: list[str], model_name: str = "all-MiniLM-L6-v2") -> np.ndarray:
     """Embed a list of texts. Returns (n_texts, dim) array."""
-    from sentence_transformers import SentenceTransformer
-    model = SentenceTransformer(model_name)
+    model = _get_sentence_transformer(model_name)
     return model.encode(texts, show_progress_bar=True, normalize_embeddings=True)
 
 
@@ -67,9 +81,8 @@ def map_features_to_variables(
     Returns:
         List of mapping dicts, one per feature across all results.
     """
-    from sentence_transformers import SentenceTransformer
-    model = SentenceTransformer(model_name)
-    
+    model = _get_sentence_transformer(model_name)
+
     # Pre-compute target question embeddings for leakage filtering
     target_codes = set(r["target"] for r in results if r["features"])
     target_embeddings = {}
@@ -150,6 +163,13 @@ def map_features_to_variables(
                 "top_match_score": candidates[0]["similarity"] if candidates else None,
             })
     
+    n_empty = sum(1 for m in mappings if not m["candidates"])
+    if n_empty and mappings:
+        print(
+            f"  [map_features_to_variables] {n_empty}/{len(mappings)} rows have zero candidates "
+            f"(min_threshold={min_threshold}; target + leakage exclusions apply)"
+        )
+
     return mappings
 
 

@@ -149,7 +149,7 @@ def _single_random_draw(
 def run_comparison(
     data: pd.DataFrame,
     target_var: str,
-    country_code: int,
+    country_code: int | str,
     country_col: str,
     model_features: list[str],
     oracle_importances: pd.DataFrame,
@@ -157,6 +157,7 @@ def run_comparison(
     all_feature_pool: list[str] = None,
     random_state: int = 42,
     n_jobs: int = -1,
+    eval_xgb_nthread: int | None = None,
 ) -> dict:
     """
     Compare oracle, model-selected, and random feature sets.
@@ -186,7 +187,14 @@ def run_comparison(
     k = len(model_vars)
 
     if k == 0:
-        return {"error": "no mapped features", "k": 0}
+        return {
+            "target": target_var,
+            "country": country_code,
+            "error": "no mapped features",
+            "k": 0,
+            "k_requested": len(model_features),
+            "k_mapped": 0,
+        }
 
     # Oracle top-k (matched to model's k)
     oracle_df = oracle_importances[
@@ -201,10 +209,14 @@ def run_comparison(
         all_feature_pool = [c for c in country_data.columns if c not in exclude]
 
     # Evaluate oracle
-    oracle_result = evaluate_feature_set(country_data, target_var, oracle_vars)
+    oracle_result = evaluate_feature_set(
+        country_data, target_var, oracle_vars, nthread=eval_xgb_nthread
+    )
 
     # Evaluate model-selected
-    model_result = evaluate_feature_set(country_data, target_var, model_vars)
+    model_result = evaluate_feature_set(
+        country_data, target_var, model_vars, nthread=eval_xgb_nthread
+    )
 
     # Evaluate random-k (averaged over draws, parallelised across cores)
     seeds = [random_state + i for i in range(n_random_draws)]
@@ -235,7 +247,10 @@ def run_comparison(
 def print_comparison(result: dict):
     """Print a single comparison result."""
     if "error" in result and result.get("error"):
-        print(f"  {result['target']} | country={result.get('country')} | ERROR: {result['error']}")
+        print(
+            f"  {result.get('target', '?')} | country={result.get('country', '?')} "
+            f"| ERROR: {result['error']}"
+        )
         return
 
     o = result["oracle"]

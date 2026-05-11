@@ -10,6 +10,7 @@ The pipeline asks an LLM to list predictive features for a target survey questio
 
 ```
 run_grid.py            — main entry point: runs any subset of targets × countries
+output_layout.py       — output paths: per-model LLM caches, grid_summary naming, discovery helpers
 generate.py            — LLM client wrapper (OpenAI-compatible)
 phase0b_oracle.py      — oracle step: XGBoost permutation importance (ground truth)
 phase0b_pipeline.py    — LLM feature selection prompts and batch runner
@@ -44,7 +45,13 @@ cp .env.example .env
 # Edit .env — fill in LLM_API_KEY, LLM_MODEL, LLM_BASE_URL, DATA_CONFIG_PATH
 ```
 
-`LLM_BASE_URL` accepts any OpenAI-compatible endpoint: Nebius, Together.ai, OpenRouter, local SGLang, etc.
+`LLM_BASE_URL` accepts any OpenAI-compatible endpoint: Nebius, Together.ai, OpenRouter, Moonshot (if exposed as OpenAI-compatible), local SGLang, etc.
+
+Example second model (after configuring a provider that serves it):
+
+- `LLM_MODEL=moonshotai/Kimi-K2.5`
+
+Each full pipeline run writes LLM-specific files under a **run tag** derived from `LLM_MODEL` (slashes and spaces → underscores). Override with `python run_grid.py --run-tag my_tag ...` if the API model id does not match the folder name you want.
 
 ---
 
@@ -76,6 +83,18 @@ python run_grid.py --survey afrobarometer --list-countries
 python run_grid.py --survey ess_wave_10 --list-countries
 ```
 
+### Prelim multi-survey grids (manifest + staging)
+
+```bash
+python prelim/introspect_metadata.py        # survey metadata key inventory
+python prelim/build_prelim_manifest.py      # writes prelim/prelim_manifest.yaml
+
+python run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml --stop-after oracle
+python run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml
+```
+
+PowerShell: staged oracle then optional full run with `run_prelim_staged.ps1`; set `RUN_PRELIM_FULL=1` before running to include the LLM+eval pass for all surveys after oracles are validated.
+
 ### Supported surveys
 
 | `--survey` value  | Country column | Notes |
@@ -104,26 +123,29 @@ Each (target × country) cell runs five steps in order:
 [5] Evaluate     — compare oracle / model-selected / random feature sets via XGBoost CV
 ```
 
-Steps run per-cell in parallel threads (`N_CELL_WORKERS = 5`). The permutation importance inner loop is parallelised across CPU cores via joblib.
+Steps run per-cell in parallel threads (default `--grid-workers 5`). XGBoost thread budget per cell is capped via `GRID_XGB_NTHREAD` or `cpu_count // grid_workers` to reduce oversubscription. Permutation importance in the oracle step is sequential; **joblib** parallelises only the random-feature baseline draws during evaluation.
 
 ---
 
 ## Caching and resuming
 
-Every intermediate result is cached in `outputs/<target>_<country>/`:
+Per cell directory `outputs/<target>_<country>/`:
 
-```
-outputs/
-  Q164_Germany/
-    oracle.csv      ← permutation importances (all features)
-    disambig.json   ← LLM selection + mapping results
-    eval.json       ← XGBoost comparison results
-  survey_embeddings.npz   ← shared across all cells, rebuilt if metadata changes
-  grid_summary.csv        ← one row per (target, country, condition)
-  grid_results.json       ← full nested results
-```
+- **`oracle.csv`** — permutation importances (all features). **Shared across LLM models**; if it exists, every model run reuses it.
+- **`llm__<run_tag>/disambig.json`** — LLM selection, retrieval, and disambiguation for that model/tag.
+- **`llm__<run_tag>/eval.json`** — XGBoost comparison for that model/tag.
 
-Re-running skips any cell whose outputs already exist. Delete a cell's directory to force a full rerun of that cell, or delete individual files to rerun specific steps.
+Survey-wide files:
+
+- **`survey_embeddings__<survey_id>.npz`** — shared embedding cache for variable texts (not model-specific).
+- **`grid_summary__<survey_id>__<run_tag>.csv`** — one row per (target, country, condition), plus `llm_model` / `llm_run_tag` columns.
+- **`grid_results__<survey_id>__<run_tag>.json`** — nested eval payload per cell.
+
+Re-running skips steps whose outputs already exist for that **run tag** (LLM paths) and always reuses `oracle.csv` when present. Delete a specific `llm__<tag>` folder to force rerunning the LLM+eval stack for that model only; delete `oracle.csv` to recompute the oracle.
+
+If you still have **`disambig.json` and `eval.json` beside `oracle.csv`** from before this layout, move them into `llm__<tag>/` where `<tag>` matches the slug for the `LLM_MODEL` you used (or use `--run-tag`), so the runner can resume without redoing API calls.
+
+**Analysis:** if you have both legacy `grid_summary__<survey>.csv` (no tag) and new tagged files, tooling under `analysis/` picks **one file per survey** with this priority: env `GRID_SUMMARY_TAG` (exact match on `__<tag>`), else the **newest** tagged `grid_summary__<survey>__*.csv` if any exist, else the legacy file. Set `GRID_SUMMARY_TAG` when you want figures or TeX reports pinned to a specific model run (e.g. the slug for `moonshotai/Kimi-K2.5`).
 
 ---
 

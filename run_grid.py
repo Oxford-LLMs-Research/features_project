@@ -9,8 +9,12 @@ Loads WVS data and survey-variable embeddings ONCE, then iterates through every
   4. LLM disambiguation
   5. Downstream XGBoost prediction comparison
 
-Cached intermediates under outputs/<target>_<country>/ are reused across runs,
-so a re-run resumes from the last completed cell.
+Oracle is cached under outputs/<target>_<country>/oracle.csv (model-independent).
+LLM + eval caches are under outputs/<target>_<country>/llm__<run_tag>/
+(disambig.json, eval.json). Pass --run-tag or rely on a slug from LLM_MODEL so
+runs for different models never share or overwrite each other's LLM caches.
+Grid summaries: outputs/grid_summary__<survey>__<run_tag>.csv .
+LLM token usage (when the client returns usage): outputs/llm_usage__<survey>__<run_tag>.jsonl .
 
 Usage:
     python run_grid.py                                              # full WVS 5×5 grid
@@ -38,7 +42,14 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+import yaml
 from dotenv import load_dotenv
+from output_layout import (
+    grid_results_json_path,
+    grid_summary_csv_path,
+    llm_cache_prefix,
+    sanitize_model_slug,
+)
 from phase0b_oracle import compute_oracle
 
 load_dotenv()
@@ -61,14 +72,35 @@ SURVEY_COUNTRY_COL: dict[str, str] = {
 
 # Default grid (WVS only; always specify --targets and --countries for other surveys).
 DEFAULT_SURVEY = "wvs"
-DEFAULT_TARGETS = ["Q47", "Q57", "Q199", "Q235", "Q164"]
+DEFAULT_TARGETS = ["Q49", "Q199", "Q71", "Q165", "Q240"]
 DEFAULT_COUNTRIES = ["Germany", "Nigeria", "Japan", "Brazil", "Egypt"]
 
-SURVEY_EMB_CACHE = OUTPUTS_DIR / "survey_embeddings.npz"
-GRID_SUMMARY_CSV = OUTPUTS_DIR / "grid_summary.csv"
-GRID_RESULTS_JSON = OUTPUTS_DIR / "grid_results.json"
+def survey_emb_cache_path(survey_id: str) -> Path:
+    return OUTPUTS_DIR / f"survey_embeddings__{survey_id}.npz"
 
-N_CELL_WORKERS = 5
+
+DEFAULT_GRID_WORKERS = 5
+
+
+def resolve_xgb_nthread(grid_workers: int) -> int | None:
+    """
+    XGBoost nthread budget per model fit when running concurrent grid cells.
+    Set GRID_XGB_NTHREAD in the environment to override (integer >= 1).
+    """
+    raw = os.environ.get("GRID_XGB_NTHREAD")
+    if raw is not None and raw.strip():
+        try:
+            return max(1, int(raw))
+        except ValueError:
+            pass
+    cpus = os.cpu_count() or 10
+    return max(1, cpus // max(1, grid_workers))
+
+
+def resolve_n_jobs_random(grid_workers: int, xgb_nthread: int) -> int:
+    cpus = os.cpu_count() or 10
+    budget = cpus // max(1, grid_workers) // max(1, xgb_nthread)
+    return max(1, min(budget, 24))
 
 
 # ── Data loading ──────────────────────────────────────────────────────────────
@@ -217,23 +249,25 @@ def run_llm_and_map(
 
 def load_or_build_survey_embeddings(
     survey_variables: dict[str, str],
+    survey_id: str,
 ) -> tuple[np.ndarray, list[str]]:
     from phase0b_mapping import build_embeddings
 
     var_codes = list(survey_variables.keys())
     var_texts = list(survey_variables.values())
 
-    if SURVEY_EMB_CACHE.exists():
-        cached = np.load(SURVEY_EMB_CACHE, allow_pickle=True)
+    cache_path = survey_emb_cache_path(survey_id)
+    if cache_path.exists():
+        cached = np.load(cache_path, allow_pickle=True)
         cached_codes = list(cached["var_codes"])
         if cached_codes == var_codes:
-            print(f"  Loaded cached embeddings ({len(var_codes)} vars) from {SURVEY_EMB_CACHE}")
+            print(f"  Loaded cached embeddings ({len(var_codes)} vars) from {cache_path}")
             return cached["embeddings"], var_codes
-        print("  Cached embeddings are stale (var_codes mismatch); recomputing.")
+        print(f"  Cached embeddings at {cache_path} are stale (var_codes mismatch); recomputing.")
 
     embeddings = build_embeddings(var_texts)
-    np.savez(SURVEY_EMB_CACHE, embeddings=embeddings, var_codes=np.array(var_codes, dtype=object))
-    print(f"  Saved embeddings to {SURVEY_EMB_CACHE}")
+    np.savez(cache_path, embeddings=embeddings, var_codes=np.array(var_codes, dtype=object))
+    print(f"  Saved embeddings to {cache_path}")
     return embeddings, var_codes
 
 
@@ -254,6 +288,7 @@ def get_or_compute_oracle(
     data: pd.DataFrame,
     metadata: dict,
     prefix: str,
+    xgb_nthread: int | None = None,
 ) -> tuple[pd.DataFrame, list[str]]:
     oracle_path = cell_dir(prefix) / "oracle.csv"
     if oracle_path.exists():
@@ -264,7 +299,13 @@ def get_or_compute_oracle(
 
     print(f"  [oracle] Computing ({target} x {country_name}) ...")
     oracle_df, feature_pool = compute_oracle(
-        data, metadata, target, country_code, country_col, admin_cols,
+        data,
+        metadata,
+        target,
+        country_code,
+        country_col,
+        admin_cols,
+        xgb_nthread=xgb_nthread,
     )
     oracle_df.to_csv(oracle_path, index=False)
     print(f"  [oracle] Saved {prefix}/oracle.csv")
@@ -318,6 +359,7 @@ def get_or_run_eval(
     data: pd.DataFrame,
     prefix: str,
     n_jobs_random: int = -1,
+    eval_xgb_nthread: int | None = None,
 ) -> tuple[dict, list[dict]]:
     d = cell_dir(prefix)
     eval_path = d / "eval.json"
@@ -339,6 +381,7 @@ def get_or_run_eval(
         oracle_df=oracle_df,
         feature_pool=feature_pool,
         n_jobs_random=n_jobs_random,
+        eval_xgb_nthread=eval_xgb_nthread,
     )
 
     with open(eval_path, "w", encoding="utf-8") as f:
@@ -359,6 +402,7 @@ def run_eval_per_condition(
     oracle_df: pd.DataFrame,
     feature_pool: list[str],
     n_jobs_random: int = -1,
+    eval_xgb_nthread: int | None = None,
 ) -> tuple[dict, list[dict]]:
     from phase0b_evaluation import run_comparison, print_comparison
 
@@ -389,6 +433,7 @@ def run_eval_per_condition(
                 oracle_importances=oracle_df,
                 all_feature_pool=feature_pool,
                 n_jobs=n_jobs_random,
+                eval_xgb_nthread=eval_xgb_nthread,
             )
             print_comparison(result)
             results[cond] = result
@@ -408,12 +453,17 @@ def flatten_eval_result(
     country_code: int | str,
     condition: str,
     cell_result: dict,
+    *,
+    llm_model: str,
+    llm_run_tag: str,
 ) -> dict:
     row = {
         "target": target,
         "country": country_name,
         "country_code": country_code,
         "condition": condition,
+        "llm_model": llm_model,
+        "llm_run_tag": llm_run_tag,
         "k_requested": cell_result.get("k_requested"),
         "k_mapped": cell_result.get("k_mapped"),
         "majority_baseline": None,
@@ -489,11 +539,14 @@ class PipelineContext:
     eval_data: pd.DataFrame
     metadata: dict
     survey_variables: dict[str, str]
-    survey_embeddings: np.ndarray
+    survey_embeddings: np.ndarray | None
     var_codes: list[str]
     generate_fn: Any
     model_name: str
+    output_tag: str
     n_jobs_random: int
+    xgb_nthread: int | None
+    stop_after: str
     country_col: str
     admin_cols: frozenset[str]
     country_codes: dict[str, int | str]
@@ -504,8 +557,6 @@ def run_cell(ctx: PipelineContext, target: str, country_name: str) -> dict:
     prefix = f"{target}_{country_name}"
 
     try:
-        question_text = get_question_text(target, ctx.metadata)
-
         oracle_df, feature_pool = get_or_compute_oracle(
             target=target,
             country_name=country_name,
@@ -515,8 +566,25 @@ def run_cell(ctx: PipelineContext, target: str, country_name: str) -> dict:
             data=ctx.data,
             metadata=ctx.metadata,
             prefix=prefix,
+            xgb_nthread=ctx.xgb_nthread,
         )
 
+        if ctx.stop_after == "oracle":
+            return {
+                "target": target,
+                "country_name": country_name,
+                "country_code": country_code,
+                "prefix": prefix,
+                "eval_results": {},
+                "cond_errors": [],
+                "error": None,
+                "stopped_after_oracle": True,
+            }
+
+        question_text = get_question_text(target, ctx.metadata)
+
+        assert ctx.survey_embeddings is not None and ctx.generate_fn is not None
+        llm_prefix = llm_cache_prefix(prefix, ctx.output_tag)
         mappings = get_or_run_llm_mapping(
             target=target,
             question_text=question_text,
@@ -526,13 +594,20 @@ def run_cell(ctx: PipelineContext, target: str, country_name: str) -> dict:
             survey_variables=ctx.survey_variables,
             survey_embeddings=ctx.survey_embeddings,
             var_codes=ctx.var_codes,
-            prefix=prefix,
+            prefix=llm_prefix,
         )
 
         if not mappings:
-            return {"target": target, "country_name": country_name,
-                    "country_code": country_code, "prefix": prefix,
-                    "eval_results": {}, "cond_errors": [], "error": "no mappings"}
+            return {
+                "target": target,
+                "country_name": country_name,
+                "country_code": country_code,
+                "prefix": prefix,
+                "eval_results": {},
+                "cond_errors": [],
+                "error": "no mappings",
+                "stopped_after_oracle": False,
+            }
 
         eval_results, cond_errors = get_or_run_eval(
             target=target,
@@ -543,20 +618,34 @@ def run_cell(ctx: PipelineContext, target: str, country_name: str) -> dict:
             oracle_df=oracle_df,
             feature_pool=feature_pool,
             data=ctx.eval_data,
-            prefix=prefix,
+            prefix=llm_prefix,
             n_jobs_random=ctx.n_jobs_random,
+            eval_xgb_nthread=ctx.xgb_nthread,
         )
 
-        return {"target": target, "country_name": country_name,
-                "country_code": country_code, "prefix": prefix,
-                "eval_results": eval_results, "cond_errors": cond_errors, "error": None}
+        return {
+            "target": target,
+            "country_name": country_name,
+            "country_code": country_code,
+            "prefix": prefix,
+            "eval_results": eval_results,
+            "cond_errors": cond_errors,
+            "error": None,
+            "stopped_after_oracle": False,
+        }
 
     except Exception as e:
         traceback.print_exc()
-        return {"target": target, "country_name": country_name,
-                "country_code": country_code, "prefix": prefix,
-                "eval_results": {}, "cond_errors": [],
-                "error": f"{type(e).__name__}: {e}"}
+        return {
+            "target": target,
+            "country_name": country_name,
+            "country_code": country_code,
+            "prefix": prefix,
+            "eval_results": {},
+            "cond_errors": [],
+            "error": f"{type(e).__name__}: {e}",
+            "stopped_after_oracle": False,
+        }
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -582,14 +671,56 @@ def main():
         "--list-countries", action="store_true",
         help="Print all available countries for the chosen survey and exit.",
     )
+    parser.add_argument(
+        "--stop-after",
+        choices=("full", "oracle"),
+        default="full",
+        help="Stop pipeline after permutation-importance oracle (skip LLM, mapping, evaluation).",
+    )
+    parser.add_argument(
+        "--grid-workers",
+        type=int,
+        default=None,
+        metavar="N",
+        help=(
+            "Max concurrent (target × country) cells "
+            f"(default: {DEFAULT_GRID_WORKERS}, capped by CPU cell count)."
+        ),
+    )
+    parser.add_argument(
+        "--from-manifest",
+        metavar="YAML",
+        default=None,
+        help="YAML file with surveys → {targets: [...], countries: [...]}; overrides CLI lists.",
+    )
+    parser.add_argument(
+        "--run-tag",
+        metavar="TAG",
+        default=None,
+        help=(
+            "Tag for llm__/ grid_summary paths (default: slug from LLM_MODEL). "
+            "Use a fixed tag when the API model id differs from the folder name you want."
+        ),
+    )
     args = parser.parse_args()
 
     survey_id = args.survey
     country_col = SURVEY_COUNTRY_COL[survey_id]
 
-    # Apply WVS defaults only when the default survey is selected and nothing is overridden.
     targets = args.targets or (DEFAULT_TARGETS if survey_id == DEFAULT_SURVEY else None)
     countries = args.countries or (DEFAULT_COUNTRIES if survey_id == DEFAULT_SURVEY else None)
+
+    if args.from_manifest:
+        mf_path = Path(args.from_manifest)
+        if not mf_path.is_file():
+            raise FileNotFoundError(f"Manifest not found: {mf_path.resolve()}")
+        with open(mf_path, encoding="utf-8") as f:
+            mf_doc = yaml.safe_load(f) or {}
+        block = (mf_doc.get("surveys") or {}).get(survey_id)
+        if not block:
+            raise KeyError(f"survey '{survey_id}' missing under 'surveys' in {mf_path}")
+        targets = block.get("targets") or []
+        countries = block.get("countries") or []
 
     config_path = os.environ.get("DATA_CONFIG_PATH")
     if not config_path:
@@ -622,31 +753,57 @@ def main():
         )
 
     n_cells = len(targets) * len(countries)
-    n_workers = min(N_CELL_WORKERS, n_cells)
-    n_jobs_random = max(1, (os.cpu_count() or 10) // n_workers)
+    gw = args.grid_workers if args.grid_workers is not None else DEFAULT_GRID_WORKERS
+    gw = max(1, gw)
+    n_workers = min(gw, n_cells)
+    xgb_nt = resolve_xgb_nthread(n_workers)
+    n_jobs_random = resolve_n_jobs_random(n_workers, int(xgb_nt or 1))
 
     print("\n" + "=" * 72)
     print(f"Survey: {survey_id}  |  country column: {country_col}")
     print(f"Grid runner: {len(targets)} target(s) x {len(countries)} country/ies = {n_cells} cell(s)")
     print(f"Targets:   {targets}")
     print(f"Countries: {countries}")
+    print(f"Workers: {n_workers}, XGB nthread/cell: {xgb_nt}, joblib n_jobs (random): {n_jobs_random}")
     print("=" * 72)
 
     print("\n[setup] Cleaning question columns for evaluation ...")
-    eval_data = clean_question_columns(data, country_col, admin_cols)
+    from phase0b_oracle import _clean_question_columns
+    eval_data = _clean_question_columns(data, country_col, admin_cols, metadata)
 
     print("\n[setup] Building survey variable index ...")
     from phase0b_mapping import extract_survey_variables
     survey_variables = extract_survey_variables(metadata)
     print(f"  {len(survey_variables)} survey variables")
 
-    print("\n[setup] Loading / building survey embeddings ...")
-    survey_embeddings, var_codes = load_or_build_survey_embeddings(survey_variables)
+    stop_after = args.stop_after
+    output_tag = ""
+    llm_usage_log = None
+    if stop_after == "oracle":
+        print("\n[setup] --stop-after oracle: skipping embeddings and LLM client init")
+        survey_embeddings = None
+        var_codes: list[str] = []
+        generate_fn = None
+        model_name = ""
+    else:
+        print("\n[setup] Loading / building survey embeddings ...")
+        survey_embeddings, var_codes = load_or_build_survey_embeddings(survey_variables, survey_id)
 
-    print("\n[setup] Initialising LLM client ...")
-    from generate import make_generate_fn
-    generate_fn, model_name = make_generate_fn()
-    print(f"  Model: {model_name}")
+        print("\n[setup] Initialising LLM client ...")
+        from generate import TokenUsageLog, make_generate_fn
+
+        usage_log_ref: list[TokenUsageLog | None] = [None]
+        generate_fn, model_name = make_generate_fn(usage_log_ref=usage_log_ref)
+        print(f"  Model: {model_name}")
+        output_tag = sanitize_model_slug(args.run_tag) if args.run_tag else sanitize_model_slug(model_name)
+        llm_usage_log = TokenUsageLog(
+            OUTPUTS_DIR / f"llm_usage__{survey_id}__{output_tag}.jsonl"
+        )
+        usage_log_ref[0] = llm_usage_log
+        print(f"  Output tag (LLM / summary paths): {output_tag}")
+
+    grid_summary_csv = grid_summary_csv_path(OUTPUTS_DIR, survey_id, output_tag) if output_tag else None
+    grid_results_json = grid_results_json_path(OUTPUTS_DIR, survey_id, output_tag) if output_tag else None
 
     summary_rows: list[dict] = []
     full_results: dict = {}
@@ -661,7 +818,10 @@ def main():
         var_codes=var_codes,
         generate_fn=generate_fn,
         model_name=model_name,
+        output_tag=output_tag,
         n_jobs_random=n_jobs_random,
+        xgb_nthread=xgb_nt,
+        stop_after=stop_after,
         country_col=country_col,
         admin_cols=admin_cols,
         country_codes={c: country_codes[c] for c in countries},
@@ -687,6 +847,10 @@ def main():
 
             print(f"\n[{completed}/{total}] Done: {target} x {country_name}")
 
+            if result.get("stopped_after_oracle"):
+                print("  (--stop-after oracle: skipped LLM/eval; oracle.csv cached)")
+                continue
+
             if result["error"]:
                 msg = result["error"]
                 print(f"  [error] {msg}")
@@ -699,26 +863,42 @@ def main():
             full_results[prefix] = eval_results
             for condition, cell_result in eval_results.items():
                 summary_rows.append(
-                    flatten_eval_result(target, country_name, country_code,
-                                        condition, cell_result)
+                    flatten_eval_result(
+                        target,
+                        country_name,
+                        country_code,
+                        condition,
+                        cell_result,
+                        llm_model=ctx.model_name,
+                        llm_run_tag=ctx.output_tag,
+                    )
                 )
             for ce in cond_errors:
                 errors.append({"target": target, "country": country_name,
                                "condition": ce["condition"], "error": ce["error"]})
 
-            pd.DataFrame(summary_rows).to_csv(GRID_SUMMARY_CSV, index=False)
-            with open(GRID_RESULTS_JSON, "w", encoding="utf-8") as f:
+            assert grid_summary_csv is not None and grid_results_json is not None
+            pd.DataFrame(summary_rows).to_csv(grid_summary_csv, index=False)
+            with open(grid_results_json, "w", encoding="utf-8") as f:
                 json.dump(full_results, f, indent=2, ensure_ascii=False, default=str)
 
     if summary_rows:
-        pd.DataFrame(summary_rows).to_csv(GRID_SUMMARY_CSV, index=False)
-        print(f"\nWrote {GRID_SUMMARY_CSV} ({len(summary_rows)} rows)")
+        assert grid_summary_csv is not None and grid_results_json is not None
+        pd.DataFrame(summary_rows).to_csv(grid_summary_csv, index=False)
+        print(f"\nWrote {grid_summary_csv} ({len(summary_rows)} rows)")
+        with open(grid_results_json, "w", encoding="utf-8") as f:
+            json.dump(full_results, f, indent=2, ensure_ascii=False, default=str)
+        print(f"Wrote {grid_results_json} ({len(full_results)} evaluated cells)")
+    elif stop_after == "oracle":
+        print("\n[oracle-only] No grid_summary / grid_results CSV written (evaluation not run).")
 
-    with open(GRID_RESULTS_JSON, "w", encoding="utf-8") as f:
-        json.dump(full_results, f, indent=2, ensure_ascii=False, default=str)
-    print(f"Wrote {GRID_RESULTS_JSON} ({len(full_results)} cells)")
+    if stop_after == "oracle":
+        print("\nOracle-only run finished — rerun without --stop-after oracle to continue from cached oracle CSVs.")
 
     print_summary_table(summary_rows)
+
+    if llm_usage_log is not None:
+        llm_usage_log.print_summary()
 
     if errors:
         print("\n" + "=" * 72)

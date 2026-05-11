@@ -1,0 +1,83 @@
+description: 'Preliminary multi-survey grid: ESS uses ess_wave_11 only (ess_wave_10
+  omitted). Targets chosen for topic + cardinality spread under quota 2 binary + 2
+  mid (4-5 cats) + 1 large (5-15 cats); high-cardinality targets above 15 categories
+  are excluded.'
+surveys:
+  afrobarometer:
+    targets:
+    - Q43A
+    - Q67A
+    - Q18
+    - Q15
+    - Q93B
+    countries:
+    - Angola
+    - Gabon
+    - Mali
+    - Seychelles
+    - Zimbabwe
+  arabbarometer:
+    targets:
+    - Q1005B
+    - Q104
+    - Q534_2
+    - Q630
+    - Q501E_2
+    countries:
+    - Iraq
+    - Kuwait
+    - Mauritania
+    - Morocco
+    - Tunisia
+  asianbarometer:
+    targets:
+    - level
+    - SE2
+    - SE14a
+    - SE7a
+    - SE13a
+    countries:
+    - Australia
+    - Indonesia
+    - Mongolia
+    - Taiwan
+    - Vietnam
+  ess_wave_11:
+    targets:
+    - bctprd
+    - rtrd
+    - eqparlv
+    - testji4
+    - stfgov
+    countries:
+    - Austria
+    - France
+    - Italy
+    - Serbia
+    - United Kingdom
+  latinobarometer:
+    targets:
+    - SEXO
+    - S20.A
+    - P8STGBS
+    - P61ST
+    - P16ST
+    countries:
+    - Argentina
+    - Colombia
+    - Guatemala
+    - Paraguay
+    - Venezuela
+  wvs:
+    targets:
+    - Q263
+    - Q141
+    - Q205
+    - Q40
+    - Q242
+    countries:
+    - Andorra
+    - Germany
+    - Macao SAR
+    - Romania
+    - Zimbabwe

@@ -5,6 +5,7 @@ xgboost
 scikit-learn
 pandas
 numpy
+matplotlib
 scipy
 python-dotenv
 pyaml

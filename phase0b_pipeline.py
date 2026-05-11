@@ -37,13 +37,58 @@ Output ONLY the JSON list, no other text."""
 
 # ── Core functions ──
 
+
+def _normalize_parsed_features(parsed: object) -> list[dict] | None:
+    """
+    Coerce diverse LLM JSON shapes into [{feature, reasoning}, ...].
+    Handles wrapped objects, list-of-strings, and alternate key names.
+    """
+    if parsed is None:
+        return None
+    if isinstance(parsed, dict):
+        for key in ("features", "items", "candidates", "answers", "result", "list", "data"):
+            if key in parsed and isinstance(parsed[key], list):
+                parsed = parsed[key]
+                break
+        else:
+            if any(k in parsed for k in ("feature", "reasoning", "name", "label")):
+                parsed = [parsed]
+            else:
+                return None
+    if not isinstance(parsed, list):
+        return None
+    out: list[dict] = []
+    for item in parsed:
+        if isinstance(item, str):
+            s = item.strip()
+            if s:
+                out.append({"feature": s, "reasoning": ""})
+        elif isinstance(item, dict):
+            feat = item.get("feature") or item.get("name") or item.get("label") or item.get("title")
+            reason = (
+                item.get("reasoning")
+                or item.get("reason")
+                or item.get("explanation")
+                or item.get("rationale")
+                or ""
+            )
+            if feat:
+                out.append(
+                    {
+                        "feature": str(feat).strip(),
+                        "reasoning": str(reason).strip() if reason else "",
+                    }
+                )
+    return out if out else None
+
+
 def run_single(
     var_code: str,
     question_text: str,
     country: str | None,
     model: str,
     generate_fn,
-    max_tokens: int = 2048,
+    max_tokens: int = 8192,
     temperature: float = 0.0,
 ) -> dict:
     """Run one feature selection call. Returns result dict with raw response and parsed features."""
@@ -60,14 +105,21 @@ def run_single(
         {"role": "user", "content": user_msg},
     ]
 
-    raw = generate_fn(messages, max_tokens=max_tokens, temperature=temperature)
+    raw = generate_fn(
+        messages, max_tokens=max_tokens, temperature=temperature, usage_phase="feature_list"
+    )
+    if raw is None:
+        raw = ""
 
     features = None
     parse_error = None
     try:
         cleaned = re.sub(r"^```(?:json)?\s*", "", raw.strip())
         cleaned = re.sub(r"\s*```$", "", cleaned)
-        features = json.loads(cleaned)
+        parsed = json.loads(cleaned)
+        features = _normalize_parsed_features(parsed if parsed is not None else None)
+        if features is None and parsed is not None:
+            parse_error = "JSON parsed but could not normalize to a list of features"
     except json.JSONDecodeError as e:
         parse_error = str(e)
 
@@ -79,7 +131,7 @@ def run_single(
         "model": model,
         "raw_response": raw,
         "features": features,
-        "n_features": len(features) if features else None,
+        "n_features": len(features) if features is not None else None,
         "parse_error": parse_error,
         "timestamp": datetime.now().isoformat(),
     }
@@ -90,7 +142,7 @@ def run_batch(
     countries: list[str],
     model: str,
     generate_fn,
-    max_tokens: int = 2048,
+    max_tokens: int = 8192,
     temperature: float = 0.0,
 ) -> list[dict]:
     """
