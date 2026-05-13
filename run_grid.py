@@ -258,15 +258,19 @@ def load_or_build_survey_embeddings(
 
     cache_path = survey_emb_cache_path(survey_id)
     if cache_path.exists():
-        cached = np.load(cache_path, allow_pickle=True)
-        cached_codes = list(cached["var_codes"])
-        if cached_codes == var_codes:
-            print(f"  Loaded cached embeddings ({len(var_codes)} vars) from {cache_path}")
-            return cached["embeddings"], var_codes
-        print(f"  Cached embeddings at {cache_path} are stale (var_codes mismatch); recomputing.")
+        try:
+            with np.load(cache_path, allow_pickle=False) as cached:
+                cached_codes = [str(code) for code in cached["var_codes"]]
+                if cached_codes == var_codes:
+                    print(f"  Loaded cached embeddings ({len(var_codes)} vars) from {cache_path}")
+                    return cached["embeddings"], var_codes
+        except (KeyError, OSError, ValueError) as exc:
+            print(f"  Cached embeddings at {cache_path} are unreadable ({exc}); recomputing.")
+        else:
+            print(f"  Cached embeddings at {cache_path} are stale (var_codes mismatch); recomputing.")
 
     embeddings = build_embeddings(var_texts)
-    np.savez(cache_path, embeddings=embeddings, var_codes=np.array(var_codes, dtype=object))
+    np.savez(cache_path, embeddings=embeddings, var_codes=np.asarray(var_codes, dtype=str))
     print(f"  Saved embeddings to {cache_path}")
     return embeddings, var_codes
 
