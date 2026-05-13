@@ -1,9 +1,26 @@
+import importlib.util
+import sys
 import tempfile
+import types
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
+
+# This test targets run_grid's embedding-cache helper only. Stub unrelated heavy
+# modules that may be absent in lightweight CI images.
+if importlib.util.find_spec("pandas") is None:
+    sys.modules["pandas"] = types.ModuleType("pandas")
+if importlib.util.find_spec("yaml") is None:
+    sys.modules["yaml"] = types.ModuleType("yaml")
+if importlib.util.find_spec("dotenv") is None:
+    dotenv_stub = types.ModuleType("dotenv")
+    dotenv_stub.load_dotenv = lambda *args, **kwargs: None
+    sys.modules["dotenv"] = dotenv_stub
+oracle_stub = types.ModuleType("phase0b_oracle")
+oracle_stub.compute_oracle = lambda *args, **kwargs: None
+sys.modules["phase0b_oracle"] = oracle_stub
 
 import run_grid
 
