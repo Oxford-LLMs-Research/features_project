@@ -23,7 +23,8 @@ $env:MKL_NUM_THREADS = "1"
 $env:OPENBLAS_NUM_THREADS = "1"
 
 New-Item -ItemType Directory -Path "outputs" -Force | Out-Null
-$log = Join-Path "outputs" ("_run_prelim_full_{0:yyyyMMdd_HHmmss}.log" -f (Get-Date))
+New-Item -ItemType Directory -Path "outputs\logs" -Force | Out-Null
+$log = Join-Path "outputs\logs" ("run_prelim_full_{0:yyyyMMdd_HHmmss}.log" -f (Get-Date))
 
 function Invoke-PythonStep {
     param([string]$Name, [string[]]$PyArgs)

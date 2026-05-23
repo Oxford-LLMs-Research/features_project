@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from phase0b_oracle import _MISSING_LABEL_PATTERNS
+from phase0b_oracle_autogluon import _MISSING_LABEL_PATTERNS
 
 
 def _label_missing(label: str) -> bool:
@@ -247,7 +247,7 @@ def _valid_target_rows_per_country(
     admin_cols: frozenset,
 ) -> int:
     """Count non-missing target rows after the same question cleanup as the oracle."""
-    from phase0b_oracle import _clean_question_columns
+    from phase0b_oracle_autogluon import clean_question_columns as _clean_question_columns
 
     sub = data[data[country_col] == country_code]
     if len(sub) == 0 or var_code not in sub.columns:
@@ -276,7 +276,7 @@ def filter_candidates_for_countries(
     When ``metadata`` and ``admin_cols`` are set, counts match ``compute_oracle``
     cleaning (missing-code stripping, etc.).
     """
-    from phase0b_oracle import _clean_question_columns
+    from phase0b_oracle_autogluon import clean_question_columns as _clean_question_columns
 
     cleaned_by_country: dict[str, pd.DataFrame] | None = None
     if metadata is not None and admin_cols is not None:

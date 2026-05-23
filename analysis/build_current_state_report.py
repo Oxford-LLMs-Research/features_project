@@ -16,7 +16,7 @@ GEN = ROOT / "paper" / "generated_current_state"
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from phase0b_oracle import _MISSING_LABEL_PATTERNS
+from phase0b_oracle_autogluon import _MISSING_LABEL_PATTERNS
 from phase0b_pipeline import PROMPT_COUNTRY, PROMPT_UNPROMPTED, SYSTEM_PROMPT
 from phase0b_disambig import DISAMBIG_PROMPT
 

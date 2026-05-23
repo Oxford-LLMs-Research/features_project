@@ -9,14 +9,19 @@ The pipeline asks an LLM to list predictive features for a target survey questio
 ## Repository layout
 
 ```
-run_grid.py            — main entry point: runs any subset of targets × countries
-output_layout.py       — output paths: per-model LLM caches, grid_summary naming, discovery helpers
-generate.py            — LLM client wrapper (OpenAI-compatible)
-phase0b_oracle.py      — oracle step: XGBoost permutation importance (ground truth)
-phase0b_pipeline.py    — LLM feature selection prompts and batch runner
-phase0b_mapping.py     — embedding-based retrieval (LLM label → survey variable)
-phase0b_disambig.py    — LLM disambiguation (picks best candidate from shortlist)
-phase0b_evaluation.py  — downstream XGBoost prediction comparison
+run_grid.py                  — main entry point: runs any subset of targets × countries
+generate.py                  — LLM client wrapper (OpenAI-compatible) + token usage log
+output_layout.py             — output path helpers: grid summaries, manifests, LLM caches
+phase0b_oracle_autogluon.py  — oracle step: AutoGluon permutation importance (ground truth)
+phase0b_pipeline.py          — LLM feature-selection prompts and batch runner
+phase0b_mapping.py           — embedding-based retrieval (LLM label → survey variable)
+phase0b_disambig.py          — LLM disambiguation (picks best candidate from shortlist)
+phase0b_evaluation.py        — downstream XGBoost prediction comparison
+
+analysis/                    — analysis and figure-building scripts
+prelim/                      — manifest build, target selection, metadata introspection
+paper/                       — LaTeX source and generated figures/tables
+data/                        — per-survey metadata JSONs
 ```
 
 ---
@@ -29,12 +34,7 @@ phase0b_evaluation.py  — downstream XGBoost prediction comparison
 pip install -r requirements.txt
 ```
 
-`requirements.txt` installs `synthetic_sampling` directly from GitHub at a pinned commit so all teammates get the same version.
-
-To intentionally upgrade it later:
-- choose a new `synthetic_sampling` commit/tag
-- update the pinned ref in `requirements.txt`
-- re-run `pip install -r requirements.txt`
+`requirements.txt` installs `synthetic_sampling` directly from GitHub at a pinned commit so all teammates get the same version. To upgrade it, update the pinned ref and re-run `pip install`.
 
 Follow the `synthetic_sampling` repo setup instructions to point `configs/local.yaml` at your local data files.
 
@@ -42,16 +42,12 @@ Follow the `synthetic_sampling` repo setup instructions to point `configs/local.
 
 ```bash
 cp .env.example .env
-# Edit .env — fill in LLM_API_KEY, LLM_MODEL, LLM_BASE_URL, DATA_CONFIG_PATH
+# Fill in: LLM_API_KEY, LLM_MODEL, LLM_BASE_URL, DATA_CONFIG_PATH
 ```
 
-`LLM_BASE_URL` accepts any OpenAI-compatible endpoint: Nebius, Together.ai, OpenRouter, Moonshot (if exposed as OpenAI-compatible), local SGLang, etc.
+`LLM_BASE_URL` accepts any OpenAI-compatible endpoint: Nebius, Together.ai, OpenRouter, local SGLang, etc.
 
-Example second model (after configuring a provider that serves it):
-
-- `LLM_MODEL=moonshotai/Kimi-K2.5`
-
-Each full pipeline run writes LLM-specific files under a **run tag** derived from `LLM_MODEL` (slashes and spaces → underscores). Override with `python run_grid.py --run-tag my_tag ...` if the API model id does not match the folder name you want.
+The disambiguation step uses a **separate fixed model** (`DISAMBIG_MODEL` in `.env`, default `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B`) so that differences between main LLM runs are attributable only to feature-selection quality, not disambiguation quality. It can point to a different endpoint/key via `DISAMBIG_BASE_URL` / `DISAMBIG_API_KEY`.
 
 ---
 
@@ -70,30 +66,32 @@ python run_grid.py --survey afrobarometer --targets Q4A --countries Nigeria Keny
 python run_grid.py --targets Q47 Q164 Q199 --countries Germany Nigeria Japan
 ```
 
-### Full default grid (WVS, 5 targets × 5 countries)
+### Manifest-based run (prelim 5×5 per survey)
 
 ```bash
-python run_grid.py
-```
-
-### Discover available countries for any survey
-
-```bash
-python run_grid.py --survey afrobarometer --list-countries
-python run_grid.py --survey ess_wave_10 --list-countries
-```
-
-### Prelim multi-survey grids (manifest + staging)
-
-```bash
-python prelim/introspect_metadata.py        # survey metadata key inventory
-python prelim/build_prelim_manifest.py      # writes prelim/prelim_manifest.yaml
+python prelim/build_prelim_manifest.py   # writes prelim/prelim_manifest.yaml
 
 python run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml --stop-after oracle
 python run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml
 ```
 
-PowerShell: staged oracle then optional full run with `run_prelim_staged.ps1`; set `RUN_PRELIM_FULL=1` before running to include the LLM+eval pass for all surveys after oracles are validated.
+### Full all-surveys run (PowerShell)
+
+```powershell
+.\run_prelim_full_all_surveys.ps1
+# Optional: rebuild manifest first
+$env:REBUILD_MANIFEST = "1"; .\run_prelim_full_all_surveys.ps1
+# Tune concurrency (default 3)
+$env:GRID_WORKERS = "4"; .\run_prelim_full_all_surveys.ps1
+```
+
+Logs go to `outputs/logs/run_prelim_full_<timestamp>.log`.
+
+### Discover available countries
+
+```bash
+python run_grid.py --survey afrobarometer --list-countries
+```
 
 ### Supported surveys
 
@@ -102,12 +100,10 @@ PowerShell: staged oracle then optional full run with `run_prelim_staged.ps1`; s
 | `wvs`             | `B_COUNTRY`    | default; 5×5 grid pre-configured |
 | `afrobarometer`   | `COUNTRY`      | |
 | `arabbarometer`   | `COUNTRY`      | |
-| `asianbarometer`  | `country`      | stores country names, not codes |
+| `asianbarometer`  | `country`      | stores country names directly |
 | `latinobarometer` | `IDENPA`       | |
-| `ess_wave_10`     | `cntry`        | alpha-2 codes; not all countries in every wave's data file |
+| `ess_wave_10`     | `cntry`        | alpha-2 codes |
 | `ess_wave_11`     | `cntry`        | |
-
-Country names and admin columns are derived automatically from survey metadata — no hardcoding needed.
 
 ---
 
@@ -116,67 +112,80 @@ Country names and admin columns are derived automatically from survey metadata �
 Each (target × country) cell runs five steps in order:
 
 ```
-[1] Oracle       — XGBoost permutation importance → ground-truth feature ranking
+[1] Oracle       — AutoGluon permutation importance → ground-truth feature ranking
 [2] LLM select   — ask model which respondent features would predict the answer
 [3] Embed+map    — embed LLM labels, retrieve top-k matching survey variables
-[4] Disambiguate — LLM picks the best candidate from the shortlist (or "none")
+[4] Disambiguate — fixed small LLM picks the best candidate from the shortlist
 [5] Evaluate     — compare oracle / model-selected / random feature sets via XGBoost CV
 ```
 
-Steps run per-cell in parallel threads (default `--grid-workers 5`). XGBoost thread budget per cell is capped via `GRID_XGB_NTHREAD` or `cpu_count // grid_workers` to reduce oversubscription. Permutation importance in the oracle step is sequential; **joblib** parallelises only the random-feature baseline draws during evaluation.
+Steps run per-cell in parallel threads (`--grid-workers`, default 5). XGBoost thread budget per cell is capped automatically via `cpu_count // grid_workers` or overridden with `GRID_XGB_NTHREAD`.
 
 ---
 
-## Caching and resuming
+## Experiment tracking
 
-Per cell directory `outputs/<target>_<country>/`:
+Every `run_grid.py` invocation writes a **run manifest** at `outputs/run_manifest__<survey>__<exp_id>.json`:
 
-- **`oracle.csv`** — permutation importances (all features). **Shared across LLM models**; if it exists, every model run reuses it.
-- **`llm__<run_tag>/disambig.json`** — LLM selection, retrieval, and disambiguation for that model/tag.
-- **`llm__<run_tag>/eval.json`** — XGBoost comparison for that model/tag.
+```json
+{
+  "exp_id": "deepseek-v3-default",
+  "llm_model": "deepseek-ai/DeepSeek-V3.2",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-MiniLM-L6-v2",
+  "prompt_variant": "default",
+  "survey": "wvs",
+  "targets": [...],
+  "countries": [...],
+  "started_at": "...",
+  "completed_at": "...",
+  "n_cells_total": 25,
+  "n_cells_completed": 25,
+  "n_cells_errored": 0
+}
+```
 
-Survey-wide files:
-
-- **`survey_embeddings__<survey_id>.npz`** — shared embedding cache for variable texts (not model-specific).
-- **`grid_summary__<survey_id>__<run_tag>.csv`** — one row per (target, country, condition), plus `llm_model` / `llm_run_tag` columns.
-- **`grid_results__<survey_id>__<run_tag>.json`** — nested eval payload per cell.
-
-Re-running skips steps whose outputs already exist for that **run tag** (LLM paths) and always reuses `oracle.csv` when present. Delete a specific `llm__<tag>` folder to force rerunning the LLM+eval stack for that model only; delete `oracle.csv` to recompute the oracle.
-
-If you still have **`disambig.json` and `eval.json` beside `oracle.csv`** from before this layout, move them into `llm__<tag>/` where `<tag>` matches the slug for the `LLM_MODEL` you used (or use `--run-tag`), so the runner can resume without redoing API calls.
-
-**Analysis:** if you have both legacy `grid_summary__<survey>.csv` (no tag) and new tagged files, tooling under `analysis/` picks **one file per survey** with this priority: env `GRID_SUMMARY_TAG` (exact match on `__<tag>`), else the **newest** tagged `grid_summary__<survey>__*.csv` if any exist, else the legacy file. Set `GRID_SUMMARY_TAG` when you want figures or TeX reports pinned to a specific model run (e.g. the slug for `moonshotai/Kimi-K2.5`).
-
----
-
-## Oracle step — extension point for teammates
-
-The oracle (`phase0b_oracle.py`) is fully decoupled from the rest of the pipeline via the cache contract:
-
-**To plug in a pre-computed or alternative oracle**, place a CSV at `outputs/<target>_<country>/oracle.csv` with these columns:
-
-| column | description |
-|--------|-------------|
-| `target_variable` | variable code (e.g. `Q164`) |
-| `country` | country code as stored in the survey data |
-| `feature_variable` | variable code of the predictor |
-| `importance_mean` | mean permutation importance (higher = more important) |
-| `importance_std` | standard deviation across folds |
-| `majority_baseline` | majority-class accuracy (used for reference) |
-
-The file must contain **all features** considered (not just top-k) — the evaluation step picks its own top-k from the full ranking.
-
-If the file exists, `run_grid.py` loads it and skips `compute_oracle()` entirely.
-
-**To modify the oracle method**, edit `phase0b_oracle.py` directly. The function signature and return types must stay the same. Key hyperparameters (`n_splits`, `n_repeats`, `random_state`) are passed per cell and are intentionally not fixed globally — optimal values vary by question complexity and country sample size.
-
-AutoGluon alternative: [phase0b_oracle_autogluon.py](phase0b_oracle_autogluon.py) writes the same `oracle.csv` cache files but uses AutoGluon permutation importance. It supports CLI flags for `--random-state` (default 42), `--similarity-threshold` (0.85), `--test-size` (0.2), `--max-missingness-threshold` (0.2), `--min-normalized-feature-entropy` (0.0), and `--enforce-identical-feature-pool` (false).
-
-Example (WVS, 5 targets × 5 countries):
+The experiment ID (`--run-tag`) determines all output paths for that run. Set it explicitly to keep runs from different models, prompt variants, or embedding models separate:
 
 ```bash
-python phase0b_oracle_autogluon.py --survey wvs --targets Q47 Q57 Q199 Q235 Q164 --countries Germany Nigeria Japan Brazil Egypt
+# Main experiment — compare models, same everything else
+python run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml \
+    --run-tag deepseek-default
+
+python run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml \
+    --run-tag kimi-default
+
+# Prompt sensitivity — same model, different prompt variant label
+python run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml \
+    --run-tag deepseek-prompt-v2 --prompt-variant explicit
+
+# Embedding model sensitivity
+python run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml \
+    --run-tag deepseek-mpnet --embedding-model all-mpnet-base-v2
 ```
+
+When multiple `grid_summary__<survey>__*.csv` exist, analysis scripts pick one per survey. Pin a specific run for figures by setting `GRID_SUMMARY_TAG=<exp_id>` in `.env`.
+
+---
+
+## Output layout
+
+```
+outputs/
+  <target>_<country>/
+    oracle.csv                          # permutation importances — shared across all models
+    llm__<exp_id>/
+      disambig.json                     # LLM selection + mapping results
+      eval.json                         # XGBoost comparison results
+  grid_summary__<survey>__<exp_id>.csv  # one row per (target, country, condition)
+  grid_results__<survey>__<exp_id>.json # full nested eval payload
+  llm_usage__<survey>__<exp_id>.jsonl   # per-request token usage
+  run_manifest__<survey>__<exp_id>.json # experiment provenance (auto-written)
+  survey_embeddings__<survey>__<embedding_model>.npz  # embedding cache, tagged by model
+  logs/                                 # run logs
+```
+
+**Resuming:** re-running a grid with the same `--run-tag` skips cells whose `disambig.json` and `eval.json` already exist. The `oracle.csv` is always reused if present. Delete a specific `llm__<tag>/` folder to force rerunning only the LLM+eval steps for that model.
 
 ---
 
@@ -184,27 +193,46 @@ python phase0b_oracle_autogluon.py --survey wvs --targets Q47 Q57 Q199 Q235 Q164
 
 For each (target × country × condition) cell, XGBoost cross-validation accuracy is compared across three feature sets matched to the same k:
 
-- **Oracle top-k** — the k highest-importance features by permutation importance (ceiling)
-- **Model-selected** — the k features the LLM selected, after mapping and disambiguation
+- **Oracle top-k** — the k highest-importance features (ceiling)
+- **Model-selected** — the k features the LLM nominated, after mapping and disambiguation
 - **Random-k** — average over 20 random draws of k features from the full pool (baseline)
 
-Two conditions per cell: **unprompted** (no country context given to the LLM) and **country-provided**.
+Two conditions per cell: **unprompted** (no country context) and **country-provided**.
 
-Key metrics reported:
-- `cost_of_imperfect` = oracle_acc − model_acc (how much the LLM's selection costs)
-- `value_over_random` = model_acc − random_acc (whether LLM reasoning beats chance)
+Key metrics:
+- `cost_of_imperfect` = oracle_acc − model_acc
+- `value_over_random` = model_acc − random_acc
 
 ---
 
-## Notes on text-coded surveys
+## Oracle — extension point
 
-Some surveys store response labels as strings ("Agree", "Very bad") rather than numeric codes. The pipeline handles this automatically:
-- Genuine text columns are detected and label-encoded before XGBoost
-- Numeric-as-string columns (e.g. `"1"`, `"2"`) are coerced to float
-- Text-coded target variables fall back to label encoding
+The oracle is decoupled from the LLM pipeline via the cache contract. To plug in a pre-computed or alternative oracle, place a CSV at `outputs/<target>_<country>/oracle.csv` with these columns:
+
+| column | description |
+|--------|-------------|
+| `target_variable` | variable code (e.g. `Q164`) |
+| `country` | country code as stored in the survey data |
+| `feature_variable` | predictor variable code |
+| `importance_mean` | mean permutation importance |
+| `importance_std` | standard deviation |
+| `majority_baseline` | majority-class accuracy |
+
+The file must contain **all features** considered — evaluation picks its own top-k from the full ranking. If the file exists, `run_grid.py` skips `compute_oracle()` entirely.
+
+`phase0b_oracle_autogluon.py` can also run standalone:
+
+```bash
+python phase0b_oracle_autogluon.py \
+    --survey wvs --targets Q47 Q57 Q199 Q235 Q164 \
+    --countries Germany Nigeria Japan Brazil Egypt \
+    --runtime-mode balanced --force
+```
+
+Key flags: `--runtime-mode` (`quick`/`balanced`/`best`), `--similarity-threshold` (0.85), `--test-size` (0.2), `--max-missingness-threshold` (0.2), `--force` (recompute even if cache exists).
 
 ---
 
 ## Windows / libomp note
 
-`sentence-transformers` (PyTorch) and `xgboost` both ship `libomp.dll`, which can conflict. If the pipeline crashes during the embedding step, run oracle and LLM steps in one process and evaluation in another by temporarily commenting out the eval call — or upgrade to a newer xgboost that resolves this.
+`sentence-transformers` (PyTorch) and `xgboost` both ship `libomp.dll`, which can conflict. If the pipeline crashes during the embedding step, running oracle and LLM steps in one process and evaluation in another is a workaround — or upgrade to a newer xgboost that resolves this.

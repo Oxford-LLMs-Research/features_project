@@ -33,12 +33,25 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from itertools import product
 from pathlib import Path
 from typing import Any
+
+# Force stdout/stderr to UTF-8 so logger / print() calls emitting non-ASCII
+# (e.g. AutoGluon's '±' in summaries, the token-usage '~' tally, future
+# Unicode in eval output) don't crash on Windows' default cp1252 console.
+# Without this, a UnicodeEncodeError at the end of one survey aborts the
+# whole multi-survey PS1 pipeline (we lost ~2.5h of runtime to this).
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+    except (AttributeError, ValueError):
+        pass
 
 import numpy as np
 import pandas as pd
@@ -48,9 +61,16 @@ from output_layout import (
     grid_results_json_path,
     grid_summary_csv_path,
     llm_cache_prefix,
+    logs_dir,
+    manifest_path,
     sanitize_model_slug,
 )
-from phase0b_oracle import compute_oracle
+from phase0b_oracle_autogluon import (
+    clean_question_columns,
+    compute_oracle,
+    flatten_metadata,
+    load_similarity_model,
+)
 
 load_dotenv()
 
@@ -75,11 +95,19 @@ DEFAULT_SURVEY = "wvs"
 DEFAULT_TARGETS = ["Q49", "Q199", "Q71", "Q165", "Q240"]
 DEFAULT_COUNTRIES = ["Germany", "Nigeria", "Japan", "Brazil", "Egypt"]
 
-def survey_emb_cache_path(survey_id: str) -> Path:
-    return OUTPUTS_DIR / f"survey_embeddings__{survey_id}.npz"
+def survey_emb_cache_path(survey_id: str, embedding_model: str = "all-MiniLM-L6-v2") -> Path:
+    slug = sanitize_model_slug(embedding_model)
+    return OUTPUTS_DIR / f"survey_embeddings__{survey_id}__{slug}.npz"
 
 
 DEFAULT_GRID_WORKERS = 5
+
+# Fixed small model used for disambiguation across all main LLM runs.
+# Keeping this constant ensures that differences in final mapped variables
+# are attributable only to feature-selection quality, not disambiguation quality.
+DISAMBIG_MODEL    = os.environ.get("DISAMBIG_MODEL",    "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B")
+DISAMBIG_BASE_URL = os.environ.get("DISAMBIG_BASE_URL") or None  # falls back to LLM_BASE_URL if unset
+DISAMBIG_API_KEY  = os.environ.get("DISAMBIG_API_KEY")  or None  # falls back to LLM_API_KEY  if unset
 
 
 def resolve_xgb_nthread(grid_workers: int) -> int | None:
@@ -200,10 +228,12 @@ def run_llm_and_map(
     country_name: str | None,
     condition: str,
     generate_fn,
+    disambig_generate_fn,
     model_name: str,
     survey_variables: dict[str, str],
     survey_embeddings: np.ndarray,
     var_codes: list[str],
+    embedding_model: str = "all-MiniLM-L6-v2",
 ) -> list[dict]:
     from phase0b_pipeline import run_single
     from phase0b_mapping import map_features_to_variables
@@ -232,12 +262,13 @@ def run_llm_and_map(
     print("\n  Embedding + retrieving candidates ...")
     mappings = map_features_to_variables(
         all_llm_results, survey_variables, survey_embeddings, var_codes,
+        model_name=embedding_model,
         exclude_targets=True,
     )
     print(f"  {len(mappings)} feature->candidate pairs")
 
-    print("\n  Disambiguating ...")
-    mappings = disambiguate_mappings(mappings, generate_fn, model=model_name)
+    print(f"\n  Disambiguating (fixed model: {DISAMBIG_MODEL}) ...")
+    mappings = disambiguate_mappings(mappings, disambig_generate_fn, model=DISAMBIG_MODEL)
 
     mapped = sum(1 for m in mappings if m["disambig"]["selected_code"])
     print(f"\n  Mapped: {mapped}/{len(mappings)} features -> survey variables")
@@ -250,13 +281,14 @@ def run_llm_and_map(
 def load_or_build_survey_embeddings(
     survey_variables: dict[str, str],
     survey_id: str,
+    embedding_model: str = "all-MiniLM-L6-v2",
 ) -> tuple[np.ndarray, list[str]]:
     from phase0b_mapping import build_embeddings
 
     var_codes = list(survey_variables.keys())
     var_texts = list(survey_variables.values())
 
-    cache_path = survey_emb_cache_path(survey_id)
+    cache_path = survey_emb_cache_path(survey_id, embedding_model)
     if cache_path.exists():
         cached = np.load(cache_path, allow_pickle=True)
         cached_codes = list(cached["var_codes"])
@@ -265,7 +297,7 @@ def load_or_build_survey_embeddings(
             return cached["embeddings"], var_codes
         print(f"  Cached embeddings at {cache_path} are stale (var_codes mismatch); recomputing.")
 
-    embeddings = build_embeddings(var_texts)
+    embeddings = build_embeddings(var_texts, model_name=embedding_model)
     np.savez(cache_path, embeddings=embeddings, var_codes=np.array(var_codes, dtype=object))
     print(f"  Saved embeddings to {cache_path}")
     return embeddings, var_codes
@@ -288,7 +320,8 @@ def get_or_compute_oracle(
     data: pd.DataFrame,
     metadata: dict,
     prefix: str,
-    xgb_nthread: int | None = None,
+    metadata_flat: dict | None = None,
+    similarity_model: object | None = None,
 ) -> tuple[pd.DataFrame, list[str]]:
     oracle_path = cell_dir(prefix) / "oracle.csv"
     if oracle_path.exists():
@@ -305,7 +338,8 @@ def get_or_compute_oracle(
         country_code,
         country_col,
         admin_cols,
-        xgb_nthread=xgb_nthread,
+        metadata_flat=metadata_flat,
+        similarity_model=similarity_model,
     )
     oracle_df.to_csv(oracle_path, index=False)
     print(f"  [oracle] Saved {prefix}/oracle.csv")
@@ -317,11 +351,13 @@ def get_or_run_llm_mapping(
     question_text: str,
     country_name: str,
     generate_fn,
+    disambig_generate_fn,
     model_name: str,
     survey_variables: dict[str, str],
     survey_embeddings: np.ndarray,
     var_codes: list[str],
     prefix: str,
+    embedding_model: str = "all-MiniLM-L6-v2",
 ) -> list[dict]:
     disambig_path = cell_dir(prefix) / "disambig.json"
     if disambig_path.exists():
@@ -336,10 +372,12 @@ def get_or_run_llm_mapping(
         country_name=country_name,
         condition="both",
         generate_fn=generate_fn,
+        disambig_generate_fn=disambig_generate_fn,
         model_name=model_name,
         survey_variables=survey_variables,
         survey_embeddings=survey_embeddings,
         var_codes=var_codes,
+        embedding_model=embedding_model,
     )
 
     with open(disambig_path, "w", encoding="utf-8") as f:
@@ -538,12 +576,16 @@ class PipelineContext:
     data: pd.DataFrame
     eval_data: pd.DataFrame
     metadata: dict
+    metadata_flat: dict
+    similarity_model: object | None
     survey_variables: dict[str, str]
     survey_embeddings: np.ndarray | None
     var_codes: list[str]
     generate_fn: Any
+    disambig_generate_fn: Any
     model_name: str
     output_tag: str
+    embedding_model: str
     n_jobs_random: int
     xgb_nthread: int | None
     stop_after: str
@@ -566,7 +608,8 @@ def run_cell(ctx: PipelineContext, target: str, country_name: str) -> dict:
             data=ctx.data,
             metadata=ctx.metadata,
             prefix=prefix,
-            xgb_nthread=ctx.xgb_nthread,
+            metadata_flat=ctx.metadata_flat,
+            similarity_model=ctx.similarity_model,
         )
 
         if ctx.stop_after == "oracle":
@@ -590,11 +633,13 @@ def run_cell(ctx: PipelineContext, target: str, country_name: str) -> dict:
             question_text=question_text,
             country_name=country_name,
             generate_fn=ctx.generate_fn,
+            disambig_generate_fn=ctx.disambig_generate_fn,
             model_name=ctx.model_name,
             survey_variables=ctx.survey_variables,
             survey_embeddings=ctx.survey_embeddings,
             var_codes=ctx.var_codes,
             prefix=llm_prefix,
+            embedding_model=ctx.embedding_model,
         )
 
         if not mappings:
@@ -698,9 +743,22 @@ def main():
         metavar="TAG",
         default=None,
         help=(
-            "Tag for llm__/ grid_summary paths (default: slug from LLM_MODEL). "
-            "Use a fixed tag when the API model id differs from the folder name you want."
+            "Experiment ID (tag) for llm__/ grid_summary / manifest paths "
+            "(default: slug from LLM_MODEL). Set explicitly to distinguish runs with "
+            "different models, prompts, or embedding models."
         ),
+    )
+    parser.add_argument(
+        "--embedding-model",
+        metavar="MODEL",
+        default="all-MiniLM-L6-v2",
+        help="Sentence-transformer model for survey variable embeddings (default: all-MiniLM-L6-v2).",
+    )
+    parser.add_argument(
+        "--prompt-variant",
+        metavar="VARIANT",
+        default="default",
+        help="Prompt variant label recorded in the run manifest (default: default).",
     )
     args = parser.parse_args()
 
@@ -733,6 +791,12 @@ def main():
     country_codes = build_country_code_map(metadata, country_col, data)
     admin_cols = build_admin_cols(metadata, country_col)
     print(f"  {len(country_codes)} countries, {len(admin_cols)} admin columns derived from metadata")
+
+    print("\n[setup] Building oracle metadata index and similarity model ...")
+    from phase0b_oracle_autogluon import SIMILARITY_THRESHOLD
+    metadata_flat = flatten_metadata(metadata)
+    similarity_model = load_similarity_model(SIMILARITY_THRESHOLD)
+    print(f"  {len(metadata_flat)} vars in flat metadata index; similarity model loaded")
 
     if args.list_countries:
         print(f"\nAvailable countries for '{survey_id}':")
@@ -768,8 +832,7 @@ def main():
     print("=" * 72)
 
     print("\n[setup] Cleaning question columns for evaluation ...")
-    from phase0b_oracle import _clean_question_columns
-    eval_data = _clean_question_columns(data, country_col, admin_cols, metadata)
+    eval_data = clean_question_columns(data, country_col, admin_cols, metadata)
 
     print("\n[setup] Building survey variable index ...")
     from phase0b_mapping import extract_survey_variables
@@ -777,6 +840,7 @@ def main():
     print(f"  {len(survey_variables)} survey variables")
 
     stop_after = args.stop_after
+    embedding_model: str = args.embedding_model
     output_tag = ""
     llm_usage_log = None
     if stop_after == "oracle":
@@ -784,10 +848,13 @@ def main():
         survey_embeddings = None
         var_codes: list[str] = []
         generate_fn = None
+        disambig_generate_fn = None
         model_name = ""
     else:
-        print("\n[setup] Loading / building survey embeddings ...")
-        survey_embeddings, var_codes = load_or_build_survey_embeddings(survey_variables, survey_id)
+        print(f"\n[setup] Loading / building survey embeddings (model: {embedding_model}) ...")
+        survey_embeddings, var_codes = load_or_build_survey_embeddings(
+            survey_variables, survey_id, embedding_model
+        )
 
         print("\n[setup] Initialising LLM client ...")
         from generate import TokenUsageLog, make_generate_fn
@@ -800,7 +867,18 @@ def main():
             OUTPUTS_DIR / f"llm_usage__{survey_id}__{output_tag}.jsonl"
         )
         usage_log_ref[0] = llm_usage_log
-        print(f"  Output tag (LLM / summary paths): {output_tag}")
+        print(f"  Experiment ID / output tag: {output_tag}")
+        print(f"  Embedding model: {embedding_model}  |  Prompt variant: {args.prompt_variant}")
+
+        print(f"\n[setup] Initialising disambiguation client ({DISAMBIG_MODEL}) ...")
+        disambig_generate_fn, _ = make_generate_fn(
+            base_url=DISAMBIG_BASE_URL,
+            api_key=DISAMBIG_API_KEY,
+            model=DISAMBIG_MODEL,
+            usage_log_ref=usage_log_ref,
+        )
+        disambig_endpoint = DISAMBIG_BASE_URL or "(same as LLM_BASE_URL)"
+        print(f"  Disambig model: {DISAMBIG_MODEL}  endpoint: {disambig_endpoint}")
 
     grid_summary_csv = grid_summary_csv_path(OUTPUTS_DIR, survey_id, output_tag) if output_tag else None
     grid_results_json = grid_results_json_path(OUTPUTS_DIR, survey_id, output_tag) if output_tag else None
@@ -808,17 +886,22 @@ def main():
     summary_rows: list[dict] = []
     full_results: dict = {}
     errors: list[dict] = []
+    started_at = datetime.now(timezone.utc)
 
     ctx = PipelineContext(
         data=data,
         eval_data=eval_data,
         metadata=metadata,
+        metadata_flat=metadata_flat,
+        similarity_model=similarity_model,
         survey_variables=survey_variables,
         survey_embeddings=survey_embeddings,
         var_codes=var_codes,
         generate_fn=generate_fn,
+        disambig_generate_fn=disambig_generate_fn,
         model_name=model_name,
         output_tag=output_tag,
+        embedding_model=embedding_model,
         n_jobs_random=n_jobs_random,
         xgb_nthread=xgb_nt,
         stop_after=stop_after,
@@ -907,6 +990,27 @@ def main():
             print(f"  - {e['target']} x {e['country']}: {e['error']}")
     else:
         print("\nAll cells completed without errors.")
+
+    if output_tag:
+        man = {
+            "exp_id": output_tag,
+            "llm_model": ctx.model_name or None,
+            "disambig_model": DISAMBIG_MODEL if stop_after != "oracle" else None,
+            "embedding_model": embedding_model,
+            "prompt_variant": args.prompt_variant,
+            "survey": survey_id,
+            "targets": targets,
+            "countries": countries,
+            "started_at": started_at.isoformat(),
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "n_cells_total": n_cells,
+            "n_cells_completed": n_cells - len(errors),
+            "n_cells_errored": len(errors),
+        }
+        mp = manifest_path(OUTPUTS_DIR, survey_id, output_tag)
+        with open(mp, "w", encoding="utf-8") as f:
+            json.dump(man, f, indent=2, ensure_ascii=False)
+        print(f"\nWrote run manifest: {mp}")
 
 
 if __name__ == "__main__":

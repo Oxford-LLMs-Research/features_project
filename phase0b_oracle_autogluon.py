@@ -38,6 +38,45 @@ from sklearn.model_selection import train_test_split
 
 load_dotenv()
 
+
+def _prewarm_autogluon_imports() -> None:
+    """
+    Force-import every AutoGluon tabular model submodule in the main thread.
+
+    AutoGluon lazy-imports model implementations (and their callbacks /
+    hyperparameter helpers) the first time each model is fit. When
+    run_grid.py uses a ThreadPoolExecutor to fit multiple cells concurrently,
+    two worker threads can race the first-ever import of the same submodule;
+    one thread then sees a partially-initialised module and fails with
+    'cannot import name ... (most likely due to a circular import)', causing
+    AutoGluon to silently skip that model. Walking the full submodule tree
+    here, in the main thread, fully populates sys.modules before any worker
+    spawns. Failures (e.g. optional model deps like mitra/tabpfn/fasttext
+    missing) are swallowed — AutoGluon handles missing deps gracefully at
+    fit time.
+    """
+    import importlib
+    import pkgutil
+
+    try:
+        import autogluon.tabular.models as ag_models
+    except Exception:
+        return
+
+    for _finder, name, _ispkg in pkgutil.walk_packages(
+        ag_models.__path__, prefix="autogluon.tabular.models."
+    ):
+        try:
+            importlib.import_module(name)
+        except Exception:
+            # Optional model dep missing (e.g. fasttext, mitra) or CUDA-only
+            # module on a CPU box. AutoGluon will skip the corresponding model
+            # at fit time without affecting other models.
+            pass
+
+
+_prewarm_autogluon_imports()
+
 FEATURES_DIR = Path(__file__).resolve().parent
 OUTPUTS_DIR = FEATURES_DIR / "outputs"
 OUTPUTS_DIR.mkdir(exist_ok=True)
@@ -140,26 +179,96 @@ def build_admin_cols(metadata: dict, country_col: str) -> frozenset[str]:
     return frozenset(excluded.keys()) | {country_col}
 
 
+_MISSING_LABEL_PATTERNS: tuple[str, ...] = (
+    "missing",
+    "no answer",
+    "not applicable",
+    "not asked",
+    "refused",
+    "refusal",
+    "don't know",
+    "do not know",
+    "do not understand",
+    "can't choose",
+    "cannot choose",
+    "decline",
+    "inap",
+    "no contesta",
+    "no sabe",
+    "no response",
+)
+
+
+def _missing_codes_from_metadata(metadata: dict) -> dict[str, set]:
+    out: dict[str, set] = {}
+    if not metadata:
+        return out
+    for section in metadata.values():
+        if not isinstance(section, dict):
+            continue
+        for var_code, info in section.items():
+            if not isinstance(info, dict):
+                continue
+            values = info.get("values") or {}
+            if not isinstance(values, dict):
+                continue
+            missing: set = set()
+            for code_str, label in values.items():
+                label_norm = str(label).strip().lower()
+                if any(p in label_norm for p in _MISSING_LABEL_PATTERNS):
+                    missing.add(str(code_str))
+                    missing.add(str(code_str).strip())
+                    try:
+                        missing.add(int(str(code_str)))
+                    except (TypeError, ValueError):
+                        pass
+                    try:
+                        missing.add(float(str(code_str)))
+                    except (TypeError, ValueError):
+                        pass
+            if missing:
+                out[var_code] = missing
+    return out
+
+
 def clean_question_columns(
     df: pd.DataFrame,
     country_col: str,
     admin_cols: frozenset[str],
+    metadata: dict | None = None,
 ) -> pd.DataFrame:
     """
-    Coerce numeric-coded columns to float and map negative values (missing codes) to NaN.
-    Text-label columns are left intact for AutoGluon categorical handling.
+    Coerce numeric-coded columns to float and map negative values to NaN.
+    When metadata is provided, also strips value codes whose label indicates a
+    missing/non-substantive response (e.g. "Don't know", "Refused").
+    Text-label columns with no numeric majority are left intact for AutoGluon.
     """
     cleaned = df.copy()
+    missing_by_var = _missing_codes_from_metadata(metadata) if metadata else {}
     q_cols = [c for c in cleaned.columns if c not in admin_cols and c != country_col]
     for col in q_cols:
         if not pd.api.types.is_object_dtype(cleaned[col]):
             cleaned[col] = pd.to_numeric(cleaned[col], errors="coerce")
             cleaned[col] = cleaned[col].where(cleaned[col] >= 0)
+            mc = missing_by_var.get(col)
+            if mc:
+                cleaned[col] = cleaned[col].where(~cleaned[col].isin(mc))
         else:
             coerced = pd.to_numeric(cleaned[col], errors="coerce")
             if coerced.notna().mean() > 0.5:
                 cleaned[col] = coerced.where(coerced >= 0)
+                mc = missing_by_var.get(col)
+                if mc:
+                    cleaned[col] = cleaned[col].where(~cleaned[col].isin(mc))
+            else:
+                mc = missing_by_var.get(col)
+                if mc:
+                    mc_str = {str(v).strip() for v in mc}
+                    cleaned[col] = cleaned[col].where(
+                        ~cleaned[col].astype(str).str.strip().isin(mc_str)
+                    )
     return cleaned
+
 
 
 def flatten_metadata(raw_metadata: dict) -> dict[str, dict[str, str]]:
@@ -354,6 +463,61 @@ def filter_feature_pool_across_countries(
     return final_pool, diagnostics
 
 
+def detect_conditional_leakage(
+    country_df: pd.DataFrame,
+    target_var: str,
+    feature_pool: list[str],
+    missing_range_threshold: float = 0.7,
+    min_n_per_class: int = 20,
+) -> set[str]:
+    """
+    Identify features that are structurally conditional on the target variable.
+
+    A feature is flagged when its missingness rate differs dramatically across
+    target classes — the signature of a survey question only administered to
+    respondents who gave a specific answer to the target (e.g. follow-up
+    sub-modules asked only of respondents who said "Yes" to the target item).
+
+    For example, Arab Barometer Q104A ("What are the main reasons you thought
+    about emigrating?") is only asked of respondents who said Yes to Q104
+    ("Have you thought about emigrating?").  Its missingness is ~0% for the
+    Yes class and ~100% for the No class, yielding a range of ~1.0 — well
+    above the default threshold of 0.7.
+
+    Parameters
+    ----------
+    country_df              : DataFrame for one country; target column still present.
+    target_var              : the outcome variable code.
+    feature_pool            : candidate feature codes to inspect.
+    missing_range_threshold : flag when max_class_missing - min_class_missing
+                              >= this value. 0.7 gives a wide margin between clear
+                              downstream proxies (~1.0) and legitimate predictors (~0.0).
+    min_n_per_class         : minimum observations per class for a reliable rate.
+
+    Returns
+    -------
+    set of feature variable codes to exclude from the feature pool.
+    """
+    valid = country_df[target_var].notna()
+    df = country_df.loc[valid]
+    y = df[target_var]
+
+    class_counts = y.value_counts()
+    usable_classes = class_counts[class_counts >= min_n_per_class].index.tolist()
+    if len(usable_classes) < 2:
+        return set()
+
+    leakage_set: set[str] = set()
+    for feat in feature_pool:
+        if feat not in df.columns:
+            continue
+        rates = [df.loc[y == cls, feat].isna().mean() for cls in usable_classes]
+        if (max(rates) - min(rates)) >= missing_range_threshold:
+            leakage_set.add(feat)
+
+    return leakage_set
+
+
 def resolve_runtime_config(runtime_mode: str, autogluon_time_limit: int) -> tuple[str, int]:
     """Resolve AutoGluon preset + time limit from CLI settings."""
     runtime_cfg = AUTOGLUON_RUNTIME_MODES[runtime_mode]
@@ -407,8 +571,13 @@ def _set_local_tmp_dir(tmp_root: Path) -> Path:
     return tmp_root
 
 
-def _feature_importance(predictor: TabularPredictor, data: pd.DataFrame, n_repeats: int) -> pd.DataFrame:
-    kwargs = {"silent": True}
+def _feature_importance(
+    predictor: TabularPredictor,
+    data: pd.DataFrame,
+    n_repeats: int,
+    verbosity: int = 0,
+) -> pd.DataFrame:
+    kwargs = {"silent": verbosity == 0}
     if n_repeats and n_repeats > 0:
         kwargs["num_shuffle_sets"] = int(n_repeats)
     try:
@@ -440,6 +609,7 @@ def compute_oracle(
     test_size: float = TEST_SIZE,
     min_class_count: int = MIN_CLASS_COUNT,
     num_gpus: int = 0,
+    ag_verbosity: int = 0,
 ) -> tuple[pd.DataFrame, list[str]]:
     """
     Compute AutoGluon permutation importances for one target-country cell.
@@ -496,6 +666,12 @@ def compute_oracle(
         ]
 
     feature_pool = list(dict.fromkeys(feature_pool))
+
+    leakage_set = detect_conditional_leakage(country_data, target_var, feature_pool)
+    if leakage_set:
+        print(f"  Conditional leakage excluded ({len(leakage_set)}): {sorted(leakage_set)}")
+        feature_pool = [f for f in feature_pool if f not in leakage_set]
+
     if not feature_pool:
         raise ValueError("No usable features after feature-pool filtering.")
 
@@ -565,15 +741,24 @@ def compute_oracle(
             problem_type="multiclass",
             eval_metric="accuracy",
             path=str(run_output_dir),
+            verbosity=ag_verbosity,
         ).fit(
             train_data=train_data,
             presets=preset,
             time_limit=time_limit,
             num_gpus=num_gpus,
-            verbosity=0,
+            verbosity=ag_verbosity,
+            # Ray-backed sub-fit deadlocks on Windows (AutoGluon 1.4 + Ray 2.44);
+            # disable dynamic stacking since oracle permutation importance doesn't need it.
+            dynamic_stacking=False,
+            # Force fold-level fitting to skip Ray. With concurrent grid workers, each
+            # cell would otherwise race to start its own Ray cluster + dashboard, which
+            # crashes on Windows + Python 3.9 (typing.py:734 "unhashable type: 'list'")
+            # and causes every *_BAG_L1/L2 model to be silently skipped.
+            ag_args_ensemble={"fold_fitting_strategy": "sequential_local"},
         )
 
-        fi = _feature_importance(predictor, test_data, n_repeats)
+        fi = _feature_importance(predictor, test_data, n_repeats, verbosity=ag_verbosity)
         if fi.empty:
             raise ValueError("AutoGluon returned empty feature importance.")
 
@@ -706,6 +891,16 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Recompute even if outputs/<target>_<country>/oracle.csv exists.",
     )
+    parser.add_argument(
+        "--ag-verbosity",
+        type=int,
+        default=0,
+        choices=[0, 1, 2, 3, 4],
+        help=(
+            "AutoGluon verbosity (0=silent, 2=info, 3=info+model details, 4=debug). "
+            "Use 3+ to surface 'skipping model X' tracebacks while debugging."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -826,6 +1021,7 @@ def main() -> None:
                     test_size=args.test_size,
                     min_class_count=args.min_class_count,
                     num_gpus=num_gpus,
+                    ag_verbosity=args.ag_verbosity,
                 )
 
                 oracle_df.to_csv(oracle_path, index=False)

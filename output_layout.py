@@ -116,6 +116,18 @@ def resolve_grid_summary_for_survey(outputs_dir: Path, survey_id: str) -> Path |
     return paths[0] if paths else None
 
 
+def manifest_path(outputs_dir: Path, survey_id: str, output_tag: str) -> Path:
+    """Path for run manifest JSON (one per survey × experiment)."""
+    return outputs_dir / f"run_manifest__{survey_id}__{output_tag}.json"
+
+
+def logs_dir(outputs_dir: Path) -> Path:
+    """Subdirectory for run logs."""
+    d = outputs_dir / "logs"
+    d.mkdir(exist_ok=True)
+    return d
+
+
 def resolve_llm_artifact(
     outputs_dir: Path,
     target: str,

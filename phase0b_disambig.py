@@ -61,8 +61,11 @@ def disambiguate_single(
     candidates: list[dict],
     generate_fn,
     model: str,
-    # Large cap: Kimi-style models may consume budget before the visible letter / "none".
-    max_tokens: int = 8192,
+    # Reasoning disambig models (e.g. NVIDIA Nemotron-3-Nano) emit chain-of-thought
+    # tokens before the final letter answer. With 256, ~27% of calls hit
+    # finish_reason='length' with an empty body, causing silent "no mapping" rows.
+    # 2048 leaves ample room for CoT while the actual output is only ~1-5 tokens.
+    max_tokens: int = 2048,
     temperature: float = 0.0,
 ) -> dict:
     """

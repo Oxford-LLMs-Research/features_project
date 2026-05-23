@@ -182,18 +182,27 @@ def run_comparison(
     # Filter to country
     country_data = data[data[country_col] == country_code].copy()
 
-    # Model features: filter out None/unmapped
-    model_vars = [f for f in model_features if f is not None]
+    # Feature pool for random draws (build first so we can filter model_vars against it)
+    if all_feature_pool is None:
+        exclude = {target_var, country_col}
+        all_feature_pool = [c for c in country_data.columns if c not in exclude]
+
+    # Model features: filter out None/unmapped, then restrict to oracle feature pool
+    # so the model is evaluated on the same variable universe as the oracle.
+    pool_set = set(all_feature_pool)
+    k_requested = len(model_features)
+    k_mapped = sum(1 for f in model_features if f is not None)
+    model_vars = [f for f in model_features if f is not None and f in pool_set]
     k = len(model_vars)
 
     if k == 0:
         return {
             "target": target_var,
             "country": country_code,
-            "error": "no mapped features",
+            "error": "no mapped features in pool",
             "k": 0,
-            "k_requested": len(model_features),
-            "k_mapped": 0,
+            "k_requested": k_requested,
+            "k_mapped": k_mapped,
         }
 
     # Oracle top-k (matched to model's k)
@@ -202,11 +211,6 @@ def run_comparison(
         & (oracle_importances["country"] == country_code)
     ].sort_values("importance_mean", ascending=False)
     oracle_vars = oracle_df["feature_variable"].head(k).tolist()
-
-    # Feature pool for random draws
-    if all_feature_pool is None:
-        exclude = {target_var, country_col}
-        all_feature_pool = [c for c in country_data.columns if c not in exclude]
 
     # Evaluate oracle
     oracle_result = evaluate_feature_set(
@@ -236,8 +240,8 @@ def run_comparison(
         "target": target_var,
         "country": country_code,
         "k": k,
-        "k_requested": len(model_features),
-        "k_mapped": k,
+        "k_requested": k_requested,
+        "k_mapped": k_mapped,
         "oracle": oracle_result,
         "model": model_result,
         "random": random_result,

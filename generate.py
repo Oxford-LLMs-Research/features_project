@@ -110,11 +110,11 @@ class TokenUsageLog:
             tot_t += t
             print(
                 f"  {phase:16s}  calls={n:5d}  "
-                f"prompt≈{p:,}  completion≈{c:,}  total≈{t:,}"
+                f"prompt~{p:,}  completion~{c:,}  total~{t:,}"
             )
         print(
             f"  {'ALL':16s}  calls={tot_n:5d}  "
-            f"prompt≈{tot_p:,}  completion≈{tot_c:,}  total≈{tot_t:,}"
+            f"prompt~{tot_p:,}  completion~{tot_c:,}  total~{tot_t:,}"
         )
 
 
