@@ -17,8 +17,8 @@ import yaml
 matplotlib.use("Agg")
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+if str(REPO_ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / "src"))
 OUTPUTS_DIR = REPO_ROOT / "outputs"
 FIG_DIR = REPO_ROOT / "paper" / "figures"
 MANIFEST_TARGETS = REPO_ROOT / "prelim" / "target_selection_detail.yaml"
@@ -78,7 +78,7 @@ def model_label(tag: object) -> str:
 
 def load_grid_concat() -> pd.DataFrame:
     """All grid summaries with model as an explicit column (both LLMs side-by-side)."""
-    from output_layout import collect_all_grid_summaries
+    from survey_features.layout import collect_all_grid_summaries
 
     frames = []
     for p, sid, tag in collect_all_grid_summaries(OUTPUTS_DIR):

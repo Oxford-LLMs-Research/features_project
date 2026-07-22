@@ -1,14 +1,22 @@
 """
-LLM generation wrapper.
+LLM generation wrapper — the ONE client used everywhere in the pipeline.
 
 Returns a generate_fn(messages, max_tokens, temperature, *, usage_phase=...) -> str
-compatible with all pipeline modules (phase0b_pipeline, phase0b_disambig).
+compatible with all pipeline modules (elicitation, extraction, disambig).
 
 Backed by an OpenAI-compatible API, so it works with:
   - SGLang local server  (LLM_BASE_URL=http://localhost:30000/v1, LLM_API_KEY=EMPTY)
   - OpenRouter           (LLM_BASE_URL=https://openrouter.ai/api/v1)
   - OpenAI               (LLM_BASE_URL=https://api.openai.com/v1)
-  - Together.ai, etc.
+  - Nebius, Together.ai, etc.
+
+Transient errors (429s, 5xx, provider hiccups like Nebius "Already borrowed") are
+retried with linear backoff so one flaky call cannot abort a long sweep. After the
+retries are exhausted the behaviour is controlled by ``on_error``:
+  - "raise" (default): re-raise the last exception (legacy run_grid behaviour — the
+    grid worker catches and records the cell error).
+  - "empty": log and return "" (free-text pipeline behaviour — an empty response is
+    treated as no-selection / no-mapping and the checkpointed run stays alive).
 """
 
 from __future__ import annotations
@@ -16,15 +24,15 @@ from __future__ import annotations
 import json
 import os
 import threading
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from dotenv import load_dotenv
 from openai import NotFoundError, OpenAI
 
-load_dotenv()
+from . import config  # noqa: F401  (imports load .env once)
 
 
 def _usage_to_dict(usage: Any) -> dict[str, Any]:
@@ -124,22 +132,29 @@ def make_generate_fn(
     model: str | None = None,
     usage_log: TokenUsageLog | None = None,
     usage_log_ref: list[TokenUsageLog | None] | None = None,
-) -> tuple[callable, str]:
+    max_retries: int = 5,
+    on_error: str = "raise",
+) -> tuple[Any, str]:
     """
     Build a generate_fn and return it together with the model name.
 
     Falls back to environment variables when arguments are None.
 
     Optional ``usage_log`` records per-request usage when callers pass
-    ``usage_phase=`` (feature_list | disambig).
+    ``usage_phase=`` (feature_list | extract | disambig | ...).
 
     If ``usage_log_ref`` is a one-element list, the element is read on each
     call (set it after you know the output path, e.g. once ``output_tag`` is
     resolved in ``run_grid``).
 
+    ``max_retries`` transient-error attempts with linear backoff (2s, 4s, ...).
+    ``on_error``: "raise" (re-raise after retries) or "empty" (return "").
+
     Returns:
         (generate_fn, model_name)
     """
+    if on_error not in ("raise", "empty"):
+        raise ValueError(f"on_error must be 'raise' or 'empty', got {on_error!r}")
     base_url = base_url or os.environ["LLM_BASE_URL"]
     api_key = api_key or os.environ["LLM_API_KEY"]
     model = model or os.environ["LLM_MODEL"]
@@ -149,6 +164,14 @@ def make_generate_fn(
 
     client = OpenAI(base_url=base_url, api_key=api_key)
 
+    def _create(use_model: str, messages: list[dict], max_tokens: int, temperature: float):
+        return client.chat.completions.create(
+            model=use_model,
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+
     def generate_fn(
         messages: list[dict],
         max_tokens: int = 2048,
@@ -157,24 +180,31 @@ def make_generate_fn(
         usage_phase: str | None = None,
     ) -> str:
         effective_model = model
-        try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature,
+        response = None
+        last_exc: Exception | None = None
+        for attempt in range(max(1, max_retries)):
+            try:
+                response = _create(model, messages, max_tokens, temperature)
+                break
+            except NotFoundError:
+                if not fallback_model:
+                    raise
+                print(f"[generate] Model '{model}' not found, retrying with '{fallback_model}'")
+                effective_model = fallback_model
+                response = _create(fallback_model, messages, max_tokens, temperature)
+                break
+            except Exception as e:  # transient: 429s, 5xx, connection resets, ...
+                last_exc = e
+                if attempt < max_retries - 1:
+                    time.sleep(2 * (attempt + 1))
+        if response is None:
+            if on_error == "raise" and last_exc is not None:
+                raise last_exc
+            print(
+                f"[generate] giving up after {max_retries} retries: "
+                f"{type(last_exc).__name__}: {str(last_exc)[:100]}"
             )
-        except NotFoundError:
-            if not fallback_model:
-                raise
-            print(f"[generate] Model '{model}' not found, retrying with '{fallback_model}'")
-            effective_model = fallback_model
-            response = client.chat.completions.create(
-                model=fallback_model,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature,
-            )
+            return ""
         choice = response.choices[0]
         content = choice.message.content
         fr = getattr(choice, "finish_reason", None)
@@ -195,4 +225,3 @@ def make_generate_fn(
         return content
 
     return generate_fn, model
-

@@ -9,13 +9,13 @@ import pandas as pd
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
 OUT = ROOT / "outputs"
 
 
 def main() -> None:
-    from output_layout import collect_all_grid_summaries
+    from survey_features.layout import collect_all_grid_summaries
 
     rows = collect_all_grid_summaries(OUT)
     if not rows:

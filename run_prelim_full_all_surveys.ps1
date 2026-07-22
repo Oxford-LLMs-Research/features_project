@@ -61,7 +61,7 @@ $surveys = @(
 
 foreach ($s in $surveys) {
     Invoke-PythonStep "full_pipeline_$s" @(
-        "run_grid.py",
+        "scripts/run_grid.py",
         "--survey", $s,
         "--from-manifest", $manifest,
         "--stop-after", "full",

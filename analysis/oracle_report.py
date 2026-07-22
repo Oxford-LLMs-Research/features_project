@@ -21,10 +21,10 @@ import yaml
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
 
-from phase0b_oracle_autogluon import flatten_metadata
+from survey_features.surveys import flatten_metadata
 
 OUTPUTS_DIR = ROOT / "outputs"
 DEFAULT_MANIFEST = ROOT / "prelim" / "trial_manifest.yaml"

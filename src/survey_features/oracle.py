@@ -1,9 +1,9 @@
 """
-Phase 0b: AutoGluon oracle permutation importances.
+AutoGluon oracle permutation importances (requires the [oracle] extra: pip install -e .[oracle]).
 
-This script computes AutoGluon-based permutation importances for a single
-(target, country) cell and writes outputs in the same cache format used by
-run_grid.py so the rest of the pipeline can reuse them.
+Computes AutoGluon-based permutation importances for a single (target, country) cell and
+writes outputs in the cache format used by the grid runners so the rest of the pipeline
+can reuse them.
 
 Output contract
 ---------------
@@ -15,9 +15,9 @@ compute_oracle() returns:
 
 Cache contract
 --------------
-When run as a script, results are saved to:
+When run as a script (python -m survey_features.oracle), results are saved to:
   outputs/<target>_<country>/oracle.csv
-and can be picked up by run_grid.py (which skips oracle computation if the
+and are picked up by scripts/run_grid.py (which skips oracle computation if the
 file already exists).
 """
 
@@ -33,10 +33,17 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from autogluon.tabular import TabularPredictor
-from dotenv import load_dotenv
 from sklearn.model_selection import train_test_split
 
-load_dotenv()
+from .config import OUTPUTS_DIR
+from .surveys import (
+    SURVEY_COUNTRY_COL,
+    build_admin_cols,
+    build_country_code_map,
+    clean_question_columns,
+    flatten_metadata,
+    load_survey,
+)
 
 
 def _prewarm_autogluon_imports() -> None:
@@ -77,10 +84,6 @@ def _prewarm_autogluon_imports() -> None:
 
 _prewarm_autogluon_imports()
 
-FEATURES_DIR = Path(__file__).resolve().parent
-OUTPUTS_DIR = FEATURES_DIR / "outputs"
-OUTPUTS_DIR.mkdir(exist_ok=True)
-
 RANDOM_STATE = 42
 SIMILARITY_THRESHOLD = 0.85
 TEST_SIZE = 0.2
@@ -97,198 +100,13 @@ MIN_NORMALIZED_FEATURE_ENTROPY = 0.0
 
 MIN_CLASS_COUNT = 5
 
-SURVEY_COUNTRY_COL: dict[str, str] = {
-    "wvs": "B_COUNTRY",
-    "afrobarometer": "COUNTRY",
-    "arabbarometer": "COUNTRY",
-    "asianbarometer": "country",
-    "latinobarometer": "IDENPA",
-    "ess_wave_10": "cntry",
-    "ess_wave_11": "cntry",
-}
-
 DEFAULT_SURVEY = "wvs"
 DEFAULT_TARGETS = ["Q47", "Q57", "Q199", "Q235", "Q164"]
 DEFAULT_COUNTRIES = ["Germany", "Nigeria", "Japan", "Brazil", "Egypt"]
 
 
-def load_survey(survey_id: str, config_path: str) -> tuple[pd.DataFrame, dict]:
-    """Load survey data + metadata via synthetic_sampling."""
-    try:
-        from synthetic_sampling.config.base import DataPaths
-        from synthetic_sampling.loaders.survey_loader import SurveyLoader
-    except ModuleNotFoundError as exc:
-        raise ModuleNotFoundError(
-            "Missing dependency: synthetic_sampling. Install project dependencies "
-            "with `pip install -r requirements.txt` to continue."
-        ) from exc
-
-    paths = DataPaths.from_yaml(config_path)
-    loader = SurveyLoader(paths=paths, verbose=False)
-    return loader.load_survey(survey_id)
-
-
-def build_country_code_map(
-    metadata: dict,
-    country_col: str,
-    data: pd.DataFrame | None = None,
-) -> dict[str, int | str]:
-    """
-    Derive {country_name: code} from metadata, with a fallback for surveys that
-    store country names directly in the data column.
-    """
-    meta_map: dict[str, int | str] = {}
-    for section in metadata.values():
-        if not isinstance(section, dict):
-            continue
-        if country_col in section:
-            values = section[country_col].get("values", {})
-            for code_str, name in values.items():
-                try:
-                    meta_map[name] = int(code_str)
-                except ValueError:
-                    meta_map[name] = code_str
-            break
-
-    if data is None or not meta_map:
-        return meta_map
-
-    actual_values = set(data[country_col].dropna().unique())
-
-    if any(code in actual_values for code in meta_map.values()):
-        return {name: code for name, code in meta_map.items() if code in actual_values}
-
-    actual_lower = {str(v).lower(): v for v in actual_values}
-    result: dict[str, int | str] = {}
-    for meta_name in meta_map:
-        if meta_name in actual_values:
-            result[meta_name] = meta_name
-        elif meta_name.lower() in actual_lower:
-            result[meta_name] = actual_lower[meta_name.lower()]
-    matched_data_vals = set(result.values())
-    for val in actual_values:
-        val_str = str(val)
-        if val not in matched_data_vals and val_str not in result:
-            result[val_str] = val
-    return result
-
-
-def build_admin_cols(metadata: dict, country_col: str) -> frozenset[str]:
-    """Admin columns are listed in metadata EXCLUDED plus the country column."""
-    excluded = metadata.get("EXCLUDED", {})
-    return frozenset(excluded.keys()) | {country_col}
-
-
-_MISSING_LABEL_PATTERNS: tuple[str, ...] = (
-    "missing",
-    "no answer",
-    "not applicable",
-    "not asked",
-    "refused",
-    "refusal",
-    "don't know",
-    "do not know",
-    "do not understand",
-    "can't choose",
-    "cannot choose",
-    "decline",
-    "inap",
-    "no contesta",
-    "no sabe",
-    "no response",
-)
-
-
-def _missing_codes_from_metadata(metadata: dict) -> dict[str, set]:
-    out: dict[str, set] = {}
-    if not metadata:
-        return out
-    for section in metadata.values():
-        if not isinstance(section, dict):
-            continue
-        for var_code, info in section.items():
-            if not isinstance(info, dict):
-                continue
-            values = info.get("values") or {}
-            if not isinstance(values, dict):
-                continue
-            missing: set = set()
-            for code_str, label in values.items():
-                label_norm = str(label).strip().lower()
-                if any(p in label_norm for p in _MISSING_LABEL_PATTERNS):
-                    missing.add(str(code_str))
-                    missing.add(str(code_str).strip())
-                    try:
-                        missing.add(int(str(code_str)))
-                    except (TypeError, ValueError):
-                        pass
-                    try:
-                        missing.add(float(str(code_str)))
-                    except (TypeError, ValueError):
-                        pass
-            if missing:
-                out[var_code] = missing
-    return out
-
-
-def clean_question_columns(
-    df: pd.DataFrame,
-    country_col: str,
-    admin_cols: frozenset[str],
-    metadata: dict | None = None,
-) -> pd.DataFrame:
-    """
-    Coerce numeric-coded columns to float and map negative values to NaN.
-    When metadata is provided, also strips value codes whose label indicates a
-    missing/non-substantive response (e.g. "Don't know", "Refused").
-    Text-label columns with no numeric majority are left intact for AutoGluon.
-    """
-    cleaned = df.copy()
-    missing_by_var = _missing_codes_from_metadata(metadata) if metadata else {}
-    q_cols = [c for c in cleaned.columns if c not in admin_cols and c != country_col]
-    for col in q_cols:
-        if not pd.api.types.is_object_dtype(cleaned[col]):
-            cleaned[col] = pd.to_numeric(cleaned[col], errors="coerce")
-            cleaned[col] = cleaned[col].where(cleaned[col] >= 0)
-            mc = missing_by_var.get(col)
-            if mc:
-                cleaned[col] = cleaned[col].where(~cleaned[col].isin(mc))
-        else:
-            coerced = pd.to_numeric(cleaned[col], errors="coerce")
-            if coerced.notna().mean() > 0.5:
-                cleaned[col] = coerced.where(coerced >= 0)
-                mc = missing_by_var.get(col)
-                if mc:
-                    cleaned[col] = cleaned[col].where(~cleaned[col].isin(mc))
-            else:
-                mc = missing_by_var.get(col)
-                if mc:
-                    mc_str = {str(v).strip() for v in mc}
-                    cleaned[col] = cleaned[col].where(
-                        ~cleaned[col].astype(str).str.strip().isin(mc_str)
-                    )
-    return cleaned
-
-
-
-def flatten_metadata(raw_metadata: dict) -> dict[str, dict[str, str]]:
-    """Flatten nested metadata dict into variable -> metadata fields."""
-    flat: dict[str, dict[str, str]] = {}
-    for section, section_vars in raw_metadata.items():
-        if not isinstance(section_vars, dict):
-            continue
-        for var_name, var_meta in section_vars.items():
-            if not isinstance(var_meta, dict):
-                continue
-            flat[var_name] = {
-                "section": section,
-                "question": str(var_meta.get("question", "")).strip(),
-                "description": str(var_meta.get("description", "")).strip(),
-            }
-    return flat
-
-
 def load_similarity_model(similarity_threshold: float) -> object | None:
+    """Embedding model for the oracle's semantic near-duplicate exclusion filter."""
     if similarity_threshold <= 0 or similarity_threshold >= 1:
         return None
     from sentence_transformers import SentenceTransformer
@@ -614,7 +432,7 @@ def compute_oracle(
     """
     Compute AutoGluon permutation importances for one target-country cell.
 
-    Note: n_splits is kept for drop-in compatibility with phase0b_oracle.py but
+    Note: n_splits is kept for drop-in compatibility with earlier oracle scripts but
     is not used by AutoGluon here (single holdout split).
     """
     if target_var not in data.columns:
@@ -781,7 +599,7 @@ def compute_oracle(
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Phase 0b AutoGluon oracle runner.")
+    parser = argparse.ArgumentParser(description="AutoGluon oracle runner.")
     parser.add_argument(
         "--survey",
         default=DEFAULT_SURVEY,

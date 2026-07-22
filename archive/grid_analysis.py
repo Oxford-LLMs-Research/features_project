@@ -1,4 +1,11 @@
 """
+ARCHIVED (dead script — do not run).
+
+Hardcoded to the deleted WVS-only 5x5 pilot (targets/countries below no longer exist on
+disk) and imports the pre-package `output_layout` module. Kept for reference because its
+hit-rate / demographics-lead / unmappable logic informed the leakage audit
+(scripts/leakage_audit.py). See RECONCILIATION_PLAN.md section 2a.
+
 Grid analysis for the 5 targets x 5 countries Phase 0b run.
 
 Reads from ``outputs/``:

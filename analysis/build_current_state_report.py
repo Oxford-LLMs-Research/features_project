@@ -13,12 +13,16 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
 GEN = ROOT / "paper" / "generated_current_state"
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
 
-from phase0b_oracle_autogluon import _MISSING_LABEL_PATTERNS
-from phase0b_pipeline import PROMPT_COUNTRY, PROMPT_UNPROMPTED, SYSTEM_PROMPT
-from phase0b_disambig import DISAMBIG_PROMPT
+from survey_features.prompts import (
+    DISAMBIG_PROMPT_LEGACY as DISAMBIG_PROMPT,  # this report documents the legacy JSON pipeline
+    PROMPT_COUNTRY,
+    PROMPT_UNPROMPTED,
+    SYSTEM_PROMPT,
+)
+from survey_features.surveys import MISSING_LABEL_PATTERNS as _MISSING_LABEL_PATTERNS
 
 SURVEY_ORDER = [
     "wvs",
@@ -88,7 +92,7 @@ def load_all_summary() -> pd.DataFrame:
     the model tag so downstream tables can compare them rather than silently
     collapsing to one model.
     """
-    from output_layout import collect_all_grid_summaries
+    from survey_features.layout import collect_all_grid_summaries
 
     order = {sid: i for i, sid in enumerate(SURVEY_ORDER)}
     dfs: list[pd.DataFrame] = []
@@ -136,7 +140,7 @@ def load_target_detail() -> dict[tuple[str, str], dict]:
 
 def get_question_texts() -> dict[tuple[str, str], str]:
     try:
-        from run_grid import SURVEY_COUNTRY_COL, load_survey, get_question_text
+        from survey_features.surveys import SURVEY_COUNTRY_COL, get_question_text, load_survey
         import os
     except ModuleNotFoundError:
         return {}
@@ -413,7 +417,7 @@ def read_json(path: Path) -> Any:
 
 
 def write_mapping_and_oracle_appendix(df: pd.DataFrame) -> None:
-    from output_layout import llm_cache_prefix
+    from survey_features.layout import llm_cache_prefix
 
     map_rows: list[str] = []
     oracle_rows: list[str] = []

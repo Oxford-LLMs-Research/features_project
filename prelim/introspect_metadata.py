@@ -16,10 +16,11 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-# project root on path
+# project root + package src on path
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+for _p in (str(ROOT), str(ROOT / "src")):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 import yaml
 from dotenv import load_dotenv
@@ -89,7 +90,7 @@ def main():
         print("DATA_CONFIG_PATH is not set; cannot load surveys.")
         sys.exit(1)
 
-    from run_grid import SURVEY_COUNTRY_COL, load_survey
+    from survey_features.surveys import SURVEY_COUNTRY_COL, load_survey
 
     def loader(sid: str):
         return load_survey(sid, config_path)

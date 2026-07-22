@@ -1,190 +1,127 @@
 """
-Second pilot orchestrator — format-as-condition + fixed-k (2026-06-03).
+MAIN experiment orchestrator — free-text elicitation pipeline (the paper's current design).
 
-Tests whether strict-JSON output suppresses measured LLM capability vs free-text, and
-reports at fixed k as well as model-chosen k. Selector (test model) = DeepSeek-V3.2.
-Grid = the 52 GENUINE cells from the B1 leakage audit, both prompt conditions.
+Generalised from the second-pilot orchestrator (analysis/format_pilot.py); artifact
+paths are unchanged (outputs/format_pilot/) so all existing pilot-2 results stay valid.
 
-Three arms (decompose format vs mapper):
-  A = JSON  + pilot-1 per-feature top-5 disambig   (already on disk; not recomputed here)
-  B = JSON  + new per-feature mapper                (re-maps cached pilot-1 JSON outputs)
-  C = free-text + new per-feature mapper            (new free-text generation)
-Mappers (held fixed per pass, run BOTH): Nemotron-3-Nano-30B (small), Qwen3-235B (large).
-Contrasts: C-B = format effect; B-A = mapper effect; C-A = total.
+Pipeline per selector (the test model whose capability we measure):
+  --phase gen     : free-text selection responses, both prompt conditions, cached per cell.
+  --phase extract : essay -> typed feature list via the FIXED extractor (Qwen-235B).
+  --phase map     : per-feature top-20 retrieval + disambiguation (--disambiguator).
+                    Arms: C = free-text (extracted), B = legacy JSON selections re-mapped.
+  --phase score   : captured importance + oracle/model/random accuracy at model-chosen k
+                    and fixed k=5,10, per arm x disambiguator -> scores_<selector>.csv.
 
-Phased + resumable:
-  --phase gen   : generate & cache free-text responses (DeepSeek only). Cheap, irreversible.
-  --phase map   : run mapping arms B & C for a given --mapper, per-feature, checkpointed.
-  --phase score : (added later) compute captured importance / value-over-random at
-                  model-chosen k and fixed k=5,10 per arm x mapper, write tables.
+Grid = the GENUINE cells from the leakage audit (scripts/leakage_audit.py ->
+outputs/leakage_audit.csv), both prompt conditions.
 
-All artifacts under outputs/format_pilot/. Per-cell JSON checkpoints make every phase
-resumable; rerunning skips cells already on disk unless --force.
+Phased + resumable: per-cell JSON checkpoints make every phase resumable; rerunning
+skips cells already on disk unless --force. Selectors are registered in
+survey_features.config.SELECTORS; each keeps its own subdir so adding a model never
+clobbers another's artifacts.
+
+Examples:
+  python scripts/run_main.py --phase gen     --selector deepseek
+  python scripts/run_main.py --phase extract --selector deepseek
+  python scripts/run_main.py --phase map     --selector deepseek --disambiguator nemotron
+  python scripts/run_main.py --phase score   --selector deepseek
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
-import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-for p in (str(ROOT), str(ROOT / "analysis")):
-    if p not in sys.path:
-        sys.path.insert(0, p)
+for _p in (str(ROOT / "src"), str(ROOT)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
-OUT = ROOT / "outputs"
-PILOT = OUT / "format_pilot"
-
-# Selector = the test model whose capability we measure. Multiple selectors are kept in
-# separate subdirs (selector key) so adding a model never clobbers another's artifacts.
-# The pilot-1 cache tag for each selector (its llm__<tag>/ dir) gives arms A and B.
-SELECTORS = {
-    "deepseek": {"model": "deepseek-ai/DeepSeek-V3.2", "pilot1_tag": "deepseek-ai_DeepSeek-V3.2"},
-    "kimi":     {"model": "moonshotai/Kimi-K2.5",      "pilot1_tag": "moonshotai_Kimi-K2.5"},
-}
-DEFAULT_SELECTOR = "deepseek"
-
-
-def selector_dirs(selector_key):
-    base = PILOT / selector_key
-    return base / "freetext", base / "extracted", base / "maps"
-# Extraction (essay -> feature list) is a comprehension task held FIXED across all arms
-# and disambiguators: a small model cannot digest a long essay (demo: Nemotron pulled 3
-# features vs Qwen's 28 from the same response), and the extracted set defines the model's
-# request, so it must not vary by disambiguator. Disambiguation (feature -> code/none) is
-# the per-feature matching task where small-vs-large is a legitimate comparison.
-EXTRACTOR_MODEL = "Qwen/Qwen3-235B-A22B-Instruct-2507"
-DISAMBIGUATORS = {
-    "nemotron": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
-    "qwen235b": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-}
-CONDITIONS = ["unprompted", "country_provided"]
-# Feature types that enter retrieve+disambiguate+score. Decision (2026-06-03): include
-# temporal_contextual alongside respondent_attribute — the study is about capability across
-# countries AND time (surveys span waves), so be generous to temporally-framed requests.
-# instrument_methodology and base_rate_prior stay out (unmappable; studied as metadata).
-PIPE_TYPES = {"respondent_attribute", "temporal_contextual"}
-
-# Free-text prompts are the EXACT JSON prompts (phase0b_pipeline.PROMPT_*) with only the
-# JSON formatting block removed --- nothing added, nothing rephrased. This isolates the
-# output-format instruction as the single variable between the JSON and free-text arms, so
-# the C - B contrast is a clean format effect (same system prompt, stem, question wording).
-FREETEXT_SYSTEM = "You are a social science researcher."  # == phase0b_pipeline.SYSTEM_PROMPT
-FREETEXT_UNPROMPTED = (
-    'A survey asks respondents: "{question}"\n\n'
-    "You want to predict how a respondent will answer. What information about the respondent would you need?"
+from survey_features.config import (  # noqa: E402
+    CONDITIONS,
+    DEFAULT_SELECTOR,
+    DISAMBIGUATORS,
+    EXTRACTOR_MODEL,
+    OUTPUTS_DIR,
+    PIPE_TYPES,
+    SELECTORS,
 )
-FREETEXT_COUNTRY = (
-    'A survey asks respondents in {country}: "{question}"\n\n'
-    "You want to predict how a respondent in {country} will answer. What information about the respondent would you need?"
+from survey_features.layout import (  # noqa: E402
+    cell_tag,
+    format_pilot_dir,
+    genuine_cells,
+    selector_dirs,
 )
 
+OUT = OUTPUTS_DIR
+PILOT = format_pilot_dir(OUT)
 
-# ── shared loaders ────────────────────────────────────────────────────────────
-
-def genuine_cells() -> list[tuple[str, str, str]]:
-    import csv
-    out = []
-    with open(OUT / "leakage_audit.csv", encoding="utf-8") as f:
-        for r in csv.DictReader(f):
-            if r["leakage_class"] == "genuine":
-                out.append((r["survey"], r["target"], r["country"]))
-    return out
+FIXED_KS = [5, 10]
 
 
-def env_values() -> dict:
-    from dotenv import dotenv_values
-    return dotenv_values(ROOT / ".env")
+# ── shared helpers ────────────────────────────────────────────────────────────
+
+def selector_generate_fn(selector_model: str):
+    """Selector client on the main LLM endpoint; transient errors -> '' (keeps sweeps alive)."""
+    from survey_features.llm import make_generate_fn
+    fn, _ = make_generate_fn(model=selector_model, on_error="empty")
+    return fn
 
 
-def selector_generate_fn(env, selector_model):
-    from openai import OpenAI
-    client = OpenAI(base_url=env["LLM_BASE_URL"], api_key=env["LLM_API_KEY"])
-
-    def g(messages, max_tokens=4096, temperature=0.0, usage_phase=None):
-        import time as _t
-        last = None
-        for attempt in range(5):
-            try:
-                r = client.chat.completions.create(model=selector_model, messages=messages,
-                                                   max_tokens=max_tokens, temperature=temperature)
-                return r.choices[0].message.content or ""
-            except Exception as e:
-                last = e
-                _t.sleep(2 * (attempt + 1))
-        print(f"[selector] giving up after retries: {type(last).__name__}: {str(last)[:100]}")
-        return ""
-    return g
-
-
-def mapper_generate_fn(env, mapper_model):
-    from openai import OpenAI
-    # Both mappers live on the Studio (disambig) endpoint.
-    client = OpenAI(base_url=env["DISAMBIG_BASE_URL"], api_key=env.get("DISAMBIG_API_KEY") or env["LLM_API_KEY"])
-
-    def g(messages, max_tokens=2048, temperature=0.0, usage_phase=None):
-        # Retry transient server errors (e.g. Nebius "Already borrowed" 400, 429s, 5xx)
-        # so one flaky call cannot abort a long sweep. Last attempt re-raises only if all
-        # retries fail; on persistent failure we return "" (treated as no-mapping) rather
-        # than crash, keeping the checkpointed run alive.
-        import time as _t
-        last = None
-        for attempt in range(5):
-            try:
-                r = client.chat.completions.create(model=mapper_model, messages=messages,
-                                                   max_tokens=max_tokens, temperature=temperature)
-                return r.choices[0].message.content or ""
-            except Exception as e:
-                last = e
-                _t.sleep(2 * (attempt + 1))
-        print(f"[mapper] giving up after retries: {type(last).__name__}: {str(last)[:100]}")
-        return ""
-    return g
+def mapper_generate_fn(mapper_model: str):
+    """Extractor/disambiguator client on the disambig endpoint (falls back to LLM endpoint)."""
+    from survey_features.llm import make_generate_fn
+    fn, _ = make_generate_fn(
+        base_url=os.environ.get("DISAMBIG_BASE_URL") or None,
+        api_key=os.environ.get("DISAMBIG_API_KEY") or None,
+        model=mapper_model,
+        on_error="empty",
+    )
+    return fn
 
 
 _survey_cache: dict = {}
 
 
-def survey_assets(survey_id, env):
+def survey_assets(survey_id):
     """(survey_variables, embeddings, var_codes) — cached per survey."""
     if survey_id not in _survey_cache:
-        from run_grid import load_survey, load_or_build_survey_embeddings
-        from phase0b_mapping import extract_survey_variables
-        _, meta = load_survey(survey_id, env["DATA_CONFIG_PATH"])
+        from survey_features.retrieval import load_or_build_survey_embeddings
+        from survey_features.surveys import extract_survey_variables, load_survey
+        _, meta = load_survey(survey_id, os.environ["DATA_CONFIG_PATH"])
         svars = extract_survey_variables(meta)
         emb, vcodes = load_or_build_survey_embeddings(svars, survey_id)
         _survey_cache[survey_id] = (svars, emb, vcodes)
     return _survey_cache[survey_id]
 
 
-def embed_fn_for():
-    from phase0b_mapping import _get_sentence_transformer
-    st = _get_sentence_transformer("all-MiniLM-L6-v2")
-    return lambda texts: st.encode(texts, normalize_embeddings=True)
+_data_cache: dict = {}
 
 
-def cell_tag(survey, target, country):
-    safe = f"{survey}__{target}__{country}".replace("/", "_").replace(" ", "_")
-    return safe
+def survey_data(survey):
+    if survey not in _data_cache:
+        from survey_features.surveys import load_survey
+        _data_cache[survey] = load_survey(survey, os.environ["DATA_CONFIG_PATH"])
+    return _data_cache[survey]
 
 
-# ── Phase: gen (free-text, DeepSeek, cheap, irreversible) ─────────────────────
+# ── Phase: gen (free-text selection; cheap, irreversible) ─────────────────────
 
 def phase_gen(selector_key, force=False, limit=None):
-    env = env_values()
+    from survey_features.elicitation import freetext_messages
     sel_model = SELECTORS[selector_key]["model"]
     gen_dir, _, _ = selector_dirs(selector_key)
     gen_dir.mkdir(parents=True, exist_ok=True)
-    gen = selector_generate_fn(env, sel_model)
-    cells = genuine_cells()
+    gen = selector_generate_fn(sel_model)
+    cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
     print(f"[gen] selector={selector_key} ({sel_model}) {len(cells)} cells x {len(CONDITIONS)} conds -> free-text")
     done = skipped = 0
     for i, (survey, target, country) in enumerate(cells):
-        svars, _, _ = survey_assets(survey, env)
+        svars, _, _ = survey_assets(survey)
         qtext = svars.get(target, target)
         out_path = gen_dir / f"{cell_tag(survey, target, country)}.json"
         if out_path.is_file() and not force:
@@ -193,19 +130,10 @@ def phase_gen(selector_key, force=False, limit=None):
         rec = {"survey": survey, "target": target, "country": country,
                "question_text": qtext, "selector_model": sel_model, "responses": {}}
         for cond in CONDITIONS:
-            tmpl = FREETEXT_COUNTRY if cond == "country_provided" else FREETEXT_UNPROMPTED
-            msg = tmpl.format(question=qtext, country=country)
-            for attempt in range(3):
-                try:
-                    resp = gen([{"role": "system", "content": FREETEXT_SYSTEM},
-                                {"role": "user", "content": msg}], max_tokens=4096)
-                    break
-                except Exception as e:
-                    if attempt == 2:
-                        resp = ""
-                        rec.setdefault("errors", {})[cond] = f"{type(e).__name__}: {str(e)[:120]}"
-                    else:
-                        time.sleep(2 * (attempt + 1))
+            messages = freetext_messages(qtext, country if cond == "country_provided" else None)
+            resp = gen(messages, max_tokens=4096, usage_phase="feature_list")
+            if not resp:
+                rec.setdefault("errors", {})[cond] = "empty response after retries"
             rec["responses"][cond] = resp
         out_path.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
         done += 1
@@ -214,18 +142,16 @@ def phase_gen(selector_key, force=False, limit=None):
     print(f"[gen] done. wrote={done} skipped(existing)={skipped} -> {gen_dir}")
 
 
-
-# ── Phase: extract (free-text -> feature list, FIXED Qwen extractor) ──────────
+# ── Phase: extract (free-text -> feature list, FIXED extractor) ───────────────
 
 def phase_extract(selector_key, force=False, limit=None):
     """Arm C only: turn each cached free-text essay into a typed feature list via the FIXED
     extractor (Qwen). Held constant across disambiguators so the request set does not vary
     by mapper. Arm B needs no extraction (JSON is already a feature list)."""
-    from analysis.smart_mapper import extract_features
-    env = env_values()
-    egen = mapper_generate_fn(env, EXTRACTOR_MODEL)
+    from survey_features.extraction import extract_features
+    egen = mapper_generate_fn(EXTRACTOR_MODEL)
     gen_dir, extract_dir, _ = selector_dirs(selector_key)
-    cells = genuine_cells()
+    cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
     extract_dir.mkdir(parents=True, exist_ok=True)
@@ -258,7 +184,7 @@ def phase_extract(selector_key, force=False, limit=None):
 # ── Phase: map (per-feature disambiguation; disambiguator varies) ─────────────
 
 def _json_arm_features(selector_key, target, country, cond):
-    """Arm B: the selector's pilot-1 JSON selection as a feature list (parsed directly, no
+    """Arm B: the selector's legacy JSON selection as a feature list (parsed directly, no
     extraction). Uses cached disambig.json feature_label/reasoning as feature/context."""
     tag = SELECTORS[selector_key]["pilot1_tag"]
     p = OUT / f"{target}_{country}" / f"llm__{tag}" / "disambig.json"
@@ -277,20 +203,20 @@ def _json_arm_features(selector_key, target, country, cond):
 
 
 def phase_map(selector_key, disambig_key, arms=("B", "C"), force=False, limit=None):
-    from analysis.smart_mapper import map_features
-    env = env_values()
+    from survey_features.disambig import map_features
+    from survey_features.retrieval import make_embed_fn
     dmodel = DISAMBIGUATORS[disambig_key]
-    dgen = mapper_generate_fn(env, dmodel)
-    embed = embed_fn_for()
+    dgen = mapper_generate_fn(dmodel)
+    embed = make_embed_fn()
     _, extract_dir, map_dir = selector_dirs(selector_key)
-    cells = genuine_cells()
+    cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
     map_dir.mkdir(parents=True, exist_ok=True)
     print(f"[map] selector={selector_key} disambiguator={disambig_key} arms={arms} cells={len(cells)}")
 
     for i, (survey, target, country) in enumerate(cells):
-        svars, emb, vcodes = survey_assets(survey, env)
+        svars, emb, vcodes = survey_assets(survey)
         excluded = {target}
         ctag = cell_tag(survey, target, country)
 
@@ -346,21 +272,18 @@ def _save_map(path, survey, target, country, cond, arm, disambig_key, cm):
 
 # ── Phase: score (captured importance + value-over-random, all arms) ──────────
 
-FIXED_KS = [5, 10]
-
-
-def _oracle_table(survey, env):
+def _oracle_table(survey):
     """Load oracle importances for a survey from per-cell oracle.csv into one DataFrame
     with columns [target_variable, country, feature_variable, importance_mean]. country is
     the numeric/code value matching the survey's country column (as run_comparison expects)."""
     import pandas as pd
-    from run_grid import SURVEY_COUNTRY_COL, load_survey, build_country_code_map
-    _, meta = load_survey(survey, env["DATA_CONFIG_PATH"])
+    from survey_features.surveys import SURVEY_COUNTRY_COL, build_country_code_map, load_survey
+    _, meta = load_survey(survey, os.environ["DATA_CONFIG_PATH"])
     ccol = SURVEY_COUNTRY_COL.get(survey)
-    data, _ = survey_data(survey, env)
+    data, _ = survey_data(survey)
     cmap = build_country_code_map(meta, ccol, data) if ccol else {}
     rows = []
-    for s, t, c in genuine_cells():
+    for s, t, c in genuine_cells(OUT):
         if s != survey:
             continue
         p = OUT / f"{t}_{c}" / "oracle.csv"
@@ -375,38 +298,9 @@ def _oracle_table(survey, env):
     return pd.DataFrame(rows), ccol, cmap
 
 
-_data_cache: dict = {}
-
-
-def survey_data(survey, env):
-    if survey not in _data_cache:
-        from run_grid import load_survey
-        _data_cache[survey] = load_survey(survey, env["DATA_CONFIG_PATH"])
-    return _data_cache[survey]
-
-
-def captured_importance(mapped_codes, target, country_code, oracle_df, k=None):
-    """Sum oracle importance of mapped codes / sum of oracle top-k (matched k). In [0,1]."""
-    sub = oracle_df[(oracle_df["target_variable"] == target) & (oracle_df["country"] == country_code)]
-    if sub.empty:
-        return None
-    imp = dict(zip(sub["feature_variable"].astype(str),
-                   sub["importance_mean"].clip(lower=0)))
-    codes = [c for c in dict.fromkeys(mapped_codes) if c]  # dedupe, drop None
-    if k is not None:
-        codes = codes[:k]
-    kk = len(codes)
-    if kk == 0:
-        return None
-    denom = sum(sorted(imp.values(), reverse=True)[:kk])
-    if denom <= 0:
-        return None
-    return sum(imp.get(c, 0.0) for c in codes) / denom
-
-
 def _arm_A_codes(selector_key, target, country, cond):
-    """Pilot-1 mapped codes (deduped, arrival order) for arm A from the selector's cached
-    disambig.json."""
+    """Legacy (pilot-1) mapped codes (deduped, arrival order) for arm A from the selector's
+    cached disambig.json."""
     tag = SELECTORS[selector_key]["pilot1_tag"]
     p = OUT / f"{target}_{country}" / f"llm__{tag}" / "disambig.json"
     if not p.is_file():
@@ -423,7 +317,7 @@ def _arm_A_codes(selector_key, target, country, cond):
 
 
 def _map_codes(map_dir, arm, disambig_key, survey, target, country, cond):
-    """Arm B/C mapped codes from the format-pilot map file."""
+    """Arm B/C mapped codes from the map file."""
     ctag = cell_tag(survey, target, country)
     p = map_dir / f"{arm}__{disambig_key}__{ctag}__{cond}.json"
     if not p.is_file():
@@ -435,23 +329,23 @@ def phase_score(selector_key, force=False, limit=None):
     """Score all arms. Key efficiency: oracle top-k and the random-k baseline depend only
     on (cell, k) — NOT on the arm or disambiguator — so we compute them ONCE per (cell, k)
     and reuse, evaluating only the cheap per-arm model feature set each time. This avoids
-    the ~10x redundant XGBoost fits the naive arm-loop incurred (the random-20-draw baseline
+    the ~10x redundant XGBoost fits the naive arm-loop incurred (the random-draw baseline
     on the full column matrix is the dominant cost). All XGBoost is single-threaded
     (nthread=1): torch/sentence-transformers already loaded a conflicting libomp earlier in
-    the process (documented Windows issue) and multi-threaded fits hang."""
+    the process (documented Windows issue) and multi-threaded fits hang.
+
+    Random draws are SERIAL: joblib/loky parallelism is unreliable in this environment
+    (TerminatedWorkerError / OOM from re-pickling the full survey frame per call on
+    Windows). Serial is slow but deterministic; SCORE_N_DRAWS (default 10) keeps a full
+    run manageable."""
     import csv as _csv
     import numpy as np
-    from phase0b_evaluation import evaluate_feature_set, _single_random_draw
-    env = env_values()
-    # SERIAL random draws. joblib/loky parallelism is unreliable in this environment: the
-    # worker pool crashes (TerminatedWorkerError, OOM from re-pickling the full survey frame
-    # per call) after a few invocations on Windows, which is what stalled earlier runs.
-    # Serial is slow but deterministic; we cut n_draws to 10 (from pilot-1's 20) to keep the
-    # full run ~2h. Each XGBoost fit is single-threaded (libomp conflict). Oracle+random are
-    # computed once per (cell,k) and cached across arms (the real efficiency win).
-    n_draws = int(env.get("SCORE_N_DRAWS", "10"))
+    from survey_features.evaluation import evaluate_feature_set, single_random_draw
+    from survey_features.metrics import captured_importance_df
+
+    n_draws = int(os.environ.get("SCORE_N_DRAWS", "10"))
     _, _, map_dir = selector_dirs(selector_key)
-    cells = genuine_cells()
+    cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
     PILOT.mkdir(parents=True, exist_ok=True)
@@ -460,20 +354,21 @@ def phase_score(selector_key, force=False, limit=None):
             "captured_importance","oracle_acc","model_acc","random_acc","majority",
             "value_over_random","cost_of_imperfect","error"]
     # Incremental write: open now, flush after each cell so progress is visible and a
-    # mid-run interruption keeps completed cells (no joblib pool to crash; pure serial).
+    # mid-run interruption keeps completed cells.
     out_f = open(out_csv, "w", newline="", encoding="utf-8")
     writer = _csv.DictWriter(out_f, fieldnames=cols)
     writer.writeheader(); out_f.flush()
     n_written = 0
 
-    def oracle_topk(t, code, k):
-        sub = oracle_df[(oracle_df["target_variable"] == t) & (oracle_df["country"] == code)]
-        return sub.sort_values("importance_mean", ascending=False)["feature_variable"].head(k).tolist()
-
     surveys = sorted({s for s, _, _ in cells})
     for survey in surveys:
-        oracle_df, ccol, cmap = _oracle_table(survey, env)
-        data, _ = survey_data(survey, env)
+        oracle_df, ccol, cmap = _oracle_table(survey)
+
+        def oracle_topk(t, code, k):
+            sub = oracle_df[(oracle_df["target_variable"] == t) & (oracle_df["country"] == code)]
+            return sub.sort_values("importance_mean", ascending=False)["feature_variable"].head(k).tolist()
+
+        data, _ = survey_data(survey)
         scells = [(s, t, c) for s, t, c in cells if s == survey]
         for s, t, country in scells:
             code = cmap.get(country, country)
@@ -498,14 +393,14 @@ def phase_score(selector_key, force=False, limit=None):
                         k = len(use_codes)
                         if k == 0:
                             continue
-                        ci = captured_importance(use_codes, t, code, oracle_df, k=None)
+                        ci = captured_importance_df(use_codes, t, code, oracle_df, k=None)
                         try:
                             mres = evaluate_feature_set(country_data, t, use_codes, nthread=1)
                             m = mres.get("accuracy_mean"); majority[k] = mres.get("majority_baseline")
                             if k not in oracle_cache:
                                 ores = evaluate_feature_set(country_data, t, oracle_topk(t, code, k), nthread=1)
                                 oracle_cache[k] = ores.get("accuracy_mean")
-                                draws = [_single_random_draw(country_data, t, pool, k, 42 + i)
+                                draws = [single_random_draw(country_data, t, pool, k, 42 + i)
                                          for i in range(n_draws)]
                                 draws = [d for d in draws if d is not None]
                                 random_cache[k] = round(float(np.mean(draws)), 4) if draws else None
@@ -535,14 +430,14 @@ def phase_score(selector_key, force=False, limit=None):
 
 
 def main():
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--phase", choices=["gen", "extract", "map", "score"], required=True)
     ap.add_argument("--selector", choices=list(SELECTORS), default=DEFAULT_SELECTOR,
-                    help="test model whose capability is measured (default: deepseek)")
+                    help=f"test model whose capability is measured (default: {DEFAULT_SELECTOR})")
     ap.add_argument("--disambiguator", choices=list(DISAMBIGUATORS), help="required for --phase map")
-    ap.add_argument("--arms", default="B,C")
-    ap.add_argument("--force", action="store_true")
-    ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--arms", default="B,C", help="comma-separated arms for --phase map (default: B,C)")
+    ap.add_argument("--force", action="store_true", help="recompute cells already on disk")
+    ap.add_argument("--limit", type=int, default=None, help="only the first N cells (smoke test)")
     args = ap.parse_args()
 
     if args.phase == "gen":

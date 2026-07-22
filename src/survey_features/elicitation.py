@@ -1,6 +1,13 @@
 """
-Phase 0b: LLM Feature Selection Pipeline
-Batch runner for structured feature selection across targets and countries.
+Selection elicitation: ask the selector model which respondent features would predict
+the answer to a target survey question.
+
+CURRENT path (free-text): ``freetext_messages`` builds the chat messages; the raw essay
+is cached verbatim and later parsed by ``survey_features.extraction`` (fixed extractor
+model). No structure is imposed on the selector's output.
+
+LEGACY path (strict JSON, pilot-1): ``run_single`` / ``run_batch`` demand a JSON list
+and parse it directly. Kept runnable for appendix reproducibility (scripts/run_grid.py).
 """
 
 from __future__ import annotations
@@ -9,34 +16,30 @@ import json
 import re
 from datetime import datetime
 
-
-# ── Configuration ──
-
-SYSTEM_PROMPT = "You are a social science researcher."
-
-PROMPT_UNPROMPTED = """A survey asks respondents: "{question}"
-
-You want to predict how a respondent will answer. What information about the respondent would you need?
-
-Output a JSON list where each item describes one piece of information you would want to know. Each item should have:
-- "feature": a short label for the information (e.g., "a specific attitude or behaviour")
-- "reasoning": one sentence on why this would help predict the answer
-
-Output ONLY the JSON list, no other text."""
-
-PROMPT_COUNTRY = """A survey asks respondents in {country}: "{question}"
-
-You want to predict how a respondent in {country} will answer. What information about the respondent would you need?
-
-Output a JSON list where each item describes one piece of information you would want to know. Each item should have:
-- "feature": a short label for the information (e.g., "a specific attitude or behaviour")
-- "reasoning": one sentence on why this would help predict the answer
-
-Output ONLY the JSON list, no other text."""
+from .prompts import (
+    FREETEXT_COUNTRY,
+    FREETEXT_UNPROMPTED,
+    PROMPT_COUNTRY,
+    PROMPT_UNPROMPTED,
+    SYSTEM_PROMPT,
+)
 
 
-# ── Core functions ──
+# ── CURRENT: free-text elicitation ────────────────────────────────────────────
 
+def freetext_messages(question_text: str, country: str | None = None) -> list[dict]:
+    """Chat messages for one free-text selection call (country=None -> unprompted)."""
+    if country:
+        user_msg = FREETEXT_COUNTRY.format(question=question_text, country=country)
+    else:
+        user_msg = FREETEXT_UNPROMPTED.format(question=question_text)
+    return [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": user_msg},
+    ]
+
+
+# ── LEGACY: strict-JSON elicitation (pilot-1) ─────────────────────────────────
 
 def _normalize_parsed_features(parsed: object) -> list[dict] | None:
     """
@@ -91,7 +94,7 @@ def run_single(
     max_tokens: int = 8192,
     temperature: float = 0.0,
 ) -> dict:
-    """Run one feature selection call. Returns result dict with raw response and parsed features."""
+    """Run one JSON feature-selection call. Returns result dict with raw response and parsed features."""
 
     if country:
         user_msg = PROMPT_COUNTRY.format(question=question_text, country=country)
@@ -146,7 +149,7 @@ def run_batch(
     temperature: float = 0.0,
 ) -> list[dict]:
     """
-    Run feature selection for all target × country combinations.
+    Run JSON feature selection for all target × country combinations.
 
     Args:
         targets: {var_code: question_text}
@@ -183,25 +186,3 @@ def save_results(results: list[dict], path: str = "phase0b_results.json"):
     with open(path, "w") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
     print(f"\nSaved {len(results)} results to {path}")
-
-
-# ── Usage example ──
-#
-# from synthetic_sampling import ProfileBuilder
-# b = ProfileBuilder("wvs")
-#
-# def get_question_text(var_code):
-#     for section, variables in b.metadata.items():
-#         if section == "EXCLUDED":
-#             continue
-#         if var_code in variables:
-#             info = variables[var_code]
-#             return (info.get("question") or info.get("description") or var_code).strip()
-#     raise KeyError(f"{var_code} not in WVS metadata")
-#
-# targets = {code: get_question_text(code) for code in ["Q47", "Q57", "Q199", "Q235", "Q164"]}
-# countries = ["Germany", "Nigeria", "Japan", "Brazil", "Egypt"]
-# model = "deepseek-ai/DeepSeek-V3.2"
-#
-# results = run_batch(targets, countries, model, generate_chat)
-# save_results(results)

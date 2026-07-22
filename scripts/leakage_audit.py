@@ -42,9 +42,9 @@ Outputs:
   paper/generated_current_state/leakage_audit_longtable.tex (if --write-tex)
 
 Run (offline, concentration only):
-  python analysis/leakage_audit.py
+  python scripts/leakage_audit.py
 Run (full, with single-feature predictive test):
-  python analysis/leakage_audit.py --with-data
+  python scripts/leakage_audit.py --with-data
 """
 from __future__ import annotations
 
@@ -58,8 +58,8 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
 OUT = ROOT / "outputs"
 
 # Map target code -> survey id, and carry bucket/section, from the frozen manifest detail.
@@ -126,7 +126,7 @@ def concentration_signal(oracle_csv: Path) -> dict:
 def add_oracle_acc(rows: pd.DataFrame) -> pd.DataFrame:
     """Attach oracle_acc from the grid summaries (model-independent; take the max
     available across model CSVs per cell to be robust to a missing model)."""
-    from output_layout import collect_all_grid_summaries
+    from survey_features.layout import collect_all_grid_summaries
 
     frames = []
     for p, sid, _tag in collect_all_grid_summaries(OUT):
@@ -153,8 +153,8 @@ def single_feature_test(
 ) -> float | None:
     """Downstream-eval accuracy using ONLY the top oracle feature for this cell.
     Reuses the exact evaluate_feature_set routine so it is comparable to oracle_acc."""
-    from run_grid import load_survey, SURVEY_COUNTRY_COL, build_country_code_map
-    from phase0b_evaluation import evaluate_feature_set
+    from survey_features.evaluation import evaluate_feature_set
+    from survey_features.surveys import SURVEY_COUNTRY_COL, build_country_code_map, load_survey
 
     if survey_id not in cache:
         data, meta = load_survey(survey_id, cfg_path)

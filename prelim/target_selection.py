@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from phase0b_oracle_autogluon import _MISSING_LABEL_PATTERNS
+from survey_features.surveys import MISSING_LABEL_PATTERNS as _MISSING_LABEL_PATTERNS
 
 
 def _label_missing(label: str) -> bool:
@@ -114,7 +114,7 @@ def _select_once(
 ) -> list[Candidate]:
     """
     Quota-driven selection: 2 binary + 2 mid (4-5 cats) + 1 large (5+ cats,
-    capped). Graceful fallback when a bucket is short — borrows from
+    capped). Graceful fallback when a bucket is short â€” borrows from
     {tertiary, mid, large, binary} in that priority order.
     """
     chosen: list[Candidate] = []
@@ -142,7 +142,7 @@ def _select_once(
             if not take_from(bucket):
                 deficit += 1
 
-    # Backfill order: prefer 4-5 cats, then 5+, then 3, then 2 — keeping
+    # Backfill order: prefer 4-5 cats, then 5+, then 3, then 2 â€” keeping
     # topic / section novelty.
     fallback_order = ["mid", "large", "tertiary", "binary"]
     while len(chosen) < 5 and deficit > 0:
@@ -247,7 +247,7 @@ def _valid_target_rows_per_country(
     admin_cols: frozenset,
 ) -> int:
     """Count non-missing target rows after the same question cleanup as the oracle."""
-    from phase0b_oracle_autogluon import clean_question_columns as _clean_question_columns
+    from survey_features.surveys import clean_question_columns as _clean_question_columns
 
     sub = data[data[country_col] == country_code]
     if len(sub) == 0 or var_code not in sub.columns:
@@ -276,7 +276,7 @@ def filter_candidates_for_countries(
     When ``metadata`` and ``admin_cols`` are set, counts match ``compute_oracle``
     cleaning (missing-code stripping, etc.).
     """
-    from phase0b_oracle_autogluon import clean_question_columns as _clean_question_columns
+    from survey_features.surveys import clean_question_columns as _clean_question_columns
 
     cleaned_by_country: dict[str, pd.DataFrame] | None = None
     if metadata is not None and admin_cols is not None:

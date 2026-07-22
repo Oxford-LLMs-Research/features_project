@@ -42,9 +42,11 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
 OUT = ROOT / "outputs"
+
+from survey_features.metrics import cluster_bootstrap_ci as _cluster_bootstrap_ci  # noqa: E402
 
 N_BOOT = 2000
 RAND_DRAWS = 200
@@ -71,7 +73,7 @@ def load_target_survey() -> dict[str, str]:
 
 def load_grid() -> pd.DataFrame:
     """All grid_summary rows (both models) with leakage class joined."""
-    from output_layout import collect_all_grid_summaries
+    from survey_features.layout import collect_all_grid_summaries
     leak = load_leakage_classes()
     frames = []
     for p, sid, tag in collect_all_grid_summaries(OUT):
@@ -99,27 +101,8 @@ def load_alignment() -> pd.DataFrame:
 
 def cluster_bootstrap_ci(df: pd.DataFrame, col: str, cluster_cols=("survey", "target"),
                          n_boot: int = N_BOOT, seed: int = SEED) -> dict:
-    """Percentile 95% CI for the mean of `col`, resampling clusters with replacement."""
-    sub = df[df[col].notna()].copy()
-    if sub.empty:
-        return {"mean": None, "ci_low": None, "ci_high": None, "n": 0, "n_clusters": 0}
-    sub["_cl"] = list(zip(*[sub[c].astype(str) for c in cluster_cols]))
-    groups = {k: g[col].to_numpy() for k, g in sub.groupby("_cl")}
-    keys = list(groups)
-    rng = np.random.default_rng(seed)
-    means = np.empty(n_boot)
-    n_cl = len(keys)
-    for b in range(n_boot):
-        pick = rng.integers(0, n_cl, size=n_cl)
-        vals = np.concatenate([groups[keys[i]] for i in pick])
-        means[b] = vals.mean()
-    return {
-        "mean": round(float(sub[col].mean()), 4),
-        "ci_low": round(float(np.percentile(means, 2.5)), 4),
-        "ci_high": round(float(np.percentile(means, 97.5)), 4),
-        "n": int(len(sub)),
-        "n_clusters": int(n_cl),
-    }
+    """Percentile 95% CI for the mean of `col` (single copy: survey_features.metrics)."""
+    return _cluster_bootstrap_ci(df, col, cluster_cols=cluster_cols, n_boot=n_boot, seed=seed)
 
 
 def subsets(df: pd.DataFrame) -> dict[str, pd.DataFrame]:

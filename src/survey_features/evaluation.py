@@ -1,6 +1,7 @@
 """
-Phase 0b: Downstream prediction evaluation
-Compare XGBoost accuracy using oracle, model-selected, and random feature sets.
+Downstream prediction evaluation.
+Compare XGBoost accuracy using oracle, model-selected, and random feature sets
+(matched-k, 5-fold CV). Shared by the current free-text pipeline and the legacy grid.
 """
 
 from __future__ import annotations
@@ -133,17 +134,22 @@ def evaluate_feature_set(
     }
 
 
-def _single_random_draw(
+def single_random_draw(
     country_data: pd.DataFrame,
     target_var: str,
     all_feature_pool: list[str],
     k: int,
     seed: int,
 ) -> float | None:
+    """One random-k draw evaluated with the same downstream classifier."""
     rng = np.random.RandomState(seed)
     random_vars = list(rng.choice(all_feature_pool, size=min(k, len(all_feature_pool)), replace=False))
     r = evaluate_feature_set(country_data, target_var, random_vars, nthread=1)
     return r["accuracy_mean"]
+
+
+# Backwards-compatible alias (old name in phase0b_evaluation.py).
+_single_random_draw = single_random_draw
 
 
 def run_comparison(
@@ -225,7 +231,7 @@ def run_comparison(
     # Evaluate random-k (averaged over draws, parallelised across cores)
     seeds = [random_state + i for i in range(n_random_draws)]
     raw = Parallel(n_jobs=n_jobs)(
-        delayed(_single_random_draw)(country_data, target_var, all_feature_pool, k, s)
+        delayed(single_random_draw)(country_data, target_var, all_feature_pool, k, s)
         for s in seeds
     )
     random_scores = [s for s in raw if s is not None]
@@ -273,35 +279,3 @@ def print_comparison(result: dict):
         value = m["accuracy_mean"] - r["accuracy_mean"]
         print(f"    Cost of imperfect selection: {cost:+.4f}")
         print(f"    Value of reasoning over random: {value:+.4f}")
-
-
-# ── Usage ──
-#
-# import pandas as pd
-# import json
-#
-# # Load data
-# wvs_data = ...  # your filtered WVS DataFrame
-# importance_df = pd.read_csv("phase0a_importance_table.csv")
-#
-# # Load disambiguated mappings
-# with open("phase0b_disambiguated.json") as f:
-#     mappings = json.load(f)
-#
-# # Extract model-selected features for a specific cell
-# cell_maps = [m for m in mappings
-#              if m["target"] == "Q199"
-#              and m["country"] == "Nigeria"
-#              and m["condition"] == "country_provided"]
-# model_features = [m["disambig"]["selected_code"] for m in cell_maps]
-#
-# # Run comparison
-# result = run_comparison(
-#     data=wvs_data,
-#     target_var="Q199",
-#     country_code=566,
-#     country_col="B_COUNTRY",
-#     model_features=model_features,
-#     oracle_importances=importance_df,
-# )
-# print_comparison(result)

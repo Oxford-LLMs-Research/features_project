@@ -7,7 +7,6 @@ outputs/
 
 # Paper / writeup artifacts (source and generated) - code infra only on repo
 paper/
-analysis/prelim_findings.md
 phase0_consolidation.md
 phase0b_grid_findings.md
 *.tex

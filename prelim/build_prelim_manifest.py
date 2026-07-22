@@ -15,8 +15,9 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+for _p in (str(ROOT), str(ROOT / "src")):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 import yaml
 from dotenv import load_dotenv
@@ -31,11 +32,11 @@ def main():
         print("DATA_CONFIG_PATH is not set")
         sys.exit(1)
 
-    from phase0b_mapping import extract_survey_variables
-    from run_grid import (
+    from survey_features.surveys import (
         SURVEY_COUNTRY_COL,
         build_admin_cols,
         build_country_code_map,
+        extract_survey_variables,
         load_survey,
     )
 

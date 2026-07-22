@@ -1,27 +1,25 @@
 """
-Grid runner: run any subset of targets × countries end-to-end.
+LEGACY grid runner (pilot-1, strict-JSON elicitation) — kept runnable so the paper's
+appendix results stay reproducible. The current pipeline is scripts/run_main.py.
 
-Loads WVS data and survey-variable embeddings ONCE, then iterates through every
-(target, country) cell running the full pipeline:
-  1. Oracle permutation importances (XGBoost)
-  2. LLM feature selection (unprompted + country_provided)
-  3. Embedding-retrieval candidate mapping
-  4. LLM disambiguation
+Runs any subset of targets × countries end-to-end:
+  1. Oracle permutation importances (AutoGluon; cached, model-independent)
+  2. LLM feature selection via the JSON prompts (unprompted + country_provided)
+  3. Embedding-retrieval candidate mapping (batch top-5)
+  4. LLM shortlist disambiguation (fixed small model)
   5. Downstream XGBoost prediction comparison
 
-Oracle is cached under outputs/<target>_<country>/oracle.csv (model-independent).
-LLM + eval caches are under outputs/<target>_<country>/llm__<run_tag>/
-(disambig.json, eval.json). Pass --run-tag or rely on a slug from LLM_MODEL so
-runs for different models never share or overwrite each other's LLM caches.
-Grid summaries: outputs/grid_summary__<survey>__<run_tag>.csv .
-LLM token usage (when the client returns usage): outputs/llm_usage__<survey>__<run_tag>.jsonl .
+Artifact paths are UNCHANGED from the original run_grid.py:
+  outputs/<target>_<country>/oracle.csv                (shared across models)
+  outputs/<target>_<country>/llm__<run_tag>/           (disambig.json, eval.json)
+  outputs/grid_summary__<survey>__<run_tag>.csv
+  outputs/llm_usage__<survey>__<run_tag>.jsonl
 
 Usage:
-    python run_grid.py                                              # full WVS 5×5 grid
-    python run_grid.py --targets Q164 --countries Germany           # single WVS cell
-    python run_grid.py --survey afrobarometer --targets Q1 --countries Nigeria Ghana
-    python run_grid.py --targets Q47 Q164 --countries Germany Nigeria Japan
-    python run_grid.py --survey afrobarometer --list-countries      # show available countries
+    python scripts/run_grid.py                                             # full WVS 5×5 grid
+    python scripts/run_grid.py --targets Q164 --countries Germany         # single WVS cell
+    python scripts/run_grid.py --survey afrobarometer --targets Q1 --countries Nigeria Ghana
+    python scripts/run_grid.py --survey afrobarometer --list-countries    # show available countries
 
 Country names and admin columns are derived automatically from the survey
 metadata — no hardcoding needed. Use --list-countries to see valid names for
@@ -53,61 +51,51 @@ for _stream in (sys.stdout, sys.stderr):
     except (AttributeError, ValueError):
         pass
 
+ROOT = Path(__file__).resolve().parents[1]
+for _p in (str(ROOT / "src"), str(ROOT)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 import numpy as np
 import pandas as pd
 import yaml
-from dotenv import load_dotenv
-from output_layout import (
+
+from survey_features.config import (
+    DISAMBIG_API_KEY,
+    DISAMBIG_BASE_URL,
+    DISAMBIG_MODEL,
+    OUTPUTS_DIR,
+)
+from survey_features.layout import (
     grid_results_json_path,
     grid_summary_csv_path,
     llm_cache_prefix,
-    logs_dir,
     manifest_path,
     sanitize_model_slug,
 )
-from phase0b_oracle_autogluon import (
-    clean_question_columns,
+from survey_features.oracle import (
+    SIMILARITY_THRESHOLD,
     compute_oracle,
-    flatten_metadata,
     load_similarity_model,
 )
+from survey_features.surveys import (
+    SURVEY_COUNTRY_COL,
+    build_admin_cols,
+    build_country_code_map,
+    clean_question_columns,
+    flatten_metadata,
+    get_question_text,
+    load_survey,
+)
 
-load_dotenv()
-
-FEATURES_DIR = Path(__file__).parent
-OUTPUTS_DIR = FEATURES_DIR / "outputs"
 OUTPUTS_DIR.mkdir(exist_ok=True)
-
-# ── Survey registry ───────────────────────────────────────────────────────────
-# Column in each survey's DataFrame that holds country codes.
-SURVEY_COUNTRY_COL: dict[str, str] = {
-    "wvs":            "B_COUNTRY",
-    "afrobarometer":  "COUNTRY",
-    "arabbarometer":  "COUNTRY",
-    "asianbarometer": "country",
-    "latinobarometer": "IDENPA",
-    "ess_wave_10":    "cntry",
-    "ess_wave_11":    "cntry",
-}
 
 # Default grid (WVS only; always specify --targets and --countries for other surveys).
 DEFAULT_SURVEY = "wvs"
 DEFAULT_TARGETS = ["Q49", "Q199", "Q71", "Q165", "Q240"]
 DEFAULT_COUNTRIES = ["Germany", "Nigeria", "Japan", "Brazil", "Egypt"]
 
-def survey_emb_cache_path(survey_id: str, embedding_model: str = "all-MiniLM-L6-v2") -> Path:
-    slug = sanitize_model_slug(embedding_model)
-    return OUTPUTS_DIR / f"survey_embeddings__{survey_id}__{slug}.npz"
-
-
 DEFAULT_GRID_WORKERS = 5
-
-# Fixed small model used for disambiguation across all main LLM runs.
-# Keeping this constant ensures that differences in final mapped variables
-# are attributable only to feature-selection quality, not disambiguation quality.
-DISAMBIG_MODEL    = os.environ.get("DISAMBIG_MODEL",    "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B")
-DISAMBIG_BASE_URL = os.environ.get("DISAMBIG_BASE_URL") or None  # falls back to LLM_BASE_URL if unset
-DISAMBIG_API_KEY  = os.environ.get("DISAMBIG_API_KEY")  or None  # falls back to LLM_API_KEY  if unset
 
 
 def resolve_xgb_nthread(grid_workers: int) -> int | None:
@@ -131,95 +119,6 @@ def resolve_n_jobs_random(grid_workers: int, xgb_nthread: int) -> int:
     return max(1, min(budget, 24))
 
 
-# ── Data loading ──────────────────────────────────────────────────────────────
-
-def load_survey(survey_id: str, config_path: str) -> tuple[pd.DataFrame, dict]:
-    try:
-        from synthetic_sampling.config.base import DataPaths
-        from synthetic_sampling.loaders.survey_loader import SurveyLoader
-    except ModuleNotFoundError as exc:
-        raise ModuleNotFoundError(
-            "Missing dependency: synthetic_sampling. Install project dependencies "
-            "with `pip install -r requirements.txt` to continue."
-        ) from exc
-
-    paths = DataPaths.from_yaml(config_path)
-    loader = SurveyLoader(paths=paths, verbose=False)
-    data, metadata = loader.load_survey(survey_id)
-    return data, metadata
-
-
-def build_country_code_map(
-    metadata: dict,
-    country_col: str,
-    data: pd.DataFrame | None = None,
-) -> dict[str, int | str]:
-    """
-    Derive {country_name: code} from the country column's 'values' dict in metadata.
-    Codes that parse as integers are returned as int; alpha codes (ESS) stay as str.
-
-    If data is provided, the metadata-derived codes are cross-checked against the
-    actual values in the country column. When the data stores country names directly
-    (instead of numeric codes), the map is built from the actual data values instead.
-    """
-    meta_map: dict[str, int | str] = {}
-    for section in metadata.values():
-        if not isinstance(section, dict):
-            continue
-        if country_col in section:
-            values = section[country_col].get("values", {})
-            for code_str, name in values.items():
-                try:
-                    meta_map[name] = int(code_str)
-                except ValueError:
-                    meta_map[name] = code_str
-            break
-
-    if data is None or not meta_map:
-        return meta_map
-
-    actual_values = set(data[country_col].dropna().unique())
-
-    # Normal path: metadata codes exist in data.
-    if any(code in actual_values for code in meta_map.values()):
-        return {name: code for name, code in meta_map.items() if code in actual_values}
-
-    # Data stores names/strings directly — build map from actual data values.
-    # Try to match metadata names to data values case-insensitively, then add
-    # any remaining data values as identity entries so --list-countries is complete.
-    actual_lower = {str(v).lower(): v for v in actual_values}
-    result: dict[str, int | str] = {}
-    for meta_name in meta_map:
-        if meta_name in actual_values:
-            result[meta_name] = meta_name
-        elif meta_name.lower() in actual_lower:
-            result[meta_name] = actual_lower[meta_name.lower()]
-    # Add any data values that didn't match a metadata name.
-    matched_data_vals = set(result.values())
-    for val in actual_values:
-        val_str = str(val)
-        if val not in matched_data_vals and val_str not in result:
-            result[val_str] = val
-    return result
-
-
-def build_admin_cols(metadata: dict, country_col: str) -> frozenset[str]:
-    """
-    Derive admin columns from the 'EXCLUDED' section in metadata plus the country column.
-    The EXCLUDED section contains all non-substantive variables (IDs, weights, admin codes).
-    """
-    excluded = metadata.get("EXCLUDED", {})
-    return frozenset(excluded.keys()) | {country_col}
-
-
-def get_question_text(var_code: str, metadata: dict) -> str:
-    for section in metadata.values():
-        if var_code in section:
-            info = section[var_code]
-            return (info.get("question") or info.get("description") or var_code).strip()
-    raise KeyError(f"{var_code} not found in metadata")
-
-
 # ── LLM selection + mapping ───────────────────────────────────────────────────
 
 def run_llm_and_map(
@@ -235,9 +134,9 @@ def run_llm_and_map(
     var_codes: list[str],
     embedding_model: str = "all-MiniLM-L6-v2",
 ) -> list[dict]:
-    from phase0b_pipeline import run_single
-    from phase0b_mapping import map_features_to_variables
-    from phase0b_disambig import disambiguate_mappings
+    from survey_features.disambig import disambiguate_mappings
+    from survey_features.elicitation import run_single
+    from survey_features.retrieval import map_features_to_variables
 
     conditions_to_run = []
     if condition in ("unprompted", "both"):
@@ -274,33 +173,6 @@ def run_llm_and_map(
     print(f"\n  Mapped: {mapped}/{len(mappings)} features -> survey variables")
 
     return mappings
-
-
-# ── Embedding cache ───────────────────────────────────────────────────────────
-
-def load_or_build_survey_embeddings(
-    survey_variables: dict[str, str],
-    survey_id: str,
-    embedding_model: str = "all-MiniLM-L6-v2",
-) -> tuple[np.ndarray, list[str]]:
-    from phase0b_mapping import build_embeddings
-
-    var_codes = list(survey_variables.keys())
-    var_texts = list(survey_variables.values())
-
-    cache_path = survey_emb_cache_path(survey_id, embedding_model)
-    if cache_path.exists():
-        cached = np.load(cache_path, allow_pickle=True)
-        cached_codes = list(cached["var_codes"])
-        if cached_codes == var_codes:
-            print(f"  Loaded cached embeddings ({len(var_codes)} vars) from {cache_path}")
-            return cached["embeddings"], var_codes
-        print(f"  Cached embeddings at {cache_path} are stale (var_codes mismatch); recomputing.")
-
-    embeddings = build_embeddings(var_texts, model_name=embedding_model)
-    np.savez(cache_path, embeddings=embeddings, var_codes=np.array(var_codes, dtype=object))
-    print(f"  Saved embeddings to {cache_path}")
-    return embeddings, var_codes
 
 
 # ── Per-cell cache helpers ────────────────────────────────────────────────────
@@ -442,7 +314,7 @@ def run_eval_per_condition(
     n_jobs_random: int = -1,
     eval_xgb_nthread: int | None = None,
 ) -> tuple[dict, list[dict]]:
-    from phase0b_evaluation import run_comparison, print_comparison
+    from survey_features.evaluation import print_comparison, run_comparison
 
     results: dict[str, dict] = {}
     errors: list[dict] = []
@@ -696,7 +568,7 @@ def run_cell(ctx: PipelineContext, target: str, country_name: str) -> dict:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="Feature selection grid runner.")
+    parser = argparse.ArgumentParser(description="Feature selection grid runner (legacy JSON pipeline).")
     parser.add_argument(
         "--survey", default=DEFAULT_SURVEY,
         choices=list(SURVEY_COUNTRY_COL),
@@ -793,7 +665,6 @@ def main():
     print(f"  {len(country_codes)} countries, {len(admin_cols)} admin columns derived from metadata")
 
     print("\n[setup] Building oracle metadata index and similarity model ...")
-    from phase0b_oracle_autogluon import SIMILARITY_THRESHOLD
     metadata_flat = flatten_metadata(metadata)
     similarity_model = load_similarity_model(SIMILARITY_THRESHOLD)
     print(f"  {len(metadata_flat)} vars in flat metadata index; similarity model loaded")
@@ -835,7 +706,7 @@ def main():
     eval_data = clean_question_columns(data, country_col, admin_cols, metadata)
 
     print("\n[setup] Building survey variable index ...")
-    from phase0b_mapping import extract_survey_variables
+    from survey_features.surveys import extract_survey_variables
     survey_variables = extract_survey_variables(metadata)
     print(f"  {len(survey_variables)} survey variables")
 
@@ -852,12 +723,13 @@ def main():
         model_name = ""
     else:
         print(f"\n[setup] Loading / building survey embeddings (model: {embedding_model}) ...")
+        from survey_features.retrieval import load_or_build_survey_embeddings
         survey_embeddings, var_codes = load_or_build_survey_embeddings(
             survey_variables, survey_id, embedding_model
         )
 
         print("\n[setup] Initialising LLM client ...")
-        from generate import TokenUsageLog, make_generate_fn
+        from survey_features.llm import TokenUsageLog, make_generate_fn
 
         usage_log_ref: list[TokenUsageLog | None] = [None]
         generate_fn, model_name = make_generate_fn(usage_log_ref=usage_log_ref)

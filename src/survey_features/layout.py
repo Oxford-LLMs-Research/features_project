@@ -1,16 +1,21 @@
 """
-Shared paths for grid outputs: per-model LLM caches, grid_summary naming, discovery.
+Shared paths for grid outputs: per-model LLM caches, grid_summary naming, discovery,
+and the format-pilot / free-text pipeline directory layout.
 
 Oracle stays at outputs/<target>_<country>/oracle.csv.
 LLM + eval caches live under outputs/<target>_<country>/llm__<output_tag>/.
+Free-text pipeline artifacts live under outputs/format_pilot/<selector>/.
 Set GRID_SUMMARY_TAG to select tagged grid_summary CSVs in analysis scripts when multiple exist.
 """
 
 from __future__ import annotations
 
+import csv
 import os
 import re
 from pathlib import Path
+
+from .config import OUTPUTS_DIR
 
 _GRID_SUMMARY_PREFIX = "grid_summary__"
 
@@ -182,3 +187,33 @@ def resolve_llm_artifact(
                 best_m = m
                 best = p
     return best
+
+
+# ── Free-text (format-pilot) pipeline layout ─────────────────────────────────
+
+def format_pilot_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    """Root for all free-text pipeline artifacts (kept as outputs/format_pilot/ so
+    existing pilot-2 artifacts remain valid)."""
+    return outputs_dir / "format_pilot"
+
+
+def selector_dirs(selector_key: str, outputs_dir: Path = OUTPUTS_DIR) -> tuple[Path, Path, Path]:
+    """(freetext, extracted, maps) subdirs for one selector."""
+    base = format_pilot_dir(outputs_dir) / selector_key
+    return base / "freetext", base / "extracted", base / "maps"
+
+
+def cell_tag(survey: str, target: str, country: str) -> str:
+    """Filesystem-safe tag for one grid cell (used in free-text pipeline filenames)."""
+    return f"{survey}__{target}__{country}".replace("/", "_").replace(" ", "_")
+
+
+def genuine_cells(outputs_dir: Path = OUTPUTS_DIR) -> list[tuple[str, str, str]]:
+    """The (survey, target, country) cells classified 'genuine' by the leakage audit
+    (scripts/leakage_audit.py writes outputs/leakage_audit.csv)."""
+    out = []
+    with open(outputs_dir / "leakage_audit.csv", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            if r["leakage_class"] == "genuine":
+                out.append((r["survey"], r["target"], r["country"]))
+    return out

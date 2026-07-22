@@ -13,10 +13,10 @@ from collections import Counter
 import pandas as pd
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+if str(REPO_ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from output_layout import resolve_llm_artifact
+from survey_features.layout import resolve_llm_artifact
 
 OUT_PATH = REPO_ROOT / "paper" / "generated_paper" / "flagship_trace.tex"
 

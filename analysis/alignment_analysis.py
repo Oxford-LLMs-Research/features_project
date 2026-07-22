@@ -50,9 +50,16 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
 OUT = ROOT / "outputs"
+
+from survey_features.metrics import (  # noqa: E402
+    captured_importance,
+    jaccard,
+    load_oracle_importance as _load_oracle_importance,
+    oracle_percentile_mean,
+)
 
 SURVEY_ORDER = ["wvs", "afrobarometer", "arabbarometer", "asianbarometer",
                 "latinobarometer", "ess_wave_11"]
@@ -74,12 +81,7 @@ def model_label(tag: str) -> str:
 
 
 def load_oracle_importance(target: str, country: str) -> dict[str, float]:
-    p = OUT / f"{target}_{country}" / "oracle.csv"
-    if not p.is_file():
-        return {}
-    df = pd.read_csv(p)
-    imp = pd.to_numeric(df["importance_mean"], errors="coerce").fillna(0.0)
-    return dict(zip(df["feature_variable"].astype(str), imp))
+    return _load_oracle_importance(target, country, OUT)
 
 
 def mapped_codes(disambig_items: list[dict], condition: str) -> list[str]:
@@ -95,32 +97,7 @@ def mapped_codes(disambig_items: list[dict], condition: str) -> list[str]:
     return out
 
 
-def captured_importance(model_codes: list[str], imp: dict[str, float], k: int) -> float | None:
-    if not imp or k <= 0:
-        return None
-    ordered = sorted((max(0.0, v) for v in imp.values()), reverse=True)
-    denom = sum(ordered[:k])
-    if denom <= 0:
-        return None
-    num = sum(max(0.0, imp.get(c, 0.0)) for c in dict.fromkeys(model_codes))
-    return num / denom
-
-
-def oracle_percentile_mean(model_codes: list[str], imp: dict[str, float]) -> float | None:
-    if not imp:
-        return None
-    codes_asc = [c for c, _ in sorted(imp.items(), key=lambda kv: kv[1])]
-    n = len(codes_asc)
-    if n <= 1:
-        return None
-    pos = {c: i / (n - 1) for i, c in enumerate(codes_asc)}  # bottom=0, top=1
-    vals = [pos[c] for c in dict.fromkeys(model_codes) if c in pos]
-    return float(np.mean(vals)) if vals else None
-
-
-def jaccard(a: set, b: set) -> float | None:
-    u = a | b
-    return (len(a & b) / len(u)) if u else None
+# captured_importance / oracle_percentile_mean / jaccard: survey_features.metrics
 
 
 def load_leakage_classes() -> dict[tuple[str, str], str]:

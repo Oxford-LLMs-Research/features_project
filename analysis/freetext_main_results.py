@@ -15,7 +15,8 @@ tex table the rewritten Results section needs, from:
 Primary disambiguator = nemotron (the main-experiment choice; mapper strength was ~null).
 qwen235b is computed alongside as robustness and stored in the JSON summary.
 
-Methodology mirrors the pilot-1 analysis scripts exactly:
+Methodology mirrors the pilot-1 analysis scripts exactly (shared arithmetic now lives
+in survey_features.metrics):
   - captured importance / oracle percentile: alignment_analysis.py arithmetic
   - own-vs-cross adaptation (T2b) + Jaccard movement (T2a): alignment_analysis.py logic,
     applied to arm-C mapped codes (oracle-arithmetic, no model refits)
@@ -34,7 +35,6 @@ Run:  python analysis/freetext_main_results.py
 """
 from __future__ import annotations
 
-import csv
 import json
 import sys
 from itertools import combinations
@@ -44,9 +44,21 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
 OUT = ROOT / "outputs"
 PILOT = OUT / "format_pilot"
 GEN = ROOT / "paper" / "generated_current_state"
+
+from survey_features.layout import genuine_cells as _genuine_cells  # noqa: E402
+from survey_features.metrics import (  # noqa: E402
+    captured_importance,
+    cluster_bootstrap_ci as _cluster_bootstrap_ci,
+    jaccard,
+    load_oracle_importance,
+    oracle_percentile_mean,
+    random_captured_mean as _random_captured_mean,
+)
 
 B = chr(92)  # backslash for tex (avoids \b/\t control-char bugs in python strings)
 
@@ -66,12 +78,7 @@ ROBUST_DK = "qwen235b"
 # ── loaders ──────────────────────────────────────────────────────────────────
 
 def genuine_cells() -> list[tuple[str, str, str]]:
-    out = []
-    with open(OUT / "leakage_audit.csv", encoding="utf-8") as f:
-        for r in csv.DictReader(f):
-            if r["leakage_class"] == "genuine":
-                out.append((r["survey"], r["target"], r["country"]))
-    return out
+    return _genuine_cells(OUT)
 
 
 def load_scores() -> pd.DataFrame:
@@ -95,13 +102,7 @@ _imp_cache: dict[tuple[str, str], dict[str, float]] = {}
 def oracle_importance(target: str, country: str) -> dict[str, float]:
     key = (target, country)
     if key not in _imp_cache:
-        p = OUT / f"{target}_{country}" / "oracle.csv"
-        if not p.is_file():
-            _imp_cache[key] = {}
-        else:
-            d = pd.read_csv(p)
-            imp = pd.to_numeric(d["importance_mean"], errors="coerce").fillna(0.0)
-            _imp_cache[key] = dict(zip(d["feature_variable"].astype(str), imp))
+        _imp_cache[key] = load_oracle_importance(target, country, OUT)
     return _imp_cache[key]
 
 
@@ -119,72 +120,16 @@ def map_codes(selector: str, dk: str, survey: str, target: str, country: str,
     return out
 
 
-# ── metric arithmetic (mirrors alignment_analysis.py) ────────────────────────
-
-def captured_importance(codes: list[str], imp: dict[str, float], k: int) -> float | None:
-    if not imp or k <= 0:
-        return None
-    ordered = sorted((max(0.0, v) for v in imp.values()), reverse=True)
-    denom = sum(ordered[:k])
-    if denom <= 0:
-        return None
-    num = sum(max(0.0, imp.get(c, 0.0)) for c in dict.fromkeys(codes))
-    return num / denom
-
-
-def oracle_percentile_mean(codes: list[str], imp: dict[str, float]) -> float | None:
-    if not imp:
-        return None
-    codes_asc = [c for c, _ in sorted(imp.items(), key=lambda kv: kv[1])]
-    n = len(codes_asc)
-    if n <= 1:
-        return None
-    pos = {c: i / (n - 1) for i, c in enumerate(codes_asc)}
-    vals = [pos[c] for c in dict.fromkeys(codes) if c in pos]
-    return float(np.mean(vals)) if vals else None
-
-
-def jaccard(a: set, b: set) -> float | None:
-    u = a | b
-    return (len(a & b) / len(u)) if u else None
-
+# ── metric arithmetic (single copy in survey_features.metrics) ───────────────
 
 def random_captured_mean(imp: dict[str, float], k: int, seed: int,
                          draws: int = RAND_DRAWS) -> float | None:
-    """Mean captured importance of `draws` random k-subsets of the cell's oracle pool."""
-    pool = list(imp.keys())
-    if not imp or k <= 0 or len(pool) < k:
-        return None
-    ordered = sorted((max(0.0, v) for v in imp.values()), reverse=True)
-    denom = sum(ordered[:k])
-    if denom <= 0:
-        return None
-    rng = np.random.default_rng(seed)
-    vals = []
-    for _ in range(draws):
-        pick = rng.choice(len(pool), size=k, replace=False)
-        vals.append(sum(max(0.0, imp[pool[i]]) for i in pick) / denom)
-    return float(np.mean(vals))
+    return _random_captured_mean(imp, k, seed, draws=draws)
 
 
 def cluster_bootstrap_ci(df: pd.DataFrame, col: str, cluster_cols=("survey", "target"),
                          n_boot: int = N_BOOT, seed: int = SEED) -> dict:
-    sub = df[df[col].notna()].copy()
-    if sub.empty:
-        return {"mean": None, "ci_low": None, "ci_high": None, "n": 0, "n_clusters": 0}
-    sub["_cl"] = list(zip(*[sub[c].astype(str) for c in cluster_cols]))
-    groups = {kk: g[col].to_numpy() for kk, g in sub.groupby("_cl")}
-    keys = list(groups)
-    rng = np.random.default_rng(seed)
-    means = np.empty(n_boot)
-    n_cl = len(keys)
-    for b in range(n_boot):
-        pick = rng.integers(0, n_cl, size=n_cl)
-        means[b] = np.concatenate([groups[keys[i]] for i in pick]).mean()
-    return {"mean": round(float(sub[col].mean()), 4),
-            "ci_low": round(float(np.percentile(means, 2.5)), 4),
-            "ci_high": round(float(np.percentile(means, 97.5)), 4),
-            "n": int(len(sub)), "n_clusters": n_cl}
+    return _cluster_bootstrap_ci(df, col, cluster_cols=cluster_cols, n_boot=n_boot, seed=seed)
 
 
 # ── T1: scores-based metrics (arm C) ─────────────────────────────────────────
