@@ -51,6 +51,11 @@ DISAMBIG_MODEL = os.environ.get("DISAMBIG_MODEL", "nvidia/NVIDIA-Nemotron-3-Nano
 DISAMBIG_BASE_URL = os.environ.get("DISAMBIG_BASE_URL") or None  # falls back to LLM_BASE_URL
 DISAMBIG_API_KEY = os.environ.get("DISAMBIG_API_KEY") or None    # falls back to LLM_API_KEY
 
+# Sentence-transformer used for survey-variable retrieval and the oracle's semantic
+# near-duplicate filter. Held fixed across selector runs so mapping differences stay
+# attributable to feature selection; override via --embedding-model for sensitivity.
+DEFAULT_EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+
 # The two prompt conditions run for every cell.
 CONDITIONS = ["unprompted", "country_provided"]
 

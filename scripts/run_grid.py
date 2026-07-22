@@ -61,6 +61,7 @@ import pandas as pd
 import yaml
 
 from survey_features.config import (
+    DEFAULT_EMBEDDING_MODEL,
     DISAMBIG_API_KEY,
     DISAMBIG_BASE_URL,
     DISAMBIG_MODEL,
@@ -132,7 +133,7 @@ def run_llm_and_map(
     survey_variables: dict[str, str],
     survey_embeddings: np.ndarray,
     var_codes: list[str],
-    embedding_model: str = "all-MiniLM-L6-v2",
+    embedding_model: str = DEFAULT_EMBEDDING_MODEL,
 ) -> list[dict]:
     from survey_features.disambig import disambiguate_mappings
     from survey_features.elicitation import run_single
@@ -229,7 +230,7 @@ def get_or_run_llm_mapping(
     survey_embeddings: np.ndarray,
     var_codes: list[str],
     prefix: str,
-    embedding_model: str = "all-MiniLM-L6-v2",
+    embedding_model: str = DEFAULT_EMBEDDING_MODEL,
 ) -> list[dict]:
     disambig_path = cell_dir(prefix) / "disambig.json"
     if disambig_path.exists():
@@ -623,8 +624,8 @@ def main():
     parser.add_argument(
         "--embedding-model",
         metavar="MODEL",
-        default="all-MiniLM-L6-v2",
-        help="Sentence-transformer model for survey variable embeddings (default: all-MiniLM-L6-v2).",
+        default=DEFAULT_EMBEDDING_MODEL,
+        help=f"Sentence-transformer model for survey variable embeddings (default: {DEFAULT_EMBEDDING_MODEL}).",
     )
     parser.add_argument(
         "--prompt-variant",

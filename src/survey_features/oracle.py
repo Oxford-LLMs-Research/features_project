@@ -111,7 +111,9 @@ def load_similarity_model(similarity_threshold: float) -> object | None:
         return None
     from sentence_transformers import SentenceTransformer
 
-    return SentenceTransformer("all-MiniLM-L6-v2")
+    from .config import DEFAULT_EMBEDDING_MODEL
+
+    return SentenceTransformer(DEFAULT_EMBEDDING_MODEL)
 
 
 def build_feature_pool(

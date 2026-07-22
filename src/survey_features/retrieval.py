@@ -21,10 +21,8 @@ from pathlib import Path
 
 import numpy as np
 
-from .config import OUTPUTS_DIR
+from .config import DEFAULT_EMBEDDING_MODEL, OUTPUTS_DIR
 from .layout import sanitize_model_slug
-
-DEFAULT_EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 # SentenceTransformer is not thread-safe to construct concurrently (multiple grid
 # workers can hit meta-tensor / device race). Load once per model name under lock.
