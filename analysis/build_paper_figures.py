@@ -1,5 +1,5 @@
 """
-Build publication-style figures for paper/prelim_paper.tex from grid_summary CSVs.
+Build publication-style figures for paper/current_state.tex from grid_summary CSVs.
 Run from repo root: python analysis/build_paper_figures.py
 Outputs: paper/figures/*.pdf and *.png
 """
@@ -68,14 +68,24 @@ def load_target_buckets() -> dict[tuple[str, str], str]:
     return out
 
 
+def model_label(tag: object) -> str:
+    """Short label for a model tag (deepseek-ai_DeepSeek-V3.2 -> DeepSeek-V3.2)."""
+    s = "" if tag is None else str(tag)
+    if "_" in s:
+        s = s.split("_", 1)[1]
+    return s or "untagged"
+
+
 def load_grid_concat() -> pd.DataFrame:
-    from output_layout import collect_grid_summary_paths, parse_grid_summary_stem
+    """All grid summaries with model as an explicit column (both LLMs side-by-side)."""
+    from output_layout import collect_all_grid_summaries
 
     frames = []
-    for p in collect_grid_summary_paths(OUTPUTS_DIR):
+    for p, sid, tag in collect_all_grid_summaries(OUTPUTS_DIR):
         df = pd.read_csv(p)
-        sid, tag = parse_grid_summary_stem(p.stem)
         df["survey"] = sid
+        df["model"] = tag or "untagged"
+        df["model_label"] = model_label(tag)
         if tag:
             df["llm_run_tag"] = tag
         frames.append(df)
@@ -97,37 +107,52 @@ def save(fig, stem: str) -> None:
     plt.close(fig)
 
 
-def plot_survey_bars(summary: pd.DataFrame) -> None:
-    surveys = summary["survey"].tolist()
+def plot_survey_bars(v: pd.DataFrame) -> None:
+    """Side-by-side facet: one panel per model, oracle/model/random bars by survey."""
+    models = sorted(v["model_label"].unique())
+    surveys = sorted(v["survey"].unique())
     x = range(len(surveys))
     w = 0.25
-    fig, ax = plt.subplots(figsize=(10, 4))
+    fig, axes = plt.subplots(1, len(models), figsize=(6.2 * len(models), 4), sharey=True)
+    axes = np.atleast_1d(axes)
     kw = dict(edgecolor=BAR_EDGE, linewidth=BAR_EDGELW)
-    ax.bar([i - w for i in x], summary["oracle_acc"], width=w, label="Oracle", color=C_ORACLE, **kw)
-    ax.bar([i for i in x], summary["model_acc"], width=w, label="Model", color=C_MODEL, **kw)
-    ax.bar([i + w for i in x], summary["random_acc"], width=w, label="Random $k$", color=C_RANDOM, **kw)
-    ax.set_xticks(list(x))
-    ax.set_xticklabels([survey_label(s) for s in surveys], rotation=25, ha="right")
-    ax.set_ylabel("Mean CV accuracy")
-    ax.set_title("Matched-$k$: mean oracle, model, and random baseline by survey ($n_{\\mathrm{rows}}$ varies)")
-    ax.legend(loc="lower right")
-    ax.set_ylim(0, 1.05)
+    for ax, m in zip(axes, models):
+        g = (
+            v[v["model_label"] == m]
+            .groupby("survey")[["oracle_acc", "model_acc", "random_acc"]]
+            .mean()
+            .reindex(surveys)
+        )
+        ax.bar([i - w for i in x], g["oracle_acc"], width=w, label="Oracle", color=C_ORACLE, **kw)
+        ax.bar(list(x), g["model_acc"], width=w, label="Model", color=C_MODEL, **kw)
+        ax.bar([i + w for i in x], g["random_acc"], width=w, label="Random $k$", color=C_RANDOM, **kw)
+        ax.set_xticks(list(x))
+        ax.set_xticklabels([survey_label(s) for s in surveys], rotation=25, ha="right")
+        ax.set_title(m)
+        ax.set_ylim(0, 1.05)
+    axes[0].set_ylabel("Mean CV accuracy")
+    axes[-1].legend(loc="lower right")
+    fig.suptitle("Matched-$k$: oracle, model, random by survey and model", y=1.02)
+    plt.tight_layout()
     save(fig, "fig_survey_accuracy_bars")
 
 
 def plot_value_histogram(v: pd.DataFrame) -> None:
+    """Overlaid value-over-random distribution, one translucent series per model."""
+    models = sorted(v["model_label"].unique())
+    palette = [C_HIST_FILL, C_MODEL, C_RANDOM, C_ORACLE]
+    bins = np.linspace(v["value_over_random"].min(), v["value_over_random"].max(), 35)
     fig, ax = plt.subplots(figsize=(7, 3.8))
-    ax.hist(v["value_over_random"], bins=35, color=C_HIST_FILL, edgecolor="white", linewidth=0.5, alpha=0.92)
-    ax.axvline(
-        v["value_over_random"].mean(),
-        color=C_MEAN_LINE,
-        linestyle="--",
-        label=f"Mean = {v['value_over_random'].mean():.3f}",
-    )
+    for i, m in enumerate(models):
+        sub = v[v["model_label"] == m]["value_over_random"]
+        color = palette[i % len(palette)]
+        ax.hist(sub, bins=bins, color=color, edgecolor="white", linewidth=0.4, alpha=0.55,
+                label=f"{m} (mean {sub.mean():.3f}, n={len(sub)})")
+        ax.axvline(sub.mean(), color=color, linestyle="--", linewidth=1.1)
     ax.set_xlabel("Value over random (model acc $-$ random acc)")
     ax.set_ylabel("Count of rows")
-    ax.set_title("Distribution across valid condition rows ($n=${})".format(len(v)))
-    ax.legend()
+    ax.set_title("Value-over-random distribution by model")
+    ax.legend(fontsize=8)
     save(fig, "fig_value_over_random_hist")
 
 
@@ -304,7 +329,7 @@ def main() -> None:
         .reset_index()
     )
 
-    plot_survey_bars(summary)
+    plot_survey_bars(v)
     plot_value_histogram(v)
     plot_cost_vs_value(v)
     plot_bucket(v, buckets)

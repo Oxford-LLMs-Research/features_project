@@ -36,6 +36,8 @@ pip install -r requirements.txt
 
 `requirements.txt` installs `synthetic_sampling` directly from GitHub at a pinned commit so all teammates get the same version. To upgrade it, update the pinned ref and re-run `pip install`.
 
+**Analysis environment.** The pipeline (oracle/LLM/eval) and the analysis scripts under `analysis/` need `pandas`, `numpy`, `matplotlib`, `scipy`, `pyyaml`, `python-dotenv` (plus `autogluon` for the oracle and `tabulate` for `grid_analysis`). Use a single interpreter that has all of these. On networks that block PyPI (e.g. some institutional proxies intercept `files.pythonhosted.org`), install from a mirror or use a pre-provisioned environment such as a conda base that already carries the scientific stack.
+
 Follow the `synthetic_sampling` repo setup instructions to point `configs/local.yaml` at your local data files.
 
 ### 2. Configure environment
@@ -66,7 +68,7 @@ python run_grid.py --survey afrobarometer --targets Q4A --countries Nigeria Keny
 python run_grid.py --targets Q47 Q164 Q199 --countries Germany Nigeria Japan
 ```
 
-### Manifest-based run (prelim 5×5 per survey)
+### Manifest-based run (prelim grid per survey)
 
 ```bash
 python prelim/build_prelim_manifest.py   # writes prelim/prelim_manifest.yaml
@@ -74,6 +76,8 @@ python prelim/build_prelim_manifest.py   # writes prelim/prelim_manifest.yaml
 python run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml --stop-after oracle
 python run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml
 ```
+
+The manifest defines 5 targets per survey. The current preliminary results on disk were produced over **5 targets × 3 countries × 2 prompt conditions**, run for **two LLMs** (`deepseek-ai/DeepSeek-V3.2` and `moonshotai/Kimi-K2.5`) via separate `--run-tag`s; pass `--countries` to control the country set. Analysis scripts read every `grid_summary__<survey>__<tag>.csv` and report the models side-by-side.
 
 ### Full all-surveys run (PowerShell)
 
@@ -97,7 +101,7 @@ python run_grid.py --survey afrobarometer --list-countries
 
 | `--survey` value  | Country column | Notes |
 |-------------------|----------------|-------|
-| `wvs`             | `B_COUNTRY`    | default; 5×5 grid pre-configured |
+| `wvs`             | `B_COUNTRY`    | default; prelim grid pre-configured in manifest |
 | `afrobarometer`   | `COUNTRY`      | |
 | `arabbarometer`   | `COUNTRY`      | |
 | `asianbarometer`  | `country`      | stores country names directly |

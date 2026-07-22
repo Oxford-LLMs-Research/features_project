@@ -110,6 +110,25 @@ def collect_grid_summary_paths(
     return sorted(chosen)
 
 
+def collect_all_grid_summaries(outputs_dir: Path) -> list[tuple[Path, str, str | None]]:
+    """All grid_summary CSVs as (path, survey_id, model_tag), one row per file.
+
+    Unlike collect_grid_summary_paths (which returns one file per survey for
+    single-model analysis), this returns *every* tagged summary so callers can
+    treat the model tag as an explicit analysis dimension (side-by-side models).
+    """
+    out: list[tuple[Path, str, str | None]] = []
+    for p in sorted(outputs_dir.glob(f"{_GRID_SUMMARY_PREFIX}*.csv")):
+        if "all_surveys" in p.stem:
+            continue
+        try:
+            sid, tag = parse_grid_summary_stem(p.stem)
+        except ValueError:
+            continue
+        out.append((p, sid, tag))
+    return out
+
+
 def resolve_grid_summary_for_survey(outputs_dir: Path, survey_id: str) -> Path | None:
     """Single survey CSV resolved with same rules as collect_grid_summary_paths."""
     paths = [p for p in collect_grid_summary_paths(outputs_dir) if parse_grid_summary_stem(p.stem)[0] == survey_id]

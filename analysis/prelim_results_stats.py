@@ -15,18 +15,18 @@ OUT = ROOT / "outputs"
 
 
 def main() -> None:
-    from output_layout import collect_grid_summary_paths, parse_grid_summary_stem
+    from output_layout import collect_all_grid_summaries
 
-    paths = collect_grid_summary_paths(OUT)
-    if not paths:
+    rows = collect_all_grid_summaries(OUT)
+    if not rows:
         print("{}", file=sys.stderr)
         sys.exit(1)
 
     dfs: list[pd.DataFrame] = []
-    for p in paths:
-        sid, tag = parse_grid_summary_stem(p.stem)
+    for p, sid, tag in rows:
         d = pd.read_csv(p)
         d["survey"] = sid
+        d["model"] = tag or "untagged"
         if tag:
             d["llm_run_tag"] = tag
         dfs.append(d)
@@ -153,6 +153,7 @@ def main() -> None:
                 "survey",
                 "target",
                 "country",
+                "model",
                 "condition",
                 "oracle_acc",
                 "model_acc",
@@ -168,6 +169,7 @@ def main() -> None:
                 "survey",
                 "target",
                 "country",
+                "model",
                 "condition",
                 "model_acc",
                 "random_acc",
@@ -177,7 +179,7 @@ def main() -> None:
             worst_value,
         ),
         "best_value_over_random": rows_to_list(
-            ["survey", "target", "country", "condition", "model_acc", "random_acc", "value_over_random"],
+            ["survey", "target", "country", "model", "condition", "model_acc", "random_acc", "value_over_random"],
             best_value,
         ),
         "degenerate_rows": rows_to_list(

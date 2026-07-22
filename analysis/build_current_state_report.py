@@ -82,18 +82,22 @@ def write_text(path: Path, text: str) -> None:
 
 
 def load_all_summary() -> pd.DataFrame:
-    from output_layout import parse_grid_summary_stem, resolve_grid_summary_for_survey
+    """Load every grid_summary CSV with model as an explicit column.
 
+    Both LLMs (DeepSeek-V3.2, Kimi-K2.5) are loaded side-by-side; ``model`` holds
+    the model tag so downstream tables can compare them rather than silently
+    collapsing to one model.
+    """
+    from output_layout import collect_all_grid_summaries
+
+    order = {sid: i for i, sid in enumerate(SURVEY_ORDER)}
     dfs: list[pd.DataFrame] = []
-    for sid in SURVEY_ORDER:
-        p = resolve_grid_summary_for_survey(OUT, sid)
-        if not p or not p.is_file():
-            continue
+    for p, sid, tag in collect_all_grid_summaries(OUT):
         d = pd.read_csv(p)
         d["survey"] = sid
-        _, tag = parse_grid_summary_stem(p.stem)
-        if tag:
-            d["llm_run_tag"] = tag
+        d["model"] = tag or "untagged"
+        d["llm_run_tag"] = tag or ""
+        d["_survey_order"] = order.get(sid, len(order))
         dfs.append(d)
     if not dfs:
         raise FileNotFoundError("No grid_summary__*.csv files found in outputs/")
@@ -170,52 +174,108 @@ def category_count_from_metadata(var_info: dict) -> int | None:
     return count if count > 0 else None
 
 
+def model_label(tag: Any) -> str:
+    """Short human label for a model tag (deepseek-ai_DeepSeek-V3.2 -> DeepSeek-V3.2)."""
+    s = "" if tag is None else str(tag)
+    if "_" in s:
+        s = s.split("_", 1)[1]
+    return s or "untagged"
+
+
+def models_in(df: pd.DataFrame) -> list[str]:
+    """Distinct model tags present, ordered alphabetically (stable across runs)."""
+    return sorted(t for t in df["model"].dropna().unique())
+
+
 def write_metrics_tables(df: pd.DataFrame) -> None:
     valid = df[df["oracle_acc"].notna() & df["model_acc"].notna() & df["random_acc"].notna()].copy()
+    tags = models_in(valid)
 
-    global_tab = rf"""\begin{{tabular}}{{lr}}
-\toprule
-Metric & Value \\
-\midrule
-Total rows & {len(df)} \\
-Valid rows & {len(valid)} \\
-Mean oracle accuracy & {fmt_num(valid['oracle_acc'].mean())} \\
-Mean model accuracy & {fmt_num(valid['model_acc'].mean())} \\
-Mean random-$k$ accuracy & {fmt_num(valid['random_acc'].mean())} \\
-Mean majority baseline & {fmt_num(valid['majority_baseline'].mean())} \\
-Mean cost of imperfect & {fmt_num(valid['cost_of_imperfect'].mean())} \\
-Mean value over random & {fmt_num(valid['value_over_random'].mean())} \\
-Share value\textgreater 0 & {fmt_num((valid['value_over_random'] > 0).mean(), 3)} \\
-\bottomrule
-\end{{tabular}}
-"""
+    # --- Global metrics: one column per model (side-by-side) -----------------
+    metric_rows = [
+        ("Total rows", lambda d: str(len(d)), df),
+        ("Valid rows", lambda d: str(len(d)), valid),
+        ("Mean oracle accuracy", lambda d: fmt_num(d["oracle_acc"].mean()), valid),
+        ("Mean model accuracy", lambda d: fmt_num(d["model_acc"].mean()), valid),
+        ("Mean random-$k$ accuracy", lambda d: fmt_num(d["random_acc"].mean()), valid),
+        ("Mean majority baseline", lambda d: fmt_num(d["majority_baseline"].mean()), valid),
+        ("Mean cost of imperfect", lambda d: fmt_num(d["cost_of_imperfect"].mean()), valid),
+        ("Mean value over random", lambda d: fmt_num(d["value_over_random"].mean()), valid),
+        (r"Share value\textgreater 0", lambda d: fmt_num((d["value_over_random"] > 0).mean(), 3), valid),
+    ]
+    g_header = "Metric & " + " & ".join(tex_escape(model_label(t)) for t in tags) + r" \\"
+    g_lines = []
+    for name, fn, src in metric_rows:
+        cells = " & ".join(fn(src[src["model"] == t]) for t in tags)
+        g_lines.append(f"{name} & {cells} \\\\")
+    global_tab = (
+        "\\begin{tabular}{l" + "r" * len(tags) + "}\n\\toprule\n"
+        + g_header + "\n\\midrule\n"
+        + "\n".join(g_lines)
+        + "\n\\bottomrule\n\\end{tabular}\n"
+    )
     write_text(GEN / "main_global_metrics.tex", global_tab)
 
+    # --- Survey metrics: row per survey x model -----------------------------
     rows = []
-    for sid, sub in valid.groupby("survey", sort=False):
-        rows.append(
-            f"{tex_escape(sid)} & {len(sub)} & {fmt_num(sub['oracle_acc'].mean())} & "
-            f"{fmt_num(sub['model_acc'].mean())} & {fmt_num(sub['random_acc'].mean())} & "
-            f"{fmt_num(sub['cost_of_imperfect'].mean())} & {fmt_num(sub['value_over_random'].mean())} & "
-            f"{fmt_num((sub['value_over_random'] > 0).mean(), 3)} \\\\"
-        )
+    for sid, ssub in valid.groupby("survey", sort=False):
+        for t in tags:
+            sub = ssub[ssub["model"] == t]
+            if sub.empty:
+                continue
+            rows.append(
+                f"{tex_escape(sid)} & {tex_escape(model_label(t))} & {len(sub)} & "
+                f"{fmt_num(sub['oracle_acc'].mean())} & {fmt_num(sub['model_acc'].mean())} & "
+                f"{fmt_num(sub['random_acc'].mean())} & {fmt_num(sub['cost_of_imperfect'].mean())} & "
+                f"{fmt_num(sub['value_over_random'].mean())} & "
+                f"{fmt_num((sub['value_over_random'] > 0).mean(), 3)} \\\\"
+            )
     survey_tab = (
-        "\\begin{tabular}{lrrrrrrr}\n\\toprule\n"
-        "Survey & N & Oracle & Model & Random & Cost & Value & Share value$>0$ \\\\\n\\midrule\n"
+        "\\begin{tabular}{llrrrrrrr}\n\\toprule\n"
+        "Survey & Model & N & Oracle & Model & Random & Cost & Value & Share value$>0$ \\\\\n\\midrule\n"
         + "\n".join(rows)
         + "\n\\bottomrule\n\\end{tabular}\n"
     )
     write_text(GEN / "main_survey_metrics.tex", survey_tab)
 
+    # --- Head-to-head: value & cost by model, per survey --------------------
+    cmp_lines = []
+    for sid, ssub in valid.groupby("survey", sort=False):
+        cells = []
+        for t in tags:
+            sub = ssub[ssub["model"] == t]
+            cells.append(fmt_num(sub["value_over_random"].mean()) if not sub.empty else "-")
+        for t in tags:
+            sub = ssub[ssub["model"] == t]
+            cells.append(fmt_num(sub["cost_of_imperfect"].mean()) if not sub.empty else "-")
+        cmp_lines.append(f"{tex_escape(sid)} & " + " & ".join(cells) + r" \\")
+    val_hdr = " & ".join(tex_escape(model_label(t)) for t in tags)
+    cmp_tab = (
+        "\\begin{tabular}{l" + "r" * (2 * len(tags)) + "}\n\\toprule\n"
+        + f" & \\multicolumn{{{len(tags)}}}{{c}}{{Value over random}} & "
+        + f"\\multicolumn{{{len(tags)}}}{{c}}{{Cost of imperfect}} \\\\\n"
+        + f"Survey & {val_hdr} & {val_hdr} \\\\\n\\midrule\n"
+        + "\n".join(cmp_lines)
+        + "\n\\bottomrule\n\\end{tabular}\n"
+    )
+    write_text(GEN / "main_model_comparison.tex", cmp_tab)
+
+    # --- Condition metrics: row per condition x model -----------------------
     cond_rows = []
     for cond in ("unprompted", "country_provided"):
-        sub = valid[valid["condition"] == cond]
-        cond_rows.append(
-            f"{tex_escape(cond)} & {len(sub)} & {fmt_num(sub['cost_of_imperfect'].mean())} & "
-            f"{fmt_num(sub['value_over_random'].mean())} & {fmt_num((sub['value_over_random'] > 0).mean(), 3)} \\\\"
-        )
+        for t in tags:
+            sub = valid[(valid["condition"] == cond) & (valid["model"] == t)]
+            if sub.empty:
+                continue
+            cond_rows.append(
+                f"{tex_escape(cond)} & {tex_escape(model_label(t))} & {len(sub)} & "
+                f"{fmt_num(sub['cost_of_imperfect'].mean())} & "
+                f"{fmt_num(sub['value_over_random'].mean())} & "
+                f"{fmt_num((sub['value_over_random'] > 0).mean(), 3)} \\\\"
+            )
     cond_tab = (
-        "\\begin{tabular}{lrrrr}\n\\toprule\nCondition & N & Mean cost & Mean value & Share value$>0$ \\\\\n\\midrule\n"
+        "\\begin{tabular}{llrrrr}\n\\toprule\n"
+        "Condition & Model & N & Mean cost & Mean value & Share value$>0$ \\\\\n\\midrule\n"
         + "\n".join(cond_rows)
         + "\n\\bottomrule\n\\end{tabular}\n"
     )
@@ -256,7 +316,9 @@ def write_bucket_and_extremes_tables() -> None:
             vals = []
             for c in cols:
                 v = r.get(c)
-                if isinstance(v, (int, float)):
+                if c == "model":
+                    vals.append(tex_escape(model_label(v)))
+                elif isinstance(v, (int, float)):
                     vals.append(fmt_num(v))
                 else:
                     vals.append(tex_escape(v))
@@ -275,17 +337,17 @@ def write_bucket_and_extremes_tables() -> None:
 
     top_rows(
         "top_cost_of_imperfect",
-        ["survey", "target", "country", "condition", "cost_of_imperfect", "value_over_random"],
+        ["survey", "target", "country", "model", "condition", "cost_of_imperfect", "value_over_random"],
         "appendix_top_cost_longtable.tex",
     )
     top_rows(
         "worst_value_over_random",
-        ["survey", "target", "country", "condition", "value_over_random", "cost_of_imperfect"],
+        ["survey", "target", "country", "model", "condition", "value_over_random", "cost_of_imperfect"],
         "appendix_worst_value_longtable.tex",
     )
     top_rows(
         "best_value_over_random",
-        ["survey", "target", "country", "condition", "value_over_random"],
+        ["survey", "target", "country", "model", "condition", "value_over_random"],
         "appendix_best_value_longtable.tex",
     )
 
@@ -298,10 +360,11 @@ def write_target_inventory_tables(df: pd.DataFrame, manifest: dict, detail: dict
             info = detail.get((sid, t), {})
             q = qtexts.get((sid, t), "")
             sub = df[(df["survey"] == sid) & (df["target"].astype(str) == t)]
+            n_cells = sub.drop_duplicates(subset=["country", "condition"]).shape[0]
             rows.append(
                 f"{tex_escape(sid)} & {tex_escape(t)} & {tex_escape(info.get('bucket', '-'))} & "
                 f"{tex_escape(info.get('topic_key', '-'))} & {tex_escape(info.get('n_categories_metadata', '-'))} & "
-                f"{tex_escape(info.get('n_categories_empirical_sample', '-'))} & {len(sub)} & {tex_escape(q)} \\\\"
+                f"{tex_escape(info.get('n_categories_empirical_sample', '-'))} & {n_cells} & {tex_escape(q)} \\\\"
             )
     body = "\n".join(rows)
     table = (
@@ -318,22 +381,26 @@ def write_target_inventory_tables(df: pd.DataFrame, manifest: dict, detail: dict
 
 def write_full_grid_table(df: pd.DataFrame) -> None:
     d = df.copy()
-    d = d.sort_values(["survey", "target", "country", "condition"], kind="stable")
+    d["_model_label"] = d["model"].map(model_label)
+    d = d.sort_values(["survey", "target", "country", "condition", "_model_label"], kind="stable")
     lines = []
     for _, r in d.iterrows():
         lines.append(
             f"{tex_escape(r['survey'])} & {tex_escape(r['target'])} & {tex_escape(r['country'])} & "
-            f"{tex_escape(r['condition'])} & {fmt_num(r.get('k_requested'), 0)} & {fmt_num(r.get('k_mapped'), 0)} & "
+            f"{tex_escape(r['condition'])} & {tex_escape(r['_model_label'])} & "
+            f"{fmt_num(r.get('k_requested'), 0)} & {fmt_num(r.get('k_mapped'), 0)} & "
             f"{fmt_num(r.get('majority_baseline'))} & {fmt_num(r.get('oracle_acc'))} & {fmt_num(r.get('model_acc'))} & "
             f"{fmt_num(r.get('random_acc'))} & {fmt_num(r.get('cost_of_imperfect'))} & {fmt_num(r.get('value_over_random'))} & "
             f"{tex_escape(r.get('error', '') if pd.notna(r.get('error')) else '')} \\\\"
         )
+    header = (
+        "Survey & Target & Country & Cond. & Model & $k_r$ & $k_m$ & "
+        "Maj. & Oracle & Model & Random & Cost & Value & Error \\\\"
+    )
     table = (
-        "\\begin{longtable}{lll lrr rrrrrr p{2.8cm}}\n\\toprule\n"
-        "Survey & Target & Country & Cond. & $k_r$ & $k_m$ & Maj. & Oracle & Model & Random & Cost & Value & Error \\\\\n\\midrule\n"
-        "\\endfirsthead\n\\toprule\n"
-        "Survey & Target & Country & Cond. & $k_r$ & $k_m$ & Maj. & Oracle & Model & Random & Cost & Value & Error \\\\\n\\midrule\n"
-        "\\endhead\n"
+        "\\begin{longtable}{lll l l rr rrrrrr p{2.4cm}}\n\\toprule\n"
+        + header + "\n\\midrule\n\\endfirsthead\n\\toprule\n"
+        + header + "\n\\midrule\n\\endhead\n"
         + "\n".join(lines)
         + "\n\\bottomrule\n\\end{longtable}\n"
     )
@@ -346,48 +413,59 @@ def read_json(path: Path) -> Any:
 
 
 def write_mapping_and_oracle_appendix(df: pd.DataFrame) -> None:
-    from output_layout import resolve_llm_artifact
+    from output_layout import llm_cache_prefix
 
     map_rows: list[str] = []
     oracle_rows: list[str] = []
-    for _, r in df.sort_values(["survey", "target", "country"], kind="stable").iterrows():
-        prefix = f"{r['target']}_{r['country']}"
-        d = OUT / prefix
-        dis_path = resolve_llm_artifact(OUT, str(r["target"]), str(r["country"]), "disambig.json")
-        eval_path = resolve_llm_artifact(OUT, str(r["target"]), str(r["country"]), "eval.json")
-        ora_path = d / "oracle.csv"
-        if dis_path and dis_path.is_file():
-            try:
-                mappings = read_json(dis_path)
-            except Exception:
-                mappings = []
-            for m in mappings:
-                sel = (m.get("disambig") or {}).get("selected_code")
-                cands = m.get("candidates") or []
-                top = cands[0]["var_code"] if cands else None
-                map_rows.append(
-                    f"{tex_escape(r['survey'])} & {tex_escape(m.get('target'))} & {tex_escape(r['country'])} & "
-                    f"{tex_escape(m.get('condition'))} & {int(m.get('feature_rank', -1))} & "
-                    f"{tex_escape(m.get('feature_label'))} & {tex_escape(sel or '-')}"
-                    f" & {tex_escape(top or '-')} & {len(cands)} \\\\"
-                )
-        if eval_path and eval_path.is_file():
-            _ = eval_path
-        if ora_path.is_file():
-            od = pd.read_csv(ora_path)
-            topn = od.sort_values("importance_mean", ascending=False).head(5)
-            for _, o in topn.iterrows():
-                oracle_rows.append(
-                    f"{tex_escape(r['survey'])} & {tex_escape(r['target'])} & {tex_escape(r['country'])} & "
-                    f"{tex_escape(o['feature_variable'])} & {fmt_num(o['importance_mean'])} & {fmt_num(o['importance_std'])} \\\\"
-                )
 
+    # Oracle top-5 is model-independent: one block per unique (survey, target, country).
+    cells = df.drop_duplicates(subset=["survey", "target", "country"]).sort_values(
+        ["survey", "target", "country"], kind="stable"
+    )
+    for _, r in cells.iterrows():
+        ora_path = OUT / f"{r['target']}_{r['country']}" / "oracle.csv"
+        if not ora_path.is_file():
+            continue
+        od = pd.read_csv(ora_path)
+        topn = od.sort_values("importance_mean", ascending=False).head(5)
+        for _, o in topn.iterrows():
+            oracle_rows.append(
+                f"{tex_escape(r['survey'])} & {tex_escape(r['target'])} & {tex_escape(r['country'])} & "
+                f"{tex_escape(o['feature_variable'])} & {fmt_num(o['importance_mean'])} & {fmt_num(o['importance_std'])} \\\\"
+            )
+
+    # Mapping audit IS model-specific: one block per unique (survey, target, country, model).
+    cell_models = df.drop_duplicates(subset=["survey", "target", "country", "model"]).sort_values(
+        ["survey", "target", "country", "model"], kind="stable"
+    )
+    for _, r in cell_models.iterrows():
+        tag = r["model"]
+        dis_path = OUT / llm_cache_prefix(f"{r['target']}_{r['country']}", str(tag)) / "disambig.json"
+        if not dis_path.is_file():
+            continue
+        try:
+            mappings = read_json(dis_path)
+        except Exception:
+            mappings = []
+        for m in mappings:
+            sel = (m.get("disambig") or {}).get("selected_code")
+            cands = m.get("candidates") or []
+            top = cands[0]["var_code"] if cands else None
+            map_rows.append(
+                f"{tex_escape(r['survey'])} & {tex_escape(m.get('target'))} & {tex_escape(r['country'])} & "
+                f"{tex_escape(model_label(tag))} & {tex_escape(m.get('condition'))} & {int(m.get('feature_rank', -1))} & "
+                f"{tex_escape(m.get('feature_label'))} & {tex_escape(sel or '-')}"
+                f" & {tex_escape(top or '-')} & {len(cands)} \\\\"
+            )
+
+    map_header = (
+        "Survey & Target & Country & Model & Cond. & Rank & Requested feature & "
+        "Selected code & Top retrieval & N cands \\\\"
+    )
     map_table = (
-        "\\begin{longtable}{llllr p{5.8cm} llr}\n\\toprule\n"
-        "Survey & Target & Country & Cond. & Rank & Requested feature & Selected code & Top retrieval & N cands \\\\\n\\midrule\n"
-        "\\endfirsthead\n\\toprule\n"
-        "Survey & Target & Country & Cond. & Rank & Requested feature & Selected code & Top retrieval & N cands \\\\\n\\midrule\n"
-        "\\endhead\n"
+        "\\begin{longtable}{lll l llr p{4.8cm} llr}\n\\toprule\n"
+        + map_header + "\n\\midrule\n\\endfirsthead\n\\toprule\n"
+        + map_header + "\n\\midrule\n\\endhead\n"
         + "\n".join(map_rows)
         + "\n\\bottomrule\n\\end{longtable}\n"
     )
