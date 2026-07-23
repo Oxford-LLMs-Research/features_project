@@ -116,11 +116,12 @@ Artifacts: `outputs/embedding_sensitivity/<model_slug>/<selector>/maps/` and `sc
 
 ### Sub-item (subconcept) mapping
 
-Parent features are still one-to-one in the main pipeline; bundled `sub_items` are audit-only there. A separate experiment maps each sub_item as its own unit under `outputs/subitem_mapping/` (gen/extract reused; `format_pilot` untouched). Design and metrics: `docs/subitem_mapping.md`.
+Parent features are still one-to-one in the main pipeline; bundled `sub_items` are audit-only there. A separate experiment maps each sub_item as its own unit under `outputs/subitem_mapping/` (gen/extract reused; `format_pilot` untouched). **v1 is kimi-only** map + score (performance + counts + diagnostics). Design: `docs/subitem_mapping.md`. Similarity-threshold effects are a **different** experiment (`docs/similarity_threshold.md`).
 
 ```bash
-python scripts/run_subitem_mapping.py --phase map --selector deepseek --disambiguator nemotron --limit 2
-python analysis/subitem_mapping.py
+python scripts/run_subitem_mapping.py --phase map --selector kimi --disambiguator nemotron --limit 2
+python analysis/subitem_mapping.py --selector kimi
+# full kimi map, then score (natural-k + matched k=5/10) — see docs/subitem_mapping.md
 ```
 
 ### Pipeline steps (concept)
@@ -149,7 +150,7 @@ python analysis/embedding_sensitivity.py   # MiniLM vs mid/large embedders (afte
 python scripts/leakage_audit.py            # oracle leakage audit -> outputs/leakage_audit.csv
 ```
 
-Findings and design notes live in `docs/` (`main_experiment_design.md`, `format_findings.md`, `embedding_sensitivity.md`, `subitem_mapping.md`, `leakage_findings.md`, …).
+Findings and design notes live in `docs/` (`main_experiment_design.md`, `format_findings.md`, `embedding_sensitivity.md`, `subitem_mapping.md`, `similarity_threshold.md`, `leakage_findings.md`, …).
 
 ---
 

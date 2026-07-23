@@ -1,14 +1,18 @@
 """
-Aggregate sub-item mapping diagnostics (concept vs subconcept failure).
+Aggregate sub-item mapping diagnostics (concept vs subconcept failure + counts).
 
 Reads maps from outputs/subitem_mapping/<selector>/maps/ when present.
 Can also report parent-only baseline rates from format_pilot maps for comparison.
 
+v1 focuses on kimi (docs/subitem_mapping.md). Final eval metrics (VoR, etc.)
+come from the score phase / scores CSV — this script covers map diagnostics and
+k / bundling counts.
+
 Writes: outputs/subitem_mapping/<selector>/diagnostics.csv (when expanded maps exist)
         and prints a short summary.
 
-Run:  python analysis/subitem_mapping.py
-      python analysis/subitem_mapping.py --selector deepseek
+Run:  python analysis/subitem_mapping.py --selector kimi
+      python analysis/subitem_mapping.py   # all selectors with maps / baseline
 
 See docs/subitem_mapping.md for metric definitions.
 """
@@ -194,10 +198,22 @@ def summarize(df: pd.DataFrame, label: str) -> None:
         "code_jaccard_parent_vs_subitems",
         "k_parent",
         "k_expanded",
+        "n_piped_parents",
+        "n_subitem_units",
     ]:
         if col not in df.columns or df[col].isna().all():
             continue
         print(f"  mean {col:40s} {df[col].mean():.4f}")
+    if {"k_parent", "k_expanded", "n_piped_parents", "n_subitem_units"} <= set(df.columns):
+        kp, ke = df["k_parent"], df["k_expanded"]
+        ratio = ke / kp.replace(0, pd.NA)
+        call_exp = (df["n_piped_parents"] + df["n_subitem_units"]) / df[
+            "n_piped_parents"
+        ].replace(0, pd.NA)
+        if ratio.notna().any():
+            print(f"  mean {'k_inflation':40s} {ratio.mean():.4f}")
+        if call_exp.notna().any():
+            print(f"  mean {'bundling_expansion_factor':40s} {call_exp.mean():.4f}")
 
 
 def run_selector(selector_key: str) -> pd.DataFrame | None:
@@ -226,11 +242,16 @@ def main():
     ap.add_argument(
         "--selector",
         choices=list(SELECTORS),
-        default=None,
-        help="one selector; default = all with maps or format_pilot baseline",
+        default="kimi",
+        help="v1 default: kimi; pass explicitly for deepseek extension",
+    )
+    ap.add_argument(
+        "--all-selectors",
+        action="store_true",
+        help="run every selector that has maps or format_pilot baseline",
     )
     args = ap.parse_args()
-    selectors = [args.selector] if args.selector else list(SELECTORS)
+    selectors = list(SELECTORS) if args.all_selectors else [args.selector]
     root = subitem_mapping_dir(OUT)
     print(f"subitem_mapping root: {root}")
     print(f"format_pilot root:    {format_pilot_dir(OUT)}")

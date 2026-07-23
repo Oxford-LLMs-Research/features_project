@@ -1,8 +1,9 @@
 # Sub-item (subconcept) mapping — experiment design
 
-> **Status:** design only. Do **not** run the full map/score sweep until the open
-> decisions below are settled. Artifacts (when run) live under
-> `outputs/subitem_mapping/` and never overwrite `outputs/format_pilot/`.
+> **Status:** v1 protocol locked for **kimi-only** map + score. Do **not** fold
+> similarity-threshold sweeps into this run (see `docs/similarity_threshold.md`).
+> Artifacts live under `outputs/subitem_mapping/` and never overwrite
+> `outputs/format_pilot/`.
 
 ## Question
 
@@ -19,9 +20,14 @@ This experiment asks:
    treated as its own retrieval + disambiguation unit?
 3. Conditionally: when the parent maps, what fraction of its sub_items also map?
    When the parent is `none`, do any sub_items still find codes?
+4. **Downstream performance:** does expanding to sub_item codes **raise** eval
+   metrics (VoR, model_acc, cost_of_imperfect, captured_importance) vs parent-only?
+5. **Count inflation:** how do requested / mapped feature counts and `k` change
+   under expansion?
 
-The goal is **fine-grained measurement** of mapping loss at two granularities,
-without silently changing the main MiniLM arm-C capability results.
+The goal is fine-grained measurement of mapping loss **and** whether expansion
+moves capability numbers — without silently changing the main MiniLM arm-C
+headline results.
 
 ## Motivation (current behaviour)
 
@@ -40,28 +46,36 @@ vehicle / housing each have close survey variables.
 | Held fixed | Varied |
 |------------|--------|
 | Selector free-text (`gen`) + Qwen extract (reuse `format_pilot/`) | Mapping **unit of analysis**: parent-only vs parent **+** sub_item units |
-| Disambiguator = **nemotron** | Optional score `k_mode` (see Scoring rules) |
+| Disambiguator = **nemotron** | Score `k_mode` / `k_spec` (see Scoring) |
 | Embedder = **`all-MiniLM-L6-v2`** (main baseline) | |
 | Arm **C** only | |
-| `top_n=20`, `min_similarity=0.30` | |
+| `top_n=20`, `min_similarity=0.30` (held; **not** swept here) | |
 | `pipe_types = {respondent_attribute}` | |
-| Both selectors: `deepseek`, `kimi` | |
+| **v1 selector = `kimi` only** | |
 
-**Not** swept here: embedder size (see `docs/embedding_sensitivity.md`),
-threshold / top-k, extractor model, selector essays.
+**Not** swept here: embedder size (`docs/embedding_sensitivity.md`), similarity
+threshold (`docs/similarity_threshold.md`), extractor model, selector essays,
+deepseek (optional extension after kimi v1).
 
 ### Isolation (mirror embedding_sensitivity)
 
 | Artifact | Path |
 |----------|------|
-| Baseline parent maps / scores | `outputs/format_pilot/<selector>/` (unchanged) |
-| Expanded maps | `outputs/subitem_mapping/<selector>/maps/` |
-| Diagnostics | `outputs/subitem_mapping/<selector>/diagnostics.csv` |
-| Optional expanded scores | `outputs/subitem_mapping/<selector>/scores_<selector>.csv` |
+| Baseline parent maps / scores | `outputs/format_pilot/kimi/` (unchanged) |
+| Expanded maps | `outputs/subitem_mapping/kimi/maps/` |
+| Diagnostics | `outputs/subitem_mapping/kimi/diagnostics.csv` |
+| Expanded scores | `outputs/subitem_mapping/kimi/scores_kimi.csv` |
 | Provenance | `outputs/subitem_mapping/manifest.json` |
 
-Gen/extract are **never** re-run; only mapping expansion (+ optional score) writes
-under `subitem_mapping/`.
+Gen/extract are **never** re-run; only mapping expansion + score write under
+`subitem_mapping/`.
+
+### Orthogonal experiment: similarity threshold
+
+`min_similarity=0.30` may exclude informative candidates. Studying score
+distributions and threshold effects is a **separate** experiment — do **not**
+change the threshold or fold a sweep into this v1 run. See
+`docs/similarity_threshold.md` (`outputs/similarity_threshold/`).
 
 ## Mapping protocol
 
@@ -69,11 +83,12 @@ under `subitem_mapping/`.
 
 For each piped parent feature `F` with label `L`, context `C`, sub_items `S`:
 
-1. **Parent unit** (always, same as today): retrieve+disambig with query `(L, C)`.
+1. **Parent unit** (always): outcome taken from **`format_pilot` parent maps**
+   (copy; no re-call) so parent none-rates stay bit-identical to baseline.
 2. **Sub_item units** (only if `|S| ≥ 2` — same bundling threshold as `n_bundled`):
    for each `s ∈ S`, retrieve+disambig with:
    - `feature_label = s`
-   - `feature_context =` parent context plus an explicit parent anchor, e.g.
+   - `feature_context =` parent-anchored string
      `"{C} (sub-measure of {L})"` (fall back to `"sub-measure of {L}"` if `C` empty).
 
 Features with `|S| ≤ 1` contribute **parent units only** (no inflation from
@@ -83,15 +98,20 @@ Non-piped types remain recorded, not mapped (unchanged).
 
 ### Recommended default: dual-layer (parent AND sub_items)
 
-Keep the parent call **and** add sub_item calls. Rationale:
+Keep parent outcomes **and** add sub_item calls. Rationale:
 
 - Parent map rate stays directly comparable to `format_pilot` maps.
 - Subconcept rates are additive diagnostics, not a replacement definition of “a feature.”
 - Enables conditional metrics (parent hit × sub_item hits).
 
-**Rejected for v1 (open decision if revisited):** “expand-only” (skip parent when
-bundled) — breaks head-to-head parent none-rate vs baseline and confuses concept
-vs subconcept failure.
+**Rejected for v1:** “expand-only” (skip parent when bundled) — breaks head-to-head
+parent none-rate vs baseline and confuses concept vs subconcept failure.
+
+**v1 parent handling:** **copy** parent selected codes / candidates metadata from
+`format_pilot` maps; API-call **sub_items only**. Rationale: saves ~parent-share of
+disambig wall-time (~half of expanded units are parents; see Runtime) and guarantees
+zero parent drift vs the MiniLM arm-C baseline. Remap-parents remains available as
+a checksum if prompt/embed paths change later.
 
 ### Dedup and double-counting
 
@@ -140,7 +160,10 @@ baseline audits.
 
 ## Metrics taxonomy
 
-### Primary (map diagnostics — run these first)
+v1 reports **three blocks**: map diagnostics, count / bundling changes, and final
+eval scores. Diagnostics alone are not enough.
+
+### 1. Map diagnostics (concept vs subconcept)
 
 Denominators are always **piped** units of the stated kind.
 
@@ -153,7 +176,22 @@ Denominators are always **piped** units of the stated kind.
 | `bundled_parent_frac` | `# parents with \|S\|≥2` / `# piped parents` |
 | `mean_subitems_per_bundled` | mean `|S|` among bundled parents |
 
-### Conditional / joint (concept × subconcept)
+### 2. Count / bundling changes (requested vs mapped)
+
+Per cell, compare parent-only vs expanded:
+
+| Metric | Definition |
+|--------|------------|
+| `n_features` / `n_piped` | Extracted / piped parent counts (unchanged by expansion) |
+| `n_subitem_units` | Sub_item mapping units (`|S|` sum over bundled) |
+| `n_mapped_parent` / `k_parent` | `|parent_codes|` |
+| `n_mapped_expanded` / `k_expanded` | `|expanded_codes|` |
+| `bundling_expansion_factor` | `(n_piped + n_subitem_units) / n_piped` (call volume) |
+| `k_inflation` | `k_expanded / k_parent` (unique-code inflation) |
+
+Aggregate: mean/median expansion and `k` inflation across kimi cells.
+
+### 3. Conditional / joint (concept × subconcept)
 
 Among **bundled** piped parents only:
 
@@ -175,70 +213,124 @@ Interpretation sketch:
 - Similar parent and sub_item map rates with high code Jaccard → expansion mostly
   duplicates; little new predictive content.
 
-### Optional secondary (XGB score — only under `subitem_mapping/`)
+### 4. Final eval metrics (required in v1)
 
-Hold cell, oracle, CV, `SCORE_N_DRAWS` fixed. Emit rows tagged by `k_mode`:
+Hold cell, oracle, CV, and `SCORE_N_DRAWS` fixed. Emit rows tagged by explicit
+`k_mode` / `k_spec` so expanded `k` does **not** silently confound MiniLM arm-C.
 
-| `k_mode` | Feature set | `k` |
-|----------|-------------|-----|
-| `parent` | `parent_codes` | `|parent_codes|` |
-| `expanded` | `expanded_codes` | `|expanded_codes|` |
-| `subitems_only` | `subitem_codes` (cells with ≥1 sub_item unit; else skip or empty) | `|subitem_codes|` |
+Primary score columns (same as main pipeline):
+
+- `value_over_random` (VoR)
+- `model_acc`
+- `cost_of_imperfect`
+- `captured_importance`
+
+Compare **expanded** vs **parent** within this experiment (same kimi extracts).
+
+| Row family | Feature set | `k` | Purpose |
+|------------|-------------|-----|---------|
+| `k_mode=parent`, natural | `parent_codes` | `|parent_codes|` | Parent-only capability (checksum vs `format_pilot` scores) |
+| `k_mode=expanded`, natural | `expanded_codes` | `|expanded_codes|` | Shows count inflation + raw performance at model `k` |
+| `k_mode=parent`, `k_spec=5` and `10` | `parent_codes` truncated/pad policy as `run_main` | fixed 5 / 10 | Equal-budget baseline |
+| `k_mode=expanded`, `k_spec=5` and `10` | `expanded_codes` at same fixed k | fixed 5 / 10 | Equal-budget test: does expansion help at matched budget? |
+
+Optional later: `k_mode=subitems_only` (cells with ≥1 sub_item unit).
 
 Matched-k random baseline **must** use the same `k` as that row’s feature set
-(existing `evaluate_feature_set` / `single_random_draw` contract). Expanding codes
-**raises k** and is therefore **not** comparable as a drop-in replacement for main
-arm-C VoR without an explicit `k_mode` split.
+(existing `evaluate_feature_set` / `single_random_draw` contract).
 
 **Hard rule:** never append expanded-k rows to `outputs/format_pilot/scores_*.csv`.
 Main paper numbers stay parent-only MiniLM arm C.
 
-Optional fairness checks (if scoring):
+### 5. Other downstream diagnostics worth reporting
 
-- Report Δ VoR / Δ captured_importance for `expanded` vs `parent` **within** this
-  experiment (same extracts).
-- Optionally also score `parent` codes re-read from `format_pilot` maps as a
-  checksum that isolation did not drift.
+| Check | Why |
+|-------|-----|
+| None-rate concept vs subconcept | Core map-loss story |
+| Code-set Jaccard: expanded vs `format_pilot` parent maps | How much the scored set actually changes |
+| Miss patterns (`parent_none_some_subitem_maps`, etc.) | Where expansion recovers or fails |
+| Optional type-of-miss audit | Retrieval empty pool vs disambig `none` vs duplicate codes |
 
 ## Scoring rules (summary)
 
 1. **Unit of analysis for diagnostics** = mapping unit (`parent` or `sub_item`), not
    unique codes.
-2. **Unit of analysis for XGB** = deduped code list under an explicit `k_mode`.
+2. **Unit of analysis for XGB** = deduped code list under an explicit `k_mode` /
+   `k_spec`.
 3. **Do not** silently inflate `k` in the main experiment path.
-4. Prefer shipping **map diagnostics** before any full XGB sweep (cheaper; answers
-   the concept vs subconcept question directly).
+4. **v1 = map + score** (kimi-only). Prefer a short `--limit` map smoke before the
+   full kimi sweep; do not wait for a deepseek pass.
 
-## How to run (when approved)
+## Runtime estimate (kimi-only v1)
 
-Smoke (limit cells; confirm artifact layout):
+Evidence from embedding_sensitivity / format_pilot (MiniLM or mpnet-ish parent
+maps, nemotron disambig, serial calls):
+
+| Phase | Observed / assumed | Note |
+|-------|-------------------|------|
+| Parent map | ~50s / map file; ~80 min / 104 files (52 cells × 2 cond) | ~1 LLM call per piped parent |
+| Parent score | ~1.5–2 h / selector×embedder at `SCORE_N_DRAWS=10` | Serial XGB |
+
+Kimi extract sample (`outputs/format_pilot/kimi/extracted/`, all 52 cells × 2 cond):
+
+| Quantity | Value |
+|----------|-------|
+| Piped parents | 1699 |
+| Bundled parents (`|S|≥2`) | 487 (28.7%) |
+| Mean `|S|` among bundled | 2.92 |
+| Sub_item units | 1421 |
+| Expansion factor (calls if remap parents) | **1.84×** (3120 / 1699) |
+| Expansion if **copy parents** (v1 default) | **~0.84×** parent-only wall-time for **new** API calls (1421 / 1699) |
+
+### Wall-time ballpark
+
+| Scope | Map | Score | Total (order-of-magnitude) |
+|-------|-----|-------|----------------------------|
+| **v1: kimi only**, copy parents + map sub_items, then score parent+expanded (+ fixed k=5/10) | ~1–1.5 h map (sub_items only; ~0.8× parent map) | ~3–5 h if scoring natural parent + natural expanded + four fixed-k rows serially; **~1.5–2.5 h** if reusing `format_pilot` parent natural-k scores and scoring expanded families only, or overlapping fixed-k carefully | **~3–6 h** realistic; budget **≤1 working day** |
+| Both selectors (kimi + deepseek), same protocol | ~2× map | ~2× score | **~6–12 h** — defer; deepseek is an extension |
+
+Assumes serial disambig + serial XGB as today. Kimi parent maps/scores in
+`format_pilot` already exist — reuse them for the parent baseline row.
+
+### Cost / integrity knobs (recommended)
+
+| Knob | Recommendation |
+|------|----------------|
+| `SCORE_N_DRAWS` | Keep **10** for v1 integrity (same as main / embedding_sensitivity). Use `5` only for smoke timing, not headline numbers. |
+| Parallelism | Safe: process-level overlap of **map (API)** with unrelated work; optional cell-level map workers if rate limits allow. Avoid parallel XGB draws that share mutable state. Do **not** change CV folds or draw seeds for speed. |
+| Smoke | `--limit 2` map, then one cell score, before full kimi sweep. |
+
+## How to run (v1 — kimi)
+
+Smoke:
 
 ```bash
-python scripts/run_subitem_mapping.py --phase map --selector deepseek --disambiguator nemotron --limit 2
-python analysis/subitem_mapping.py --selector deepseek
+python scripts/run_subitem_mapping.py --phase map --selector kimi --disambiguator nemotron --limit 2
+python analysis/subitem_mapping.py --selector kimi
 ```
 
-Full map diagnostics (both selectors), then optional score:
+Full kimi map + score:
 
 ```bash
-python scripts/run_subitem_mapping.py --phase map   --selector deepseek --disambiguator nemotron --arms C
-python scripts/run_subitem_mapping.py --phase map   --selector kimi     --disambiguator nemotron --arms C
-python analysis/subitem_mapping.py
+python scripts/run_subitem_mapping.py --phase map   --selector kimi --disambiguator nemotron --arms C
+python analysis/subitem_mapping.py --selector kimi
 
-# optional — expensive; only after diagnostics look sane
-python scripts/run_subitem_mapping.py --phase score --selector deepseek --k-modes parent,expanded
-python scripts/run_subitem_mapping.py --phase score --selector kimi     --k-modes parent,expanded
+python scripts/run_subitem_mapping.py --phase score --selector kimi \
+  --k-modes parent,expanded
+# score runner should also emit k_spec=5,10 equal-budget rows (see Scoring table)
 ```
 
-Prerequisites: existing `format_pilot/<selector>/extracted/` (and baseline maps for
-comparison). Same genuine cells as `run_main.py`.
+**Extension (not v1):** repeat with `--selector deepseek` after kimi results look sane.
+
+Prerequisites: existing `format_pilot/kimi/extracted/` and parent maps (for copy);
+parent scores preferred for checksum. Same genuine cells as `run_main.py`.
 
 Scaffolding:
 
 - Paths: `survey_features.layout.subitem_mapping_dir` / `subitem_run_dirs`
 - Mapper helper: `survey_features.subitem_map.map_features_with_subitems`
-- Runner stub: `scripts/run_subitem_mapping.py`
-- Analysis stub: `analysis/subitem_mapping.py`
+- Runner: `scripts/run_subitem_mapping.py`
+- Analysis: `analysis/subitem_mapping.py`
 
 ## Interpretation guide
 
@@ -246,7 +338,8 @@ Scaffolding:
 |---------|----------------|
 | Parent map rate ≈ baseline; sub_item none rate high | Collapse is real: fine measures often unmapped; main k understates requested specificity |
 | Parent none high but `parent_none_some_subitem_maps` high | One-to-one parent query is the bottleneck; expansion recovers |
-| Expanded VoR ≫ parent VoR at larger k | Extra codes carry signal — but attribute gains to **budget (k)** vs **better mapping** carefully (compare matched-k and/or fixed-k rows) |
+| Expanded VoR ≫ parent VoR at natural (larger) k only | Gains may be **budget (k)** — check matched k=5/10 rows before claiming better mapping |
+| Expanded VoR ≫ parent VoR at **matched** k | Extra / better codes carry signal at equal budget |
 | Expanded VoR ≈ parent VoR; Jaccard parent↔subitem high | Sub_items mostly re-hit the same variables; little eval upside |
 | Sub_item map rate high, codes rarely in oracle top-k | Mapping “succeeds” semantically but not predictively — report separately from capability claims |
 
@@ -254,35 +347,34 @@ Relate findings back to main results as a **mapping granularity caveat**, analog
 to embedder sensitivity on code sets: capability claims stay on parent-only MiniLM
 arm C unless this experiment shows material, well-controlled score movement.
 
-## Cost note
+## Resolved decisions (v1)
 
-Extra disambiguator calls ≈ sum of `|S|` over bundled piped parents per cell.
-Bundling is common in current extracts (often several bundled features per cell).
-Budget API cost before a full sweep; use `--limit` smoke runs first. Map skips
-existing JSON under `subitem_mapping/` (resume-friendly).
+1. **Selector scope:** **kimi only** (wall-clock control). Deepseek optional extension.
+2. **Score in v1:** **yes** — map + score; include natural-k and matched-k (`k_spec=5,10`).
+3. **Sub_item context string:** parent-anchored `"{C} (sub-measure of {L})"`.
+4. **Parent outcomes:** **copy** from `format_pilot` maps; API-call sub_items only.
+5. **`k_mode` discipline:** always tag rows; never write expanded scores into
+   `format_pilot`.
 
-## Open decisions
+## Open decisions (still unresolved)
 
-1. **Context string for sub_items** — parent-anchored paraphrase (proposed) vs raw
-   sub_item label only vs dedicated `DISAMBIG_PROMPT_SUBITEM`.
-2. **Bundling threshold** — keep `|S| ≥ 2` (aligned with `n_bundled`) vs also map
+1. **Bundling threshold** — keep `|S| ≥ 2` (aligned with `n_bundled`) vs also map
    `|S| == 1`.
-3. **Score in v1?** — diagnostics-only first (recommended) vs immediate
-   `parent`+`expanded` XGB.
-4. **Fixed-k rows** — whether optional score should always include `k_spec=5,10`
-   (like `run_main`) so expanded vs parent can be compared at equal budget.
-5. **Re-map parents under this runner** vs copy parent outcomes from
-   `format_pilot` maps and only call the API for sub_items (saves cost; risks
-   tiny drift if prompt/embed path changes).
-6. **Human audit sample** — annotate a small set of bundled features for
+2. **Human audit sample** — annotate a small set of bundled features for
    “should this sub_item have a survey home?” to separate retrieval failure from
    true absence.
-7. **Interaction with embedding_sensitivity** — out of scope for v1; if both
-   matter, nest later as `subitem_mapping/<embed_slug>/…` rather than mixing trees.
+3. **Dedicated `DISAMBIG_PROMPT_SUBITEM`** — stick with shared prompt + parent
+   anchor for v1; revisit only if sub_item none-rates look spuriously high.
+4. **Interaction with embedding_sensitivity** — out of scope for v1; if both
+   matter later, nest as `subitem_mapping/<embed_slug>/…` rather than mixing trees.
+5. **Score wiring details** — exact CLI for emitting all `k_spec` rows in one pass
+   vs multiple invocations (implementation when score phase is unstubbed).
 
 ## Non-goals
 
 - Changing default `map_features` behaviour or `format_pilot` scores.
 - Re-extracting with a different bundling policy.
+- Sweeping `min_similarity` / `top_n` inside this experiment.
 - Claiming that expanded-k VoR is the new headline capability metric without an
   explicit protocol change in the main design memo.
+- Running deepseek as part of v1.

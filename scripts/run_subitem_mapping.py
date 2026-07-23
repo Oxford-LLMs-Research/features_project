@@ -2,12 +2,14 @@
 Sub-item mapping experiment runner (isolated from format_pilot).
 
 Reuses gen/extract from outputs/format_pilot/<selector>/. Writes maps under
-outputs/subitem_mapping/<selector>/ only. Score phase is deliberately stubbed
-until diagnostics are reviewed (docs/subitem_mapping.md).
+outputs/subitem_mapping/<selector>/ only. v1 protocol is kimi-only map + score
+(docs/subitem_mapping.md). Score phase is stubbed until XGB wiring lands; do not
+treat that as diagnostics-only design — scoring is in scope for v1.
 
-Examples:
-  python scripts/run_subitem_mapping.py --phase map --selector deepseek --disambiguator nemotron --limit 2
-  python scripts/run_subitem_mapping.py --phase map --selector deepseek --disambiguator nemotron --arms C
+Examples (v1):
+  python scripts/run_subitem_mapping.py --phase map --selector kimi --disambiguator nemotron --limit 2
+  python scripts/run_subitem_mapping.py --phase map --selector kimi --disambiguator nemotron --arms C
+  python scripts/run_subitem_mapping.py --phase score --selector kimi --k-modes parent,expanded
 """
 
 from __future__ import annotations
@@ -27,7 +29,6 @@ for _p in (str(ROOT / "src"), str(ROOT)):
 from survey_features.config import (  # noqa: E402
     CONDITIONS,
     DEFAULT_EMBEDDING_MODEL,
-    DEFAULT_SELECTOR,
     DISAMBIGUATORS,
     OUTPUTS_DIR,
     PIPE_TYPES,
@@ -161,12 +162,14 @@ def phase_map(selector_key: str, disambig_key: str, arms=("C",), force=False, li
 
 
 def phase_score(selector_key: str, k_modes=("parent", "expanded"), force=False, limit=None):
-    """Score stub — diagnostics-first; full XGB wiring deferred (open decision #3)."""
+    """Score stub — XGB wiring still TODO; v1 design requires map+score (kimi)."""
     raise SystemExit(
-        "score phase not wired yet (design: diagnostics-first). "
-        "After maps exist, run: python analysis/subitem_mapping.py\n"
-        f"Requested selector={selector_key} k_modes={k_modes} force={force} limit={limit}. "
-        "See docs/subitem_mapping.md."
+        "score phase not wired yet (implementation TODO). "
+        "v1 design expects map+score for kimi with k_modes parent,expanded "
+        "plus matched k_spec=5,10 — see docs/subitem_mapping.md.\n"
+        "After maps exist, diagnostics: python analysis/subitem_mapping.py "
+        f"--selector {selector_key}\n"
+        f"Requested selector={selector_key} k_modes={k_modes} force={force} limit={limit}."
     )
 
 
@@ -175,7 +178,12 @@ def main():
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     ap.add_argument("--phase", choices=["map", "score"], required=True)
-    ap.add_argument("--selector", choices=list(SELECTORS), default=DEFAULT_SELECTOR)
+    ap.add_argument(
+        "--selector",
+        choices=list(SELECTORS),
+        default="kimi",
+        help="v1 default: kimi (deepseek is an optional extension)",
+    )
     ap.add_argument("--disambiguator", choices=list(DISAMBIGUATORS),
                     help="required for --phase map")
     ap.add_argument("--arms", default="C", help="map arms (default: C only)")
