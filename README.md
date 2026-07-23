@@ -114,6 +114,15 @@ python analysis/embedding_sensitivity.py   # -> outputs/embedding_sensitivity/co
 
 Artifacts: `outputs/embedding_sensitivity/<model_slug>/<selector>/maps/` and `scores_<selector>.csv`, plus `manifest.json`. See `docs/embedding_sensitivity.md`.
 
+### Sub-item (subconcept) mapping
+
+Parent features are still one-to-one in the main pipeline; bundled `sub_items` are audit-only there. A separate experiment maps each sub_item as its own unit under `outputs/subitem_mapping/` (gen/extract reused; `format_pilot` untouched). Design and metrics: `docs/subitem_mapping.md`.
+
+```bash
+python scripts/run_subitem_mapping.py --phase map --selector deepseek --disambiguator nemotron --limit 2
+python analysis/subitem_mapping.py
+```
+
 ### Pipeline steps (concept)
 
 ```
@@ -140,7 +149,7 @@ python analysis/embedding_sensitivity.py   # MiniLM vs mid/large embedders (afte
 python scripts/leakage_audit.py            # oracle leakage audit -> outputs/leakage_audit.csv
 ```
 
-Findings and design notes live in `docs/` (`main_experiment_design.md`, `format_findings.md`, `embedding_sensitivity.md`, `leakage_findings.md`, …).
+Findings and design notes live in `docs/` (`main_experiment_design.md`, `format_findings.md`, `embedding_sensitivity.md`, `subitem_mapping.md`, `leakage_findings.md`, …).
 
 ---
 
@@ -239,6 +248,9 @@ outputs/
     manifest.json
     <embed_slug>/<selector>/maps|scores_*.csv
     comparison.csv                      # analysis/embedding_sensitivity.py
+  subitem_mapping/                      # parent+sub_item map expansion (isolated)
+    manifest.json
+    <selector>/maps|diagnostics.csv|scores_*.csv
   logs/
 ```
 
