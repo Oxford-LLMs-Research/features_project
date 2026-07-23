@@ -1,0 +1,276 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q15",
+  "country": "Mali",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 20,
+  "n_piped": 20,
+  "n_mapped": 15,
+  "n_none": 4,
+  "n_bundled": 5,
+  "type_counts": {
+    "respondent_attribute": 20
+  },
+  "mapped_codes": [
+    "Q7A",
+    "Q22B",
+    "Q23",
+    "Q37B",
+    "Q29B",
+    "Q84A",
+    "Q95",
+    "Q9B",
+    "Q86F",
+    "Q94",
+    "Q19A",
+    "Q32A",
+    "Q100",
+    "Q74A",
+    "Q4B"
+  ],
+  "features": [
+    {
+      "feature": "proximity_to_conflict_zones",
+      "context": "Respondents in the Mopti or Gao regions experiencing jihadist violence may favor Statement 1 (state authority) to ban armed groups, while those in stable southern regions might prioritize liberty.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "victimization_by_violence",
+      "context": "Direct experience with terrorist attacks or ethnic militias often increases demand for state control.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 13,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "perceived_insecurity",
+      "context": "Fear of 'subversive' organizations (whether Islamist militias or ethnic associations) predicts support for government banning powers.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q7A",
+      "selected_text": "Over the past year, how often, if ever, have you or anyone in your family felt unsafe walking in your neighbourhood?",
+      "n_candidates": 18,
+      "disambig_raw": "\nM"
+    },
+    {
+      "feature": "regime_support",
+      "context": "Support for the current military junta (CNSP) versus democratic opposition; junta supporters likely favor Statement 1 as part of 'strongman' governance.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q22B",
+      "selected_text": "There are many ways to govern a country. Would you disapprove or approve of the following alternative: The army comes in to govern the country?",
+      "n_candidates": 14,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "democratic_commitment",
+      "context": "Measures of 'democratic deepening' values versus 'order' preferences.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q23",
+      "selected_text": "Which of these three statements is closest to your own opinion? Statement 1: Democracy is preferable to any other kind of government. Statement 2: In some circumstances, a non-democratic government can be preferable. Statement 3: For someone like me, it doesn't matter what kind of government we have?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "trust_in_state_institutions",
+      "context": "Paradoxically, both low trust (fearing government abuse of banning powers) and high trust (wanting government to act decisively) could predict Statement 1, requiring nuanced measurement.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37B",
+      "selected_text": "How much do you trust the national parliament?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "attitudes_toward_coups",
+      "context": "Those viewing the coups as necessary for stability likely favor state authority.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q29B",
+      "selected_text": "Which of the following statements is closest to your view?\nStatement 1: The country's armed forces should never intervene in the country's political process.\nStatement 2: It is legitimate for the armed forces to take control of government when elected leaders abuse power for their own ends?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "ethnicity",
+      "context": "Minority groups (Tuareg, Fulani, Dogon) may favor Statement 2 if they perceive the government as hostile to their associations; dominant groups (Bambara) might favor Statement 1 to control 'troublesome' minorities.",
+      "sub_items": [
+        "Tuareg",
+        "Fulani",
+        "Dogon",
+        "Bambara"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q84A",
+      "selected_text": "What is your ethnic community or cultural group?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "religious_orientation",
+      "context": "Salafi/Wahhabi respondents might favor Statement 1 if they want the state to ban 'un-Islamic' organizations, or Statement 2 if they fear government suppression of their mosques/NGOs. Sufi/traditional Muslims might show different patterns based on their relationship with state religious authorities.",
+      "sub_items": [
+        "Salafi/Wahhabi",
+        "Sufi/traditional Muslim"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q95",
+      "selected_text": "What is your religion, if any?",
+      "n_candidates": 20,
+      "disambig_raw": "\nL"
+    },
+    {
+      "feature": "civil_society_membership",
+      "context": "Members of NGOs, farmer cooperatives, or religious associations likely favor Statement 2 (protecting associational autonomy).",
+      "sub_items": [
+        "NGO membership",
+        "farmer cooperative membership",
+        "religious association membership"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q9B",
+      "selected_text": "In this country, how free are you: to join any political organization you want?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "union_participation",
+      "context": "Trade union members historically resist state control in Francophone West Africa.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "exposure_to_pluralism",
+      "context": "Inter-ethnic or inter-religious social networks correlate with liberal associational values.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q86F",
+      "selected_text": "How much do you trust people from other ethnic groups?",
+      "n_candidates": 7,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates with liberal/civil libertarian values (Statement 2), particularly if exposed to human rights frameworks.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urbanization",
+      "context": "Bamako residents often show different patterns than rural agriculturalists, with urban elites potentially favoring Statement 2 for civil society protection.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "age_cohort",
+      "context": "Youth who participated in the 2020 protests might favor Statement 2 (associational freedom), while older respondents socialized under authoritarian rule might accept Statement 1.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q32A",
+      "selected_text": "Do you think that this country is more democratic, less democratic, or about the same than it was five years ago?",
+      "n_candidates": 20,
+      "disambig_raw": "\nO"
+    },
+    {
+      "feature": "gender",
+      "context": "Women’s responses may vary based on whether they view state banning power as protective (against extremist groups restricting women) or threatening (against women’s rights organizations).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q100",
+      "selected_text": "What is your gender?",
+      "n_candidates": 19,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Radio listeners (primary news source in rural Mali) versus social media users; state media consumption predicts Statement 1.",
+      "sub_items": [
+        "radio listening",
+        "social media use",
+        "state media consumption"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q74A",
+      "selected_text": "How often do you get news from the radio?",
+      "n_candidates": 10,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "religious_authority_influence",
+      "context": "Following imams who support state regulation of religious space versus those advocating separation.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "livelihood_insecurity",
+      "context": "Economic precarity often increases preference for order and state control (Statement 1).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q4B",
+      "selected_text": "In general, how would you describe your own present living conditions?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "dependence_on_state_resources",
+      "context": "Those receiving government contracts or public employment may favor Statement 1 to align with state interests.",
+      "sub_items": [
+        "government contracts",
+        "public employment"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 11,
+      "disambig_raw": "\nC"
+    }
+  ]
+}

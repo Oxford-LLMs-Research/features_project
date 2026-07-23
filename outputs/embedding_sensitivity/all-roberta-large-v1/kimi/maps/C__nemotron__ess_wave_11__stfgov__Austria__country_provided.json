@@ -1,0 +1,198 @@
+{
+  "survey": "ess_wave_11",
+  "target": "stfgov",
+  "country": "Austria",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 15,
+  "n_piped": 15,
+  "n_mapped": 10,
+  "n_none": 4,
+  "n_bundled": 0,
+  "type_counts": {
+    "respondent_attribute": 13,
+    "temporal_contextual": 2
+  },
+  "mapped_codes": [
+    "lrscale",
+    "stfeco",
+    "hincfel",
+    "domicil",
+    "agegroup",
+    "edlvdis",
+    "brncntr",
+    "imueclt",
+    "ipstrgva",
+    "euftf"
+  ],
+  "features": [
+    {
+      "feature": "party_identification",
+      "context": "Whether the respondent supports a party currently in government (e.g., ÖVP, Greens in recent coalitions) versus opposition parties (SPÖ, FPÖ, NEOS). Government partisanship is typically the single largest predictor of satisfaction ratings.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "left_right_ideology",
+      "context": "Left-right ideological placement correlates strongly with government evaluation, particularly regarding views on immigration, EU integration, and economic redistribution.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "sociotropic_economic_assessment",
+      "context": "Perceptions of Austria's overall economic performance, inflation rates, and unemployment levels.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "stfeco",
+      "selected_text": "How satisfied are you with the current state of the economy in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "pocketbook_economic_concern",
+      "context": "Personal financial situation, job security, and income level.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hincfel",
+      "selected_text": "Which description best matches how you feel about your household's income nowadays?",
+      "n_candidates": 16,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "regional_economic_context",
+      "context": "Whether the respondent lives in economically dynamic areas (Vienna, urban centers) versus structurally weaker rural regions.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 12,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "age_cohort",
+      "context": "Older Austrians often show different satisfaction patterns than younger cohorts, partly due to generational political socialization (e.g., experiences with grand coalitions vs. newer coalition formats).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agegroup",
+      "selected_text": "Which age group do you fall into?",
+      "n_candidates": 14,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates with different evaluation patterns, particularly regarding EU and immigration policies.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvdis",
+      "selected_text": "What is the highest level of education you have completed in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "federal_state",
+      "context": "Regional political cultures matter significantly—Vienna (historically SPÖ-dominated) versus western states (ÖVP strongholds) versus industrial regions.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Austria has pronounced urban-rural political divides.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "migration_background",
+      "context": "Citizens with migration backgrounds often evaluate governments differently, particularly regarding integration policies.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "brncntr",
+      "selected_text": "Were you born in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "immigration_attitudes",
+      "context": "Views on asylum policy and integration strongly predict government satisfaction, given the salience of migration/integration in Austrian politics (particularly regarding FPÖ support).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "imueclt",
+      "selected_text": "To what extent do people coming to live here from other countries undermine or enrich the cultural life in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "covid_policy_evaluation",
+      "context": "Views on lockdowns and vaccine mandates were highly predictive in Austria specifically, if surveying during/after the pandemic.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "ipstrgva",
+      "selected_text": "How much does this description sound like you: 'It's important to me that the government ensures my safety against all threats, and I want the state to be strong so it can defend its citizens'?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "eu_attitudes",
+      "context": "Support for or skepticism toward European integration (a major cleavage in Austrian politics).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "euftf",
+      "selected_text": "To what extent do you think European unification should go further, is about right as it is, or has already gone too far?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "survey_date",
+      "context": "Whether the fieldwork occurred during scandals (e.g., 'Ibiza affair'), economic shocks, coalition crises, or policy reforms. Government satisfaction in Austria fluctuates significantly with media cycles and coalition stability.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 16,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "governing_coalition_composition",
+      "context": "Knowing which specific coalition is in power at the time of the survey is essential baseline context, due to Austria's multiparty system and frequent coalition governments.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

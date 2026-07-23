@@ -1,0 +1,225 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q67A",
+  "country": "Mali",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 16,
+  "n_piped": 16,
+  "n_mapped": 9,
+  "n_none": 7,
+  "n_bundled": 5,
+  "type_counts": {
+    "respondent_attribute": 16
+  },
+  "mapped_codes": [
+    "Q1",
+    "Q94",
+    "Q100",
+    "Q93BOTHER",
+    "Q90A",
+    "Q90G",
+    "Q74B",
+    "Q10A",
+    "Q37A"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger respondents, especially those with formal education, are more likely to have encountered the term.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education (secondary or above) correlates strongly with awareness of global issues like climate change.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Urban residents typically have greater access to media, schools, and information networks.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "gender",
+      "context": "In Mali, gender roles may affect access to information, with men often having greater mobility and exposure to public discourse.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q100",
+      "selected_text": "What is your gender?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "occupation",
+      "context": "Those in agriculture (a major sector in Mali) may have practical exposure to climate impacts but may not label it as 'climate change' without formal awareness.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q93BOTHER",
+      "selected_text": "What is your main occupation? If unemployed, retired, or disabled, what was your last main occupation?",
+      "n_candidates": 19,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "wealth_income",
+      "context": "Higher income often correlates with better access to information channels (TV, internet, newspapers).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "radio_access",
+      "context": "Access to radio (very important in Mali, where radio is a primary information source).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q90A",
+      "selected_text": "Do you personally own a radio? If not, does anyone else in your household own one?",
+      "n_candidates": 3,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "tv_internet_access",
+      "context": "Access to TV, mobile phones, or internet.",
+      "sub_items": [
+        "tv_access",
+        "mobile_phone_access",
+        "internet_access"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q90G",
+      "selected_text": "Does your mobile phone have access to the Internet?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "media_consumption_frequency",
+      "context": "Frequency of media consumption and preferred languages (Bambara, French, etc.).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q74B",
+      "selected_text": "How often do you get news from television?",
+      "n_candidates": 3,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "preferred_media_language",
+      "context": "Frequency of media consumption and preferred languages (Bambara, French, etc.).",
+      "sub_items": [
+        "Bambara",
+        "French"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "region_in_mali",
+      "context": "Northern Sahelian zones experiencing desertification or southern agricultural zones facing rainfall variability might have different local narratives.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "exposure_to_environmental_shocks",
+      "context": "Exposure to environmental shocks (droughts, floods) that could make climate discussions more salient.",
+      "sub_items": [
+        "drought_exposure",
+        "flood_exposure"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "community_network_involvement",
+      "context": "Involvement in community networks (farmer cooperatives, NGOs, religious groups) that might disseminate information.",
+      "sub_items": [
+        "farmer_cooperative_involvement",
+        "ngo_involvement",
+        "religious_group_involvement"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q10A",
+      "selected_text": "Have you attended a community meeting in the past year? If yes, how often?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "trust_in_information_sources",
+      "context": "Trust in sources (government, international organizations, local leaders) that communicate about climate.",
+      "sub_items": [
+        "trust_in_government",
+        "trust_in_international_organizations",
+        "trust_in_local_leaders"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37A",
+      "selected_text": "How much do you trust the president?",
+      "n_candidates": 18,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "ngo_development_project_contact",
+      "context": "Contact with development projects or NGOs focused on environment/resilience.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "awareness_of_government_climate_campaigns",
+      "context": "Awareness of government policies or campaigns related to climate or environment.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 18,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

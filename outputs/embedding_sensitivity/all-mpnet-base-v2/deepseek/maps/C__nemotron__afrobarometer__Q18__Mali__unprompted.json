@@ -1,0 +1,264 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q18",
+  "country": "Mali",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 19,
+  "n_piped": 18,
+  "n_mapped": 13,
+  "n_none": 4,
+  "n_bundled": 5,
+  "type_counts": {
+    "respondent_attribute": 16,
+    "temporal_contextual": 2,
+    "instrument_methodology": 1
+  },
+  "mapped_codes": [
+    "Q89B",
+    "Q26",
+    "Q37B",
+    "Q1",
+    "Q94",
+    "Q33I",
+    "COUNTRY",
+    "Q39A",
+    "Q42B",
+    "Q19A",
+    "Q27C",
+    "Q46J",
+    "Q19B"
+  ],
+  "features": [
+    {
+      "feature": "political_ideology",
+      "context": "Left-right political orientation (e.g., liberal, conservative, socialist, libertarian)",
+      "sub_items": [
+        "liberal",
+        "conservative",
+        "socialist",
+        "libertarian"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q89B",
+      "selected_text": "Which political party do you feel close to?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "democracy_vs_efficiency_values",
+      "context": "Views on democracy vs. efficiency (e.g., procedural vs. outcome-focused)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q26",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: In a democracy, it is better if power sometimes changes hands in elections from one political party to another. Statement 2: In a democracy, as long as a government is elected by the people in a free and fair election, it doesn't matter if one party always wins and continuously governs the country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "trust_in_government",
+      "context": "Trust in government institutions",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37B",
+      "selected_text": "How much do you trust the national parliament?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "age",
+      "context": "Age (younger people may prioritize accountability, older may prioritize efficiency)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Education level (higher education often correlates with valuing democratic processes)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income_and_social_class",
+      "context": "Income and social class (marginalized groups may prioritize accountability)",
+      "sub_items": [
+        "income",
+        "social_class"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q33I",
+      "selected_text": "How often, if ever, are people treated unfairly by the government based on their economic status, that is, how rich or poor they are?",
+      "n_candidates": 16,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Urban vs. rural residence (different experiences with government responsiveness)",
+      "sub_items": [
+        "urban",
+        "rural"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 19,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "country_of_residence",
+      "context": "Country of residence (democratic vs. authoritarian contexts)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "COUNTRY",
+      "selected_text": "What is your country?",
+      "n_candidates": 11,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "recent_political_events",
+      "context": "Recent political events (scandals, crises, or government successes)",
+      "sub_items": [
+        "scandals",
+        "crises",
+        "government_successes"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q39A",
+      "selected_text": "In your opinion, over the past year, has the level of corruption in this country increased, decreased, or stayed the same?",
+      "n_candidates": 14,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "personal_government_experience",
+      "context": "Personal experiences with government services or bureaucracy",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q42B",
+      "selected_text": "How easy or difficult was it to obtain the document you needed?",
+      "n_candidates": 20,
+      "disambig_raw": "\nO"
+    },
+    {
+      "feature": "authoritarian_tendencies",
+      "context": "Authoritarian tendencies (valuing order and decisive leadership)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 7,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "political_efficacy",
+      "context": "Political efficacy (belief that citizens can influence government)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "patience_with_processes",
+      "context": "Patience with political processes",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q27C",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: After losing an election, opposition parties should monitor and criticize the government in order to hold it accountable. Statement 2: Once an election is over, opposition parties and politicians should accept defeat and cooperate with government to help it develop the country?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "risk_aversion",
+      "context": "Risk aversion (preference for predictable vs. potentially flawed but accountable systems)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "government_satisfaction",
+      "context": "Satisfaction with current government",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "perceived_corruption",
+      "context": "Perception of government corruption",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q46J",
+      "selected_text": "How well or badly would you say the current government is at fighting corruption in government?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "belief_in_collective_vs_expert_leadership",
+      "context": "Belief in collective decision-making vs. expert leadership",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19B",
+      "selected_text": "Which of the following statements is closest to your view? Choose Statement 1 or Statement 2. Statement 1: Statement 1: Our elected officials should listen to voters' views and do what they demand. Statement 2: Our elected leaders should follow their own ideas in deciding what is best for the country?",
+      "n_candidates": 12,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "question_framing",
+      "context": "How the question is framed (if other questions prime certain values)",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "survey_timing",
+      "context": "Timing relative to elections or crises",
+      "sub_items": [
+        "elections",
+        "crises"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q27C",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: After losing an election, opposition parties should monitor and criticize the government in order to hold it accountable. Statement 2: Once an election is over, opposition parties and politicians should accept defeat and cooperate with government to help it develop the country?",
+      "n_candidates": 9,
+      "disambig_raw": "\nH"
+    }
+  ]
+}

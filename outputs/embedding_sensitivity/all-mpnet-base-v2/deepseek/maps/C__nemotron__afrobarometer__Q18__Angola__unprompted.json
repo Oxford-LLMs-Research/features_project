@@ -1,0 +1,212 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q18",
+  "country": "Angola",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 15,
+  "n_piped": 15,
+  "n_mapped": 12,
+  "n_none": 1,
+  "n_bundled": 3,
+  "type_counts": {
+    "respondent_attribute": 13,
+    "temporal_contextual": 2
+  },
+  "mapped_codes": [
+    "Q37A",
+    "Q19A",
+    "Q12B",
+    "Q41H",
+    "Q10B",
+    "Q94",
+    "Q1",
+    "Q33I",
+    "Q29B",
+    "Q39A",
+    "Q23",
+    "Q27C"
+  ],
+  "features": [
+    {
+      "feature": "trust_in_government",
+      "context": "People with low trust in government are more likely to prioritize accountability.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37A",
+      "selected_text": "How much do you trust the president?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "authoritarian_vs_libertarian_leanings",
+      "context": "Those with authoritarian tendencies may favor efficiency and strong leadership ('get things done'), while libertarian-minded individuals often emphasize checks and balances.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 19,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_efficacy",
+      "context": "Belief in one’s ability to influence government may make accountability more important to them.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q12B",
+      "selected_text": "Thinking about how elections work in practice in this country, how well do elections enable voters to remove from office leaders who do not do what the people want?",
+      "n_candidates": 20,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "exposure_to_corruption_or_inefficiency",
+      "context": "Those who have experienced corruption may stress accountability; those frustrated by bureaucratic delays may prioritize getting things done.",
+      "sub_items": [
+        "experience_with_corruption",
+        "experience_with_bureaucratic_inefficiency"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q41H",
+      "selected_text": "In the past 12 months, have you encountered any problems in a public clinic or hospital due to poor facility conditions?",
+      "n_candidates": 20,
+      "disambig_raw": "\nQ"
+    },
+    {
+      "feature": "experience_with_participatory_mechanisms",
+      "context": "Involvement in community decision-making or activism could increase the value placed on accountability.",
+      "sub_items": [
+        "involvement_in_community_decision_making",
+        "activism_experience"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q10B",
+      "selected_text": "Have you joined others to raise an issue in the past year? If yes, how often?",
+      "n_candidates": 20,
+      "disambig_raw": "\nJ"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education is often associated with greater emphasis on democratic accountability.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 13,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age",
+      "context": "Older individuals might prioritize stability and efficiency; younger respondents might emphasize transparency and participation.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 15,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income_or_class",
+      "context": "Those in economically precarious situations might prioritize quick, effective government action over slower, accountable processes.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q33I",
+      "selected_text": "How often, if ever, are people treated unfairly by the government based on their economic status, that is, how rich or poor they are?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "cultural_context",
+      "context": "In societies with a history of authoritarian rule, preferences may vary—some might value strong leadership, others might react against it.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 16,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "perceived_crisis",
+      "context": "In times of war, economic crisis, or pandemic, respondents might temporarily prioritize decisive action over accountability.",
+      "sub_items": [
+        "war",
+        "economic_crisis",
+        "pandemic"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q29B",
+      "selected_text": "Which of the following statements is closest to your view?\nStatement 1: The country's armed forces should never intervene in the country's political process.\nStatement 2: It is legitimate for the armed forces to take control of government when elected leaders abuse power for their own ends?",
+      "n_candidates": 16,
+      "disambig_raw": "\nK"
+    },
+    {
+      "feature": "recent_scandals",
+      "context": "Recent government corruption scandals could shift preferences toward accountability.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q39A",
+      "selected_text": "In your opinion, over the past year, has the level of corruption in this country increased, decreased, or stayed the same?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urgency_vs_deliberation_orientation",
+      "context": "Some people naturally prefer quick decisions; others value thorough, inclusive processes.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "risk_tolerance",
+      "context": "Those more tolerant of risks from concentrated power might favor efficiency; risk-averse individuals might prefer accountability as a safeguard.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q23",
+      "selected_text": "Which of these three statements is closest to your own opinion? Statement 1: Democracy is preferable to any other kind of government. Statement 2: In some circumstances, a non-democratic government can be preferable. Statement 3: For someone like me, it doesn't matter what kind of government we have?",
+      "n_candidates": 5,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "democratic_maturity",
+      "context": "In established democracies, accountability might be taken for granted, shifting debate toward effectiveness. In newer democracies, accountability might be a salient concern.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q27C",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: After losing an election, opposition parties should monitor and criticize the government in order to hold it accountable. Statement 2: Once an election is over, opposition parties and politicians should accept defeat and cooperate with government to help it develop the country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_culture",
+      "context": "Cultures emphasizing collectivism and harmony might lean toward 'getting things done'; individualistic cultures might stress oversight and debate.",
+      "sub_items": [
+        "collectivism_vs_individualism"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    }
+  ]
+}

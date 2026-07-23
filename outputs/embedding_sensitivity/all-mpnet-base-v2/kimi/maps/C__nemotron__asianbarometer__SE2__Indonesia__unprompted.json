@@ -1,0 +1,191 @@
+{
+  "survey": "asianbarometer",
+  "target": "SE2",
+  "country": "Indonesia",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 14,
+  "n_piped": 11,
+  "n_mapped": 4,
+  "n_none": 7,
+  "n_bundled": 3,
+  "type_counts": {
+    "instrument_methodology": 3,
+    "respondent_attribute": 11
+  },
+  "mapped_codes": [
+    "SE3",
+    "region",
+    "SE5",
+    "Q52a"
+  ],
+  "features": [
+    {
+      "feature": "response_options",
+      "context": "Response options provided (binary male/female vs. inclusive spectrum including non-binary, genderqueer, write-in options)",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "question_wording",
+      "context": "Question wording (\"What is your gender?\" vs. \"What is your sex?\" vs. \"How do you identify?\")",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "survey_context",
+      "context": "Context of the survey (medical, employment, academic, social)",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "age_cohort",
+      "context": "Younger respondents more likely to select non-binary or reject binary categories",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE3",
+      "selected_text": "What is your year of birth?",
+      "n_candidates": 7,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "cultural_background",
+      "context": "Cultures with third-gender recognition vs. rigid binary systems",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "geographic_region",
+      "context": "Urban vs. rural, progressive vs. conservative areas",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "region",
+      "selected_text": "What is your administrative region?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "educational_attainment",
+      "context": "Correlates with exposure to gender theory and vocabulary for self-description",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE5",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender_expression",
+      "context": "Clothing, hairstyle, mannerisms",
+      "sub_items": [
+        "clothing",
+        "hairstyle",
+        "mannerisms"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "physical_characteristics",
+      "context": "Voice and physical characteristics",
+      "sub_items": [
+        "voice",
+        "physical_characteristics"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "name_pronouns_used_by_others",
+      "context": "Name and pronouns used by others",
+      "sub_items": [
+        "name",
+        "pronouns_used_by_others"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "previous_responses",
+      "context": "Responses to related questions about pronouns, gendered activities, or sex assigned at birth",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "response_patterns",
+      "context": "Pattern of responses to other identity questions (sexual orientation, political ideology)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "device_language_settings",
+      "context": "Device/browser language settings",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "social_media_behavior",
+      "context": "Social media behavior (if using big data methods, raising significant privacy concerns)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q52a",
+      "selected_text": "How often do you use social media to connect with other people?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

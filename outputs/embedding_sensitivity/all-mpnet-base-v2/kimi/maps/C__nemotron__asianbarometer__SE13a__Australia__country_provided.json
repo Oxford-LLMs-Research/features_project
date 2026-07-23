@@ -1,0 +1,282 @@
+{
+  "survey": "asianbarometer",
+  "target": "SE13a",
+  "country": "Australia",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 21,
+  "n_piped": 19,
+  "n_mapped": 10,
+  "n_none": 9,
+  "n_bundled": 5,
+  "type_counts": {
+    "respondent_attribute": 19,
+    "instrument_methodology": 2
+  },
+  "mapped_codes": [
+    "SE14",
+    "SE12",
+    "SE10c",
+    "SE5",
+    "SE9c",
+    "SE13b",
+    "Q104",
+    "SE11a",
+    "SE3_1",
+    "Q45"
+  ],
+  "features": [
+    {
+      "feature": "equivalised_household_income",
+      "context": "after-tax, adjusted for household size",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE14",
+      "selected_text": "What is your household income group?",
+      "n_candidates": 17,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "wealth_position",
+      "context": "home equity/property value, superannuation balance, debt-to-asset ratio; critical in Australia's high-property-price context",
+      "sub_items": [
+        "home_equity_or_property_value",
+        "superannuation_balance",
+        "debt_to_asset_ratio"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE12",
+      "selected_text": "On a ladder with 10 steps where step 1 represents the lowest status and step 10 represents the highest status, where would you place your family?",
+      "n_candidates": 14,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "occupational_prestige",
+      "context": "ANZSCO-coded occupation mapped to Australian prestige scales like ANU4 or Blaikie",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE10c",
+      "selected_text": "Which type of job does the main earner in your household have now?",
+      "n_candidates": 8,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "education",
+      "context": "highest qualification, particularly completion of tertiary vs. vocational vs. secondary",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE5",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "employment_security",
+      "context": "casual/permanent status, underemployment, industry sector (public vs. private)",
+      "sub_items": [
+        "casual_or_permanent_employment_status",
+        "underemployment",
+        "industry_sector"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE9c",
+      "selected_text": "Which type of job do you have now?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "geographic_comparison_set",
+      "context": "postcode-level SES (IRSD scores), urban/rural location, and whether they compare locally (their suburb) or nationally",
+      "sub_items": [
+        "postcode_level_ses_irsd_score",
+        "urban_or_rural_location",
+        "local_vs_national_comparison_frame"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "intergenerational_position",
+      "context": "parents' occupation/education; upward/downward mobility perception strongly predicts ladder placement independent of current income",
+      "sub_items": [
+        "parents_occupation",
+        "parents_education"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE13b",
+      "selected_text": "On a staircase with 10 steps where the poorest people are on the first step and the richest on the tenth step, where would you put your parents?",
+      "n_candidates": 20,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "workplace_context",
+      "context": "the SES of their immediate colleagues; e.g., academics often under-place themselves relative to income peers",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "ethnic_enclave_effects",
+      "context": "for migrants, comparison to co-ethnics vs. broader Australian society",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "self_esteem",
+      "context": "self-esteem and depressive symptomatology; negative affect correlates with lower placement",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "system_justification_beliefs",
+      "context": "belief that Australian society is meritocratic; predicts higher placement among low-SES respondents",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q104",
+      "selected_text": "Do you agree or disagree with the following statement: 'Rich and poor people are treated equally by the government'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "relative_deprivation_sensitivity",
+      "context": "sensitivity to relative deprivation",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "numeracy_and_scale_interpretation",
+      "context": "whether they interpret the ladder as linear (income) or logarithmic (wealth/power)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "home_ownership_status",
+      "context": "in Australia's property-obsessed culture, owning (even with a massive mortgage) versus renting is a distinct status marker that may outweigh income",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 16,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "indigenous_status",
+      "context": "Aboriginal and Torres Strait Islander respondents may place themselves lower due to awareness of structural disadvantage, regardless of personal income",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE11a",
+      "selected_text": "What is your racial or ethnic background?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "migration_background",
+      "context": "country of birth (English-speaking vs. non-English-speaking background) and visa category (skilled vs. humanitarian) affect comparison frameworks",
+      "sub_items": [
+        "country_of_birth",
+        "visa_category"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "tall_poppy_calibration",
+      "context": "cultural tendency to avoid placing oneself on the top rung (modesty bias) or bottom rung (self-preservation), clustering around 4-7",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age",
+      "context": "young Australians often place themselves low due to housing precarity, while retirees with paid-off homes and superannuation may place themselves higher than their income suggests",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE3_1",
+      "selected_text": "What is your actual age?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "family_formation_stage",
+      "context": "presence of dependent children; affects both expenses and 'provider' identity",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q45",
+      "selected_text": "How easy or difficult is it to access childcare?",
+      "n_candidates": 19,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "question_order",
+      "context": "if preceded by questions about poverty/inequality, respondents may place themselves lower (priming effects)",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "mode_of_administration",
+      "context": "phone vs. online (visual ladder vs. verbal description affects responses)",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

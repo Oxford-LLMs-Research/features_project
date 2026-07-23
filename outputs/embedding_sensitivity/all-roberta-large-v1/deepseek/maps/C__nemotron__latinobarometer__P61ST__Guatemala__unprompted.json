@@ -1,0 +1,331 @@
+{
+  "survey": "latinobarometer",
+  "target": "P61ST",
+  "country": "Guatemala",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 25,
+  "n_piped": 25,
+  "n_mapped": 16,
+  "n_none": 5,
+  "n_bundled": 6,
+  "type_counts": {
+    "respondent_attribute": 25
+  },
+  "mapped_codes": [
+    "S5",
+    "S18.A",
+    "S11",
+    "S2",
+    "P16ST",
+    "P41ST.G",
+    "P13ST.E",
+    "REEDUC.2",
+    "S3",
+    "REEDAD",
+    "REG",
+    "S7",
+    "SEXO",
+    "P41ST.E",
+    "S14M.3",
+    "P54ST.B"
+  ],
+  "features": [
+    {
+      "feature": "income_level_wealth",
+      "context": "Socioeconomic Position - Income level and wealth",
+      "sub_items": [
+        "income level",
+        "wealth"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S5",
+      "selected_text": "Does your salary and total family income allow you to cover your needs in a satisfactory manner?",
+      "n_candidates": 12,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "occupation_employment_status",
+      "context": "Socioeconomic Position - Occupation and employment status",
+      "sub_items": [
+        "occupation",
+        "employment status"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S18.A",
+      "selected_text": "What is your current employment situation?",
+      "n_candidates": 16,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "education_level",
+      "context": "Socioeconomic Position - Education level",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S11",
+      "selected_text": "What is the highest level of education you have completed?",
+      "n_candidates": 17,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "social_class_self_identification",
+      "context": "Socioeconomic Position - Social class self-identification",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S2",
+      "selected_text": "People sometimes describe themselves as belonging to a social class. Which class would you say you belong to?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_orientation",
+      "context": "Ideological and Political Factors - Political orientation (left-right spectrum)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P16ST",
+      "selected_text": "In politics, people often talk about 'left' and 'right'. Where would you place yourself on this scale?",
+      "n_candidates": 13,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "beliefs_social_mobility",
+      "context": "Ideological and Political Factors - Beliefs about social mobility",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P41ST.G",
+      "selected_text": "To what extent do you think people have equal life chances regardless of their origin in your country?",
+      "n_candidates": 14,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "attitudes_meritocracy_structural_barriers",
+      "context": "Ideological and Political Factors - Attitudes toward meritocracy vs. structural barriers",
+      "sub_items": [
+        "attitudes toward meritocracy",
+        "attitudes toward structural barriers"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P41ST.G",
+      "selected_text": "To what extent do you think people have equal life chances regardless of their origin in your country?",
+      "n_candidates": 11,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "trust_institutions",
+      "context": "Ideological and Political Factors - Trust in institutions",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P13ST.E",
+      "selected_text": "How much trust do you have in the National Government?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "personal_family_mobility_history",
+      "context": "Personal Experience - Personal/family history of upward or downward mobility",
+      "sub_items": [
+        "personal history of upward or downward mobility",
+        "family history of upward or downward mobility"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REEDUC.2",
+      "selected_text": "What is the recoded education level of the respondent's parents?",
+      "n_candidates": 14,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "economic_hardship_experience",
+      "context": "Personal Experience - Experience with economic hardship",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S3",
+      "selected_text": "In the past 12 months, how often have you or your family gone without food?",
+      "n_candidates": 16,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "reference_group_comparisons",
+      "context": "Personal Experience - Reference group comparisons (who they compare themselves to)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "age_generation",
+      "context": "Demographic Characteristics - Age and generation",
+      "sub_items": [
+        "age",
+        "generation"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REEDAD",
+      "selected_text": "Which age group do you belong to?",
+      "n_candidates": 7,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "geographic_location",
+      "context": "Demographic Characteristics - Geographic location (urban/rural, region)",
+      "sub_items": [
+        "urban/rural",
+        "region"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REG",
+      "selected_text": "Which region do you live in?",
+      "n_candidates": 3,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "race_ethnicity",
+      "context": "Demographic Characteristics - Race/ethnicity",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S7",
+      "selected_text": "What ethnicity or race do you identify with most closely?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender",
+      "context": "Demographic Characteristics - Gender",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SEXO",
+      "selected_text": "What is your sex?",
+      "n_candidates": 7,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "perceived_system_fairness",
+      "context": "Psychological and Social Factors - Perceived fairness of the system",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P41ST.E",
+      "selected_text": "To what extent do you think there is a just and fair distribution of wealth in your country?",
+      "n_candidates": 9,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "relative_deprivation",
+      "context": "Psychological and Social Factors - Relative deprivation (feeling disadvantaged compared to others)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "empathy_levels",
+      "context": "Psychological and Social Factors - Empathy levels",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "exposure_socioeconomic_diversity",
+      "context": "Psychological and Social Factors - Exposure to diverse socioeconomic groups",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "awareness_inequality_statistics",
+      "context": "Contextual Knowledge - Awareness of actual inequality statistics",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "media_consumption_patterns",
+      "context": "Contextual Knowledge - Media consumption patterns",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S14M.3",
+      "selected_text": "Do you use YouTube or any of these other social networking services?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "understanding_economic_systems",
+      "context": "Contextual Knowledge - Understanding of economic systems",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P54ST.B",
+      "selected_text": "Do you agree or disagree that a market economy is the only way your country can achieve development?",
+      "n_candidates": 3,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "cultural_values_equality_hierarchy",
+      "context": "Cultural and Normative Factors - Cultural values regarding equality vs. hierarchy",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P41ST.G",
+      "selected_text": "To what extent do you think people have equal life chances regardless of their origin in your country?",
+      "n_candidates": 12,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "religious_ethical_beliefs_wealth_distribution",
+      "context": "Cultural and Normative Factors - Religious or ethical beliefs about wealth distribution",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P41ST.E",
+      "selected_text": "To what extent do you think there is a just and fair distribution of wealth in your country?",
+      "n_candidates": 12,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "national_identity_success_narratives",
+      "context": "Cultural and Normative Factors - National identity and narratives about success",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P41ST.G",
+      "selected_text": "To what extent do you think people have equal life chances regardless of their origin in your country?",
+      "n_candidates": 16,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

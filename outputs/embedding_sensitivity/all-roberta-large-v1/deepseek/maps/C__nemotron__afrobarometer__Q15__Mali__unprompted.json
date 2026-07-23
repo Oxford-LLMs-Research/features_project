@@ -1,0 +1,124 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q15",
+  "country": "Mali",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 7,
+  "n_piped": 7,
+  "n_mapped": 5,
+  "n_none": 2,
+  "n_bundled": 5,
+  "type_counts": {
+    "respondent_attribute": 7
+  },
+  "mapped_codes": [
+    "Q23",
+    "Q37B",
+    "COUNTRY",
+    "Q19A",
+    "Q95"
+  ],
+  "features": [
+    {
+      "feature": "political_ideology",
+      "context": "authoritarian vs. libertarian leanings, left-right orientation, and views on state power",
+      "sub_items": [
+        "authoritarian_vs_libertarian",
+        "left_right_orientation",
+        "views_on_state_power"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q23",
+      "selected_text": "Which of these three statements is closest to your own opinion? Statement 1: Democracy is preferable to any other kind of government. Statement 2: In some circumstances, a non-democratic government can be preferable. Statement 3: For someone like me, it doesn't matter what kind of government we have?",
+      "n_candidates": 10,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "trust_in_government",
+      "context": "whether they generally trust government to make good decisions or are skeptical of its authority",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37B",
+      "selected_text": "How much do you trust the national parliament?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "experience_with_repression_or_activism",
+      "context": "personal or family history with banned organizations or political dissent",
+      "sub_items": [
+        "personal_history_with_banned_organizations",
+        "family_history_with_banned_organizations",
+        "personal_history_with_political_dissent",
+        "family_history_with_political_dissent"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "cultural_and_national_context",
+      "context": "whether they live in a country with a history of authoritarianism, strong civil liberties, or political instability",
+      "sub_items": [
+        "history_of_authoritarianism",
+        "strong_civil_liberties",
+        "political_instability"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "COUNTRY",
+      "selected_text": "What is your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nO"
+    },
+    {
+      "feature": "demographics",
+      "context": "age, education, and socioeconomic status can correlate with political tolerance and support for civil liberties",
+      "sub_items": [
+        "age",
+        "education",
+        "socioeconomic_status"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "attitudes_toward_conformity_vs_freedom",
+      "context": "preference for social order versus personal autonomy",
+      "sub_items": [
+        "preference_for_social_order",
+        "preference_for_personal_autonomy"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 8,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "religious_or_ideological_affiliation",
+      "context": "especially if they belong to groups that have faced restrictions in the past",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q95",
+      "selected_text": "What is your religion, if any?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    }
+  ]
+}

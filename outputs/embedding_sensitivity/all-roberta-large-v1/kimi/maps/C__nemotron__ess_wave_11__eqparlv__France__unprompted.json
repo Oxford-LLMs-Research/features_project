@@ -1,0 +1,299 @@
+{
+  "survey": "ess_wave_11",
+  "target": "eqparlv",
+  "country": "France",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 21,
+  "n_piped": 20,
+  "n_mapped": 9,
+  "n_none": 9,
+  "n_bundled": 10,
+  "type_counts": {
+    "respondent_attribute": 20,
+    "instrument_methodology": 1
+  },
+  "mapped_codes": [
+    "gndr",
+    "wprtbym",
+    "emplrel",
+    "isco08",
+    "lrscale",
+    "gincdif",
+    "impfreea",
+    "trwrkmw",
+    "eqwrkbg"
+  ],
+  "features": [
+    {
+      "feature": "respondent_gender",
+      "context": "Women typically show higher support for egalitarian leave policies due to direct experience with the 'motherhood penalty,' though some may oppose mandates if they prefer flexibility in family arrangements.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "gndr",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender_role_attitudes",
+      "context": "Measures of traditionalism vs. egalitarianism (e.g., agreement with statements like 'a mother's primary duty is to home and children' or 'men should be equally involved in infant care').",
+      "sub_items": [
+        "agreement_with_traditional_mother_role",
+        "agreement_with_egalitarian_caregiving"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "wprtbym",
+      "selected_text": "How much do you agree or disagree with the statement: \"Men should protect women\"?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "feminist_identification",
+      "context": "Self-identification as feminist and support for structural vs. liberal feminism.",
+      "sub_items": [
+        "self_identification_as_feminist",
+        "support_for_structural_feminism",
+        "support_for_liberal_feminism"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "current_employment_status",
+      "context": "Self-employed respondents and small business owners typically oppose mandates due to coordination costs; employees in large organizations may be more supportive.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "emplrel",
+      "selected_text": "In your main job (current or most recent), were you an employee, self-employed, or working for your own family business?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "occupation_and_industry",
+      "context": "Gender composition (male-dominated fields may show resistance to 'disrupting' career trajectories); leave feasibility (can work be paused? are there coverage substitutes?).",
+      "sub_items": [
+        "gender_composition_of_occupation",
+        "leave_feasibility_in_occupation",
+        "coverage_substitutes_available"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "isco08",
+      "selected_text": "What is or was the job title of your main job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "career_stage_and_income",
+      "context": "High-earners in competitive fields may view mandatory leave as a career risk; those in public sector or unionized jobs with existing leave protections may be more supportive.",
+      "sub_items": [
+        "career_stage",
+        "income_level",
+        "sector_of_employment",
+        "unionization_status"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "isco08",
+      "selected_text": "What is or was the job title of your main job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nM"
+    },
+    {
+      "feature": "past_experience_with_parental_leave",
+      "context": "Whether they took leave, how it affected their career, and whether they perceived it as sufficient.",
+      "sub_items": [
+        "took_parental_leave",
+        "career_impact_of_leave",
+        "perceived_sufficiency_of_leave"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "Economic conservatism (opposition to mandates) vs. social liberalism (support for gender equality). Note that these can conflict—some libertarian-leaning respondents might support gender equality but oppose state coercion.",
+      "sub_items": [
+        "economic_conservatism",
+        "social_liberalism"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "attitudes_toward_government_intervention",
+      "context": "General predisposition toward regulatory solutions vs. market-based or voluntary approaches.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "gincdif",
+      "selected_text": "To what extent do you agree or disagree with the statement: \"The government should take steps to reduce income inequality\"?",
+      "n_candidates": 14,
+      "disambig_raw": "\nM"
+    },
+    {
+      "feature": "views_on_use_it_or_lose_it_leave",
+      "context": "Support for incentives vs. mandates (this question specifies a *requirement*, which triggers liberty concerns).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "impfreea",
+      "selected_text": "How much does this description sound like you: \"It is important to me to make my own decisions; I like being free and not depending on others\"?",
+      "n_candidates": 6,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "parental_status_and_child_age",
+      "context": "Parents of young children may have different views than empty-nesters or childless respondents.",
+      "sub_items": [
+        "parental_status",
+        "age_of_children"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "relationship_status_and_partner_employment",
+      "context": "Whether they have a partner, partner's work hours, and current division of childcare.",
+      "sub_items": [
+        "relationship_status",
+        "partner_work_hours",
+        "current_division_of_childcare"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "fertility_intentions",
+      "context": "Those planning children may calculate personal costs/benefits differently.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "perceived_labor_market_discrimination",
+      "context": "Beliefs about whether unequal leave-taking drives the gender wage gap.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trwrkmw",
+      "selected_text": "Have you ever been treated unfairly in hiring, pay, or promotions at work because of your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "views_on_paternal_involvement",
+      "context": "Beliefs about whether fathers *should* be primary caregivers during infancy (child development outcomes, bonding necessity).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "flexibility_preferences",
+      "context": "Valuation of family autonomy vs. structural equality (some may favor 'choice' over mandated equality).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "impfreea",
+      "selected_text": "How much does this description sound like you: \"It is important to me to make my own decisions; I like being free and not depending on others\"?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "gender_x_parental_status_interaction",
+      "context": "Fathers who have actually taken leave often become strong advocates; childless men may be least supportive.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "ideology_x_occupation_interaction",
+      "context": "Conservative women in professional careers may show different patterns than conservative women in traditional homemaker roles.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age_x_gender_interaction",
+      "context": "Younger men often show more egalitarian attitudes than older cohorts.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 16,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "measurement_method",
+      "context": "I would measure these through both direct questions (political party, parental status) and scales (gender role attitudes, egalitarianism, regulatory preference).",
+      "sub_items": [
+        "direct_questions",
+        "attitudinal_scales"
+      ],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "composite_predictor",
+      "context": "The strongest single predictor is likely a composite of gender role traditionalism and economic individualism, as this policy requires simultaneously accepting non-traditional family roles and state intervention in employment contracts.",
+      "sub_items": [
+        "gender_role_traditionalism",
+        "economic_individualism"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "eqwrkbg",
+      "selected_text": "Overall, how good or bad is it for family life in this country if equal numbers of women and men are in paid work?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

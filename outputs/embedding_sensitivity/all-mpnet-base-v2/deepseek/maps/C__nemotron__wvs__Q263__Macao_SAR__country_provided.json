@@ -1,0 +1,162 @@
+{
+  "survey": "wvs",
+  "target": "Q263",
+  "country": "Macao SAR",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 10,
+  "n_piped": 9,
+  "n_mapped": 7,
+  "n_none": 2,
+  "n_bundled": 6,
+  "type_counts": {
+    "respondent_attribute": 9,
+    "base_rate_prior": 1
+  },
+  "mapped_codes": [
+    "Q266",
+    "Q269",
+    "Q265",
+    "Q290",
+    "Q272",
+    "Q262",
+    "Q288"
+  ],
+  "features": [
+    {
+      "feature": "place_of_birth",
+      "context": "This is the most direct predictor, since the question asks specifically about birthplace.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q266",
+      "selected_text": "In which country were you born?",
+      "n_candidates": 11,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "immigration_history",
+      "context": "Whether they moved to Macao from another country/region, and if so, when.",
+      "sub_items": [
+        "moved_from",
+        "year_of_migration"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 15,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "nationality_citizenship",
+      "context": "Macao SAR residents can hold Chinese nationality (including Macao SAR passports) or foreign nationality, which may correlate with birthplace and migration history.",
+      "sub_items": [
+        "Chinese_nationality",
+        "Macao_SAR_passport",
+        "foreign_nationality"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q269",
+      "selected_text": "Are you a citizen of this country?",
+      "n_candidates": 16,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "parents_migration_background",
+      "context": "Some respondents might identify as immigrants if their parents immigrated, even if they were born in Macao.",
+      "sub_items": [
+        "parents_birthplace",
+        "parents_migration_history"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q265",
+      "selected_text": "Is your father immigrant to this country or not?",
+      "n_candidates": 11,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "length_of_residence",
+      "context": "Even if born elsewhere, long-term residents might identify more with being local.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "ethnicity_cultural_identity",
+      "context": "Macao has a diverse population including ethnic Chinese (Cantonese, Fujianese, etc.), Portuguese, and others, which can relate to migration patterns.",
+      "sub_items": [
+        "ethnicity",
+        "cultural_identity"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q290",
+      "selected_text": "How do you identify when it comes to Racial belonging/ ethnic group in your country?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "language_spoken_at_home",
+      "context": "Language use (Cantonese, Portuguese, Mandarin, English, etc.) can indicate family migration background.",
+      "sub_items": [
+        "Cantonese",
+        "Portuguese",
+        "Mandarin",
+        "English",
+        "other_languages"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q272",
+      "selected_text": "What language do you normally speak at home?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age_generation",
+      "context": "Younger respondents are more likely to be born in Macao if their family immigrated earlier.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q262",
+      "selected_text": "How old are you?",
+      "n_candidates": 9,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "socioeconomic_factors",
+      "context": "Certain jobs (e.g., gaming industry, domestic work) are associated with recent immigration.",
+      "sub_items": [
+        "occupation",
+        "industry"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q288",
+      "selected_text": "What is the level of your household's income counting all wages, salaries, pensions and other incomes on an income scale on which 'lowest' indicates the lowest income group and 'tenth step' the highest income group in your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "baseline_prediction",
+      "context": "Without specific data, a reasonable baseline prediction for a random respondent in Macao would be 'born in this country', since most of Macao's population is native-born, but with significant variation across demographic groups.",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

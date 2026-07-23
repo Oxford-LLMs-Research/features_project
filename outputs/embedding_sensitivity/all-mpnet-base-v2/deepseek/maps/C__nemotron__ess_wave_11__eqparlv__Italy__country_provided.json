@@ -1,0 +1,287 @@
+{
+  "survey": "ess_wave_11",
+  "target": "eqparlv",
+  "country": "Italy",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 21,
+  "n_piped": 21,
+  "n_mapped": 13,
+  "n_none": 6,
+  "n_bundled": 5,
+  "type_counts": {
+    "respondent_attribute": 21
+  },
+  "mapped_codes": [
+    "agea",
+    "icgndra",
+    "edlvdis",
+    "region",
+    "chldhhe",
+    "tporgwk",
+    "hinctnta",
+    "isco08",
+    "nacer2",
+    "eqwrkbg",
+    "lrscale",
+    "rlgdgr",
+    "stfgov"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger Italians (especially under 40) may be more supportive of gender-equal policies than older generations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "generation",
+      "context": "Younger Italians (especially under 40) may be more supportive of gender-equal policies than older generations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "gender",
+      "context": "Women might view this more favorably, but men’s attitudes (especially younger, educated men) could be crucial.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "icgndra",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education often correlates with more egalitarian gender attitudes.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvdis",
+      "selected_text": "What is the highest level of education you have completed in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "geographic_region",
+      "context": "Northern vs. Southern Italy often show differences in social attitudes; urban (e.g., Milan, Bologna) vs. rural settings also matter.",
+      "sub_items": [
+        "northern_italy",
+        "southern_italy",
+        "urban",
+        "rural"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "region",
+      "selected_text": "Which region do you live in?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "parental_status",
+      "context": "Whether they have children, especially young children, could influence their view based on personal experience.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "chldhhe",
+      "selected_text": "Have you ever had any children — your own, stepchildren, adopted children, foster children, or a partner's children — living in your household?",
+      "n_candidates": 20,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "employment_status",
+      "context": "Public-sector employees might have different experiences with leave policies than private-sector workers.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "tporgwk",
+      "selected_text": "What type of organization do you work for, or did you work for?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "employment_sector",
+      "context": "Public-sector employees might have different experiences with leave policies than private-sector workers.",
+      "sub_items": [
+        "public_sector",
+        "private_sector"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "tporgwk",
+      "selected_text": "What type of organization do you work for, or did you work for?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "income_level",
+      "context": "Those in dual-income situations might see the practical benefits or challenges.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "occupation",
+      "context": "Some professions (e.g., corporate, professional services) may have more or less flexibility.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "isco08",
+      "selected_text": "What is or was the job title of your main job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "industry",
+      "context": "Some professions (e.g., corporate, professional services) may have more or less flexibility.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "nacer2",
+      "selected_text": "What does or did the firm or organisation you work or worked for mainly make or do?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender_role_attitudes",
+      "context": "Traditional vs. egalitarian views on family and work (e.g., agreement with statements like 'A mother’s primary role is caregiving').",
+      "sub_items": [
+        "traditional_views",
+        "egalitarian_views"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "eqwrkbg",
+      "selected_text": "Overall, how good or bad is it for family life in this country if equal numbers of women and men are in paid work?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_orientation",
+      "context": "Left/center-left voters tend to support such policies more than right/center-right voters.",
+      "sub_items": [
+        "left",
+        "center_left",
+        "right",
+        "center_right"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "religiosity",
+      "context": "Religiosity (church attendance) may correlate with more traditional views.",
+      "sub_items": [
+        "church_attendance"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "rlgdgr",
+      "selected_text": "Whether or not you belong to a particular religion, how religious would you say you are?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "trust_in_institutions",
+      "context": "Confidence in the government’s ability to implement and fund such policies.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "stfgov",
+      "selected_text": "How satisfied are you with the way the national government is doing its job?",
+      "n_candidates": 14,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "awareness_of_policies",
+      "context": "Knowledge of current parental leave rules in Italy (e.g., *congedo di paternità obbligatorio* and optional leave sharing).",
+      "sub_items": [
+        "congedo_di_paternità_obbligatorio",
+        "optional_leave_sharing"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 15,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "family_background",
+      "context": "How parental roles were modeled in their own upbringing.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "peer_colleague_norms",
+      "context": "Whether they know couples who have shared leave or faced barriers in doing so.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "eqwrkbg",
+      "selected_text": "Overall, how good or bad is it for family life in this country if equal numbers of women and men are in paid work?",
+      "n_candidates": 20,
+      "disambig_raw": "\nP"
+    },
+    {
+      "feature": "career_impact_concerns",
+      "context": "Concerns about career impact, especially for men in competitive fields.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "financial_considerations",
+      "context": "Whether paid leave is seen as adequate to support equal uptake.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "views_on_child_development",
+      "context": "Beliefs about the importance of both parents’ involvement in early childhood.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 13,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

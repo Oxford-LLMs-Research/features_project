@@ -1,0 +1,292 @@
+{
+  "survey": "ess_wave_11",
+  "target": "eqparlv",
+  "country": "Italy",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 21,
+  "n_piped": 21,
+  "n_mapped": 13,
+  "n_none": 8,
+  "n_bundled": 7,
+  "type_counts": {
+    "respondent_attribute": 21
+  },
+  "mapped_codes": [
+    "eqparep",
+    "lrscale",
+    "icgndra",
+    "chldhhe",
+    "agegroup",
+    "hincfel",
+    "isco08",
+    "wkdcorga",
+    "hinctnta",
+    "hswrkp",
+    "eqwrkbg",
+    "impfreea",
+    "cntry"
+  ],
+  "features": [
+    {
+      "feature": "gender_ideology",
+      "context": "Measures of traditional vs. egalitarian views on parenting, such as beliefs about whether mothers are 'naturally' better suited for infant care or parenting should be equally shared",
+      "sub_items": [
+        "belief_mothers_naturally_better_caregivers",
+        "belief_parenting_should_be_equally_shared"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "feminist_identification",
+      "context": "Support for structural vs. liberal feminism, where structural feminists favor mandates to overcome workplace discrimination and liberal feminists prioritize individual choice",
+      "sub_items": [
+        "support_structural_feminism",
+        "support_liberal_feminism"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "eqparep",
+      "selected_text": "To what extent are you in favour or against a law that requires an equal number of seats for women and men in Parliament?",
+      "n_candidates": 19,
+      "disambig_raw": "\nM"
+    },
+    {
+      "feature": "views_on_paternal_involvement",
+      "context": "Beliefs about whether active fatherhood is beneficial for child development, gender equality, or men's wellbeing",
+      "sub_items": [
+        "benefit_to_child_development",
+        "benefit_to_gender_equality",
+        "benefit_to_mens_wellbeing"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 14,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "Position on the Left-Right spectrum, as left-leaning respondents typically favor state intervention for equality and conservatives often oppose mandates on libertarian or traditional family grounds",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "regulatory_preferences",
+      "context": "Views on government intervention in employer-employee contracts, including skepticism of 'one-size-fits-all' mandates",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 17,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "welfare_state_attitudes",
+      "context": "Support for socialized care provision versus family privatization of care responsibilities",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "gender",
+      "context": "Men often express more opposition due to career concerns or traditional norms; women are divided between seeing shared burden as liberating or wanting flexibility to choose primary caregiving",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "icgndra",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "parental_status",
+      "context": "Current parents (especially those with infants) versus childless respondents; also distinguishing mothers versus fathers",
+      "sub_items": [
+        "current_parent",
+        "has_infant",
+        "childless",
+        "mother",
+        "father"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "chldhhe",
+      "selected_text": "Have you ever had any children — your own, stepchildren, adopted children, foster children, or a partner's children — living in your household?",
+      "n_candidates": 17,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "age_cohort",
+      "context": "Younger generations typically show stronger support for paternal leave mandates",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agegroup",
+      "selected_text": "Which age group do you fall into?",
+      "n_candidates": 6,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "socioeconomic_status",
+      "context": "High-income professionals in competitive fields may oppose mandates due to career timing concerns, while working-class respondents may see protection in standardization",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hincfel",
+      "selected_text": "Which description best matches how you feel about your household's income nowadays?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "career_stage_and_ambition",
+      "context": "Those in 'up-or-out' professions (e.g., law, finance, academia) may oppose mandatory leave as disrupting human capital accumulation",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "isco08",
+      "selected_text": "What is or was the job title of your main job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nK"
+    },
+    {
+      "feature": "workplace_flexibility",
+      "context": "Current access to flexible arrangements; those with flexibility may oppose mandates, while those without may see mandates as leveling the playing field",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "wkdcorga",
+      "selected_text": "How much does or did management at your workplace let you decide how to organize your daily work?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "industry_gender_composition",
+      "context": "Workers in male-dominated fields may have different calculations about stigma of leave than those in female-dominated sectors",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "relative_earnings_in_household",
+      "context": "Even though the vignette specifies equal earnings, the respondent's actual household earnings ratio predicts their general orientation toward egalitarian vs. specialized division of labor",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "partnership_dynamics",
+      "context": "Whether they practice or aspire to equal parenting; perceived fairness in current division of labor",
+      "sub_items": [
+        "practice_equal_parenting",
+        "aspire_to_equal_parenting",
+        "perceived_fairness_division_of_labor"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hswrkp",
+      "selected_text": "In the last 7 days, has your partner done housework, looked after children, or cared for other people?",
+      "n_candidates": 20,
+      "disambig_raw": "\nJ"
+    },
+    {
+      "feature": "fertility_intentions",
+      "context": "Those planning children may calculate personal costs/benefits differently than those finished with childbearing",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "equality_vs_liberty_tradeoff",
+      "context": "Whether they prioritize reducing gender wage gaps (e.g., preventing 'motherhood penalties') or maximizing family autonomy",
+      "sub_items": [
+        "priority_reduce_gender_wage_gaps",
+        "priority_maximize_family_autonomy"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "eqwrkbg",
+      "selected_text": "Overall, how good or bad is it for family life in this country if equal numbers of women and men are in paid work?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "meritocratic_beliefs",
+      "context": "Whether they view career interruptions as individual choices that should carry consequences",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "impfreea",
+      "selected_text": "How much does this description sound like you: \"It is important to me to make my own decisions; I like being free and not depending on others\"?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "essentialist_beliefs",
+      "context": "Views on biological differences in bonding or infant care needs",
+      "sub_items": [
+        "belief_biological_bonding_differences",
+        "belief_biological_infant_care_needs"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "country_of_residence",
+      "context": "Existing leave policies (e.g., Nordic respondents familiar with 'use-it-or-lose-it' daddy quotas may respond differently than Americans in a policy vacuum)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "cntry",
+      "selected_text": "Which country are you in?",
+      "n_candidates": 17,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "firm_size_industry_norms",
+      "context": "Exposure to existing parental leave cultures based on firm size or industry norms",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

@@ -1,0 +1,240 @@
+{
+  "survey": "ess_wave_11",
+  "target": "bctprd",
+  "country": "France",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 18,
+  "n_piped": 18,
+  "n_mapped": 11,
+  "n_none": 6,
+  "n_bundled": 2,
+  "type_counts": {
+    "respondent_attribute": 16,
+    "temporal_contextual": 2
+  },
+  "mapped_codes": [
+    "agea",
+    "edlvept",
+    "hinctnta",
+    "domicil",
+    "lrscale",
+    "impenva",
+    "ccrdprs",
+    "trstprl",
+    "uemp5yr",
+    "pbldmna",
+    "pstplonl"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger people (e.g., 18–35) are often more engaged in consumer activism.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education levels correlate with greater awareness of social/environmental issues and willingness to boycott.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvept",
+      "selected_text": "What is the highest level of education you have completed?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "income",
+      "context": "Higher income may allow more flexibility to avoid cheaper, problematic products.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 16,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Urban dwellers often have greater access to alternative products and more exposure to activist networks.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_orientation",
+      "context": "Left-leaning individuals may be more inclined to engage in political consumerism.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "political_social_engagement",
+      "context": "Does the person vote, participate in protests, or follow news about social/environmental issues?",
+      "sub_items": [
+        "voting_behavior",
+        "protest_participation",
+        "news_following_on_social_environmental_issues"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "ethical_consumption_values",
+      "context": "Does the respondent prioritize buying organic, fair-trade, or locally produced goods?",
+      "sub_items": [
+        "organic_purchasing_priority",
+        "fair-trade_purchasing_priority",
+        "locally_produced_goods_priority"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "impenva",
+      "selected_text": "How well does the following statement describe you: 'You strongly believe people should care for nature; looking after the environment is important to you'?",
+      "n_candidates": 8,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "perceived_self_efficacy",
+      "context": "Does the person believe individual actions (like boycotting) can make a difference?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "ccrdprs",
+      "selected_text": "How much personal responsibility do you feel for reducing climate change?",
+      "n_candidates": 19,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "trust_in_institutions",
+      "context": "Low trust in government/corporations may motivate alternative actions like boycotting.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trstprl",
+      "selected_text": "How much do you personally trust your country's parliament?",
+      "n_candidates": 9,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "recent_triggers",
+      "context": "Was there a recent scandal (e.g., environmental disaster, labor exploitation case) in France that spurred boycotts?",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "personal_experience",
+      "context": "Has the respondent been directly affected by an issue (e.g., health, employment) that motivated action?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "uemp5yr",
+      "selected_text": "In the past five years, have you had any periods of unemployment during which you were actively looking for work for more than three months?",
+      "n_candidates": 20,
+      "disambig_raw": "\nP"
+    },
+    {
+      "feature": "social_network_influence",
+      "context": "Are friends/family engaged in boycotting? Social pressure and information sharing matter.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "consumer_habits",
+      "context": "Does the person have the flexibility to switch brands (e.g., not locked into tight budgets or specific product needs)?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "awareness_of_alternatives",
+      "context": "Are ethical alternatives available and accessible in their region?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "past_activism",
+      "context": "Has the respondent boycotted before? Past behavior is a strong predictor.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "pbldmna",
+      "selected_text": "In the past 12 months, have you taken part in a public demonstration in this country to try to improve things or to prevent things from going wrong?",
+      "n_candidates": 13,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "french_specific_issues",
+      "context": "Boycotts might target specific French companies or policies (e.g., pension reforms, agricultural practices).",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "national_pride_vs_critique",
+      "context": "Some may boycott to ‘improve France,’ others to protest national policies.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "pbldmna",
+      "selected_text": "In the past 12 months, have you taken part in a public demonstration in this country to try to improve things or to prevent things from going wrong?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "social_media_use_for_activism_news",
+      "context": "Social media use for activism news is a key predictor.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "pstplonl",
+      "selected_text": "In the past 12 months, have you posted or shared anything about politics online, for example on blogs, by email, or on social media like Facebook or Twitter?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

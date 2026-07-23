@@ -1,0 +1,207 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q18",
+  "country": "Mali",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 15,
+  "n_piped": 15,
+  "n_mapped": 12,
+  "n_none": 3,
+  "n_bundled": 2,
+  "type_counts": {
+    "respondent_attribute": 14,
+    "temporal_contextual": 1
+  },
+  "mapped_codes": [
+    "Q37A",
+    "Q33F",
+    "Q39A",
+    "Q1",
+    "Q94",
+    "Q46M",
+    "Q4B",
+    "Q33H",
+    "Q10A",
+    "Q19A",
+    "Q37K",
+    "Q29B"
+  ],
+  "features": [
+    {
+      "feature": "trust_in_government",
+      "context": "Low trust might push someone toward Statement 2 (accountability), while high trust might favor Statement 1 (efficiency).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37A",
+      "selected_text": "How much do you trust the president?",
+      "n_candidates": 20,
+      "disambig_raw": "\nJ"
+    },
+    {
+      "feature": "experience_with_past_governments",
+      "context": "If they’ve lived under regimes that were efficient but repressive (or corrupt), they may prioritize accountability.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q33F",
+      "selected_text": "In your opinion, how often, in this country: do officials who commit crimes go unpunished?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "perception_of_corruption",
+      "context": "High perceived corruption would likely lead to a preference for accountability.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q39A",
+      "selected_text": "In your opinion, over the past year, has the level of corruption in this country increased, decreased, or stayed the same?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "age",
+      "context": "Younger, more educated respondents might lean toward accountability (linked to global democratic norms), while older generations might prioritize stability and getting things done.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Urban dwellers often have more exposure to governance issues and civil society, possibly favoring accountability; rural residents might prioritize tangible service delivery (e.g., roads, schools) even without direct influence.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 17,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education is often correlated with support for democratic accountability.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "ethnicity_region",
+      "context": "Mali has significant regional variations (e.g., north vs. south) and ethnic differences in political inclusion, which could shape preferences for government effectiveness vs. voice.",
+      "sub_items": [
+        "ethnicity",
+        "region"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "local_security_situation",
+      "context": "In conflict-affected areas (e.g., north/central Mali), respondents might prioritize a government that can restore order and deliver services quickly (Statement 1), even if not fully accountable.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q46M",
+      "selected_text": "How well or badly would you say the current government is at preventing or resolving violent conflict?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "economic_wellbeing",
+      "context": "Those facing acute poverty might prioritize concrete outcomes (food, jobs) over procedural accountability.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q4B",
+      "selected_text": "In general, how would you describe your own present living conditions?",
+      "n_candidates": 20,
+      "disambig_raw": "\nK"
+    },
+    {
+      "feature": "access_to_independent_media",
+      "context": "Greater exposure to debates about governance might increase support for accountability.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q33H",
+      "selected_text": "In your opinion, how free is the news media in this country to report and comment on the news without censorship or interference by the government?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "involvement_in_community_organizations",
+      "context": "Civic engagement could strengthen preference for Statement 2.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q10A",
+      "selected_text": "Have you attended a community meeting in the past year? If yes, how often?",
+      "n_candidates": 20,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "attitudes_toward_authority",
+      "context": "Traditional deference to authority might lead to choosing Statement 1.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "religious_influence",
+      "context": "Local religious leaders’ views on governance could sway preferences.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37K",
+      "selected_text": "How much do you trust religious leaders?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "recent_political_events",
+      "context": "E.g., the 2020–2021 coup, ongoing peace negotiations, or protests could shift priorities toward either efficiency or accountability.",
+      "sub_items": [
+        "impact of 2020–2021 coup",
+        "ongoing peace negotiations",
+        "protests"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q29B",
+      "selected_text": "Which of the following statements is closest to your view?\nStatement 1: The country's armed forces should never intervene in the country's political process.\nStatement 2: It is legitimate for the armed forces to take control of government when elected leaders abuse power for their own ends?",
+      "n_candidates": 20,
+      "disambig_raw": "\nM"
+    },
+    {
+      "feature": "personal_priorities",
+      "context": "If someone’s main concern is immediate infrastructure or security, they might choose Statement 1; if it’s justice or corruption, Statement 2.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 11,
+      "disambig_raw": ""
+    }
+  ]
+}

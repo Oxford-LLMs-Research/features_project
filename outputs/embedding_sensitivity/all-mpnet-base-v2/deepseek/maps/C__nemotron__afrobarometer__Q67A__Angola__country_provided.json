@@ -1,0 +1,214 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q67A",
+  "country": "Angola",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 14,
+  "n_piped": 14,
+  "n_mapped": 9,
+  "n_none": 5,
+  "n_bundled": 7,
+  "type_counts": {
+    "respondent_attribute": 14
+  },
+  "mapped_codes": [
+    "Q1",
+    "Q94",
+    "Q2",
+    "REGION",
+    "Q93B",
+    "Q93BOTHER",
+    "Q10B",
+    "Q66A",
+    "Q46P"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger generations (especially those with formal education) are more likely to have encountered the concept.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates strongly with awareness of global issues like climate change.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Urban residents typically have greater access to media, schools, and public discourse.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "income_wealth",
+      "context": "Higher economic status often correlates with access to information and education.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "primary_language",
+      "context": "Most formal education and media in Angola are in Portuguese; climate change terminology may not be widely translated.",
+      "sub_items": [
+        "Portuguese",
+        "local languages"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q2",
+      "selected_text": "What is the primary language you speak in your home?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "media_access",
+      "context": "Frequency of using TV, radio, internet, or social media.",
+      "sub_items": [
+        "TV",
+        "radio",
+        "internet",
+        "social media"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "media_type_consumed",
+      "context": "Type of media consumed: international news sources, educational programs, or local/national outlets that cover environmental topics.",
+      "sub_items": [
+        "international news sources",
+        "educational programs",
+        "local/national outlets"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "region",
+      "context": "Coastal areas (e.g., Luanda) might have more exposure than remote inland provinces.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REGION",
+      "selected_text": "Which region/province/state do you live in?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "livelihood",
+      "context": "People in agriculture, fishing, or other climate-sensitive sectors may have heard the term through NGOs, government programs, or personal experience with changing weather patterns.",
+      "sub_items": [
+        "agriculture",
+        "fishing",
+        "climate-sensitive sectors"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q93B",
+      "selected_text": "What is your main occupation? If unemployed, retired, or disabled, what was your last main occupation?",
+      "n_candidates": 14,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "employment_sector",
+      "context": "Working in government, NGOs, education, or international organizations increases likelihood of exposure.",
+      "sub_items": [
+        "government",
+        "NGOs",
+        "education",
+        "international organizations"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q93BOTHER",
+      "selected_text": "What is your main occupation? If unemployed, retired, or disabled, what was your last main occupation?",
+      "n_candidates": 11,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "community_organization_membership",
+      "context": "Involvement in groups that discuss environmental or development issues.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q10B",
+      "selected_text": "Have you joined others to raise an issue in the past year? If yes, how often?",
+      "n_candidates": 17,
+      "disambig_raw": "\nN"
+    },
+    {
+      "feature": "experience_with_climate_impacts",
+      "context": "If they have personally experienced droughts, floods, or changes in seasons that were discussed in a climate change context.",
+      "sub_items": [
+        "droughts",
+        "floods",
+        "changes in seasons"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q66A",
+      "selected_text": "Over the past 10 years, has the severity of droughts in your area increased or decreased?",
+      "n_candidates": 17,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "trust_in_institutions",
+      "context": "If they trust sources (government, NGOs, media) that communicate about climate change.",
+      "sub_items": [
+        "government",
+        "NGOs",
+        "media"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q46P",
+      "selected_text": "How well or badly would you say the current government is addressing the problem of climate change?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "local_terminology_familiarity",
+      "context": "Whether climate change is discussed using familiar concepts (e.g., 'changes in rain patterns' rather than 'climate change').",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

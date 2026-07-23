@@ -1,0 +1,295 @@
+{
+  "survey": "ess_wave_11",
+  "target": "eqparlv",
+  "country": "Austria",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 22,
+  "n_piped": 22,
+  "n_mapped": 15,
+  "n_none": 5,
+  "n_bundled": 5,
+  "type_counts": {
+    "respondent_attribute": 22
+  },
+  "mapped_codes": [
+    "agea",
+    "agegroup",
+    "icgndra",
+    "chldhhe",
+    "hincfel",
+    "domicil",
+    "isco08",
+    "nacer2",
+    "hinctnta",
+    "trwrkmw",
+    "wprtbym",
+    "prtcleat",
+    "hmsacld",
+    "rlgdnbat",
+    "emprelp"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger Austrians (especially under 40) might be more supportive of egalitarian policies than older generations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "generation",
+      "context": "Younger Austrians (especially under 40) might be more supportive of egalitarian policies than older generations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agegroup",
+      "selected_text": "Which age group do you fall into?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "gender",
+      "context": "Women might be more likely to favor such a law, but men's attitudes (especially younger fathers) could be shifting.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "icgndra",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "parental_status",
+      "context": "Whether they have young children, have taken parental leave themselves, or plan to.",
+      "sub_items": [
+        "has young children",
+        "has taken parental leave",
+        "plans to take parental leave"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "chldhhe",
+      "selected_text": "Have you ever had any children — your own, stepchildren, adopted children, foster children, or a partner's children — living in your household?",
+      "n_candidates": 7,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education often correlates with more egalitarian gender-role attitudes.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "socioeconomic_status",
+      "context": "Higher education often correlates with more egalitarian gender-role attitudes.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hincfel",
+      "selected_text": "Which description best matches how you feel about your household's income nowadays?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "residence_type",
+      "context": "Urban dwellers (e.g., Vienna, Graz) typically hold more progressive social views than those in rural areas.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "occupation",
+      "context": "Those in sectors with existing progressive leave policies or strong unions might differ.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "isco08",
+      "selected_text": "What is or was the job title of your main job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "industry",
+      "context": "Those in sectors with existing progressive leave policies or strong unions might differ.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "nacer2",
+      "selected_text": "What does or did the firm or organisation you work or worked for mainly make or do?",
+      "n_candidates": 15,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income_level",
+      "context": "The 'earn about the same' condition matters, but personal income could influence views on state intervention.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "work_experience",
+      "context": "Experience in mixed-gender workplaces or in roles where colleagues have taken leave could shape opinions.",
+      "sub_items": [
+        "experience in mixed-gender workplaces",
+        "experience with colleagues taking leave"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trwrkmw",
+      "selected_text": "Have you ever been treated unfairly in hiring, pay, or promotions at work because of your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "gender_role_ideology",
+      "context": "This is the strongest predictor. Those with traditional views (male as breadwinner) would likely oppose; those with egalitarian views would favor.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "wprtbym",
+      "selected_text": "How much do you agree or disagree with the statement: \"Men should protect women\"?",
+      "n_candidates": 20,
+      "disambig_raw": "\nL"
+    },
+    {
+      "feature": "political_orientation",
+      "context": "Supporters of parties like the Greens (Die Grünen) or Social Democrats (SPÖ) would likely favor; conservative (ÖVP) or far-right (FPÖ) voters might oppose.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "prtcleat",
+      "selected_text": "Which political party in Austria do you feel closest to?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "party_affiliation",
+      "context": "Supporters of parties like the Greens (Die Grünen) or Social Democrats (SPÖ) would likely favor; conservative (ÖVP) or far-right (FPÖ) voters might oppose.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "prtcleat",
+      "selected_text": "Which political party in Austria do you feel closest to?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "attitude_toward_state_intervention",
+      "context": "Beliefs about whether the state should regulate family decisions.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hmsacld",
+      "selected_text": "To what extent do you agree or disagree that same-sex couples should have the same rights to adopt children as straight couples?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "perceived_fairness_practicality",
+      "context": "Beliefs about whether equal leave is fair or practical for careers/family finances.",
+      "sub_items": [
+        "perceived fairness of equal leave",
+        "perceived practicality of equal leave"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "awareness_of_existing_policy",
+      "context": "Austria already has a generous system (Familienzeit, Kinderbetreuungsgeld) with incentives for fathers to take some leave. Familiarity with this could influence whether they see new legislation as necessary or redundant.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "exposure_to_parental_leave_debates",
+      "context": "Media consumption and discussion in social circles.",
+      "sub_items": [
+        "media consumption on parental leave",
+        "discussion in social circles about parental leave"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "religiosity",
+      "context": "Austria has a Catholic tradition, which might correlate with more traditional family views, though this is weakening.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "rlgdnbat",
+      "selected_text": "What is your current religion or denomination in Austria?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "partner_work_situation",
+      "context": "If their own relationship mirrors the scenario, they might answer differently.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "emprelp",
+      "selected_text": "In your partner's main job, are they an employee, self-employed, or working for their own family business?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "peer_influence",
+      "context": "Knowing other couples who have shared leave or faced challenges due to unequal leave.",
+      "sub_items": [
+        "knowing couples who shared leave",
+        "knowing couples who faced challenges due to unequal leave"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "experience_with_workplace_discrimination",
+      "context": "Concerns about career penalties for taking leave might make them wary of *mandating* it.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trwrkmw",
+      "selected_text": "Have you ever been treated unfairly in hiring, pay, or promotions at work because of your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nF"
+    }
+  ]
+}

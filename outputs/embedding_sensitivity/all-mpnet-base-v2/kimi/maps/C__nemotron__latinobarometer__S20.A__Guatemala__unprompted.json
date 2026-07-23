@@ -1,0 +1,253 @@
+{
+  "survey": "latinobarometer",
+  "target": "S20.A",
+  "country": "Guatemala",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 19,
+  "n_piped": 19,
+  "n_mapped": 7,
+  "n_none": 10,
+  "n_bundled": 4,
+  "type_counts": {
+    "respondent_attribute": 16,
+    "temporal_contextual": 3
+  },
+  "mapped_codes": [
+    "TAMCIUD",
+    "S20.B",
+    "S5",
+    "S11",
+    "REG",
+    "S7",
+    "S1A"
+  ],
+  "features": [
+    {
+      "feature": "number_of_bedrooms",
+      "context": "the strongest predictor",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "total_square_footage",
+      "context": "total square footage or number of rooms",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "TAMCIUD",
+      "selected_text": "What is the size of the respondent's habitat?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "number_of_rooms",
+      "context": "total square footage or number of rooms",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "dwelling_type",
+      "context": "single-family home vs. apartment vs. studio/efficiency",
+      "sub_items": [
+        "single-family home",
+        "apartment",
+        "studio/efficiency"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "housing_tenure",
+      "context": "owner-occupied vs. rental—owners typically have more space",
+      "sub_items": [
+        "owner-occupied",
+        "rental"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S20.B",
+      "selected_text": "Do you or your family own your home?",
+      "n_candidates": 10,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "number_of_children",
+      "context": "number and ages of children—infants often room-share; teens 'need' separate space; more children require more rooms",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "ages_of_children",
+      "context": "number and ages of children—infants often room-share; teens 'need' separate space; more children require more rooms",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "family_structure",
+      "context": "single-parent vs. dual-parent households—single parents may have different space constraints",
+      "sub_items": [
+        "single-parent",
+        "dual-parent"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 13,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "total_household_size",
+      "context": "including extended family members like grandparents who may occupy rooms",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 15,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "household_income",
+      "context": "determines housing affordability and size",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S5",
+      "selected_text": "Does your salary and total family income allow you to cover your needs in a satisfactory manner?",
+      "n_candidates": 19,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "household_wealth",
+      "context": "determines housing affordability and size",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S20.B",
+      "selected_text": "Do you or your family own your home?",
+      "n_candidates": 15,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "cost_burden",
+      "context": "rent/mortgage as percentage of income—high-cost areas force space constraints",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "educational_attainment",
+      "context": "often correlates with housing quality",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S11",
+      "selected_text": "What is the highest level of education you have completed?",
+      "n_candidates": 11,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "urban_density",
+      "context": "urban apartments vs. suburban/rural homes",
+      "sub_items": [
+        "urban",
+        "suburban",
+        "rural"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "TAMCIUD",
+      "selected_text": "What is the size of the respondent's habitat?",
+      "n_candidates": 10,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "local_housing_costs",
+      "context": "median rent/price per square foot in the area",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "region_or_country",
+      "context": "housing stock varies nationally",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "REG",
+      "selected_text": "Which region do you live in?",
+      "n_candidates": 19,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "ethnicity_or_cultural_background",
+      "context": "co-sleeping practices vary significantly by culture; multigenerational living norms",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S7",
+      "selected_text": "What ethnicity or race do you identify with most closely?",
+      "n_candidates": 11,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "immigration_status",
+      "context": "recent immigrants often have different household density patterns",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 17,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "religious_practices",
+      "context": "some traditions influence sleeping arrangements",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S1A",
+      "selected_text": "How would you describe your level of religious devotion?",
+      "n_candidates": 4,
+      "disambig_raw": "\nB"
+    }
+  ]
+}

@@ -1,0 +1,281 @@
+{
+  "survey": "wvs",
+  "target": "Q205",
+  "country": "Germany",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 21,
+  "n_piped": 18,
+  "n_mapped": 11,
+  "n_none": 7,
+  "n_bundled": 4,
+  "type_counts": {
+    "respondent_attribute": 18,
+    "instrument_methodology": 3
+  },
+  "mapped_codes": [
+    "Q262",
+    "Q275",
+    "Q281",
+    "Q255",
+    "Q206",
+    "Q288",
+    "Q272",
+    "Q220",
+    "Q197",
+    "Q45",
+    "N_REGION_ISO"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger people tend to use digital communication more frequently.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q262",
+      "selected_text": "How old are you?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education often correlates with greater use of digital tools for information.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q275",
+      "selected_text": "What is the highest educational level that you have attained?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "occupation",
+      "context": "Jobs involving office work, academia, or IT may lead to more email use for information.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q281",
+      "selected_text": "To which occupational group do you belong?",
+      "n_candidates": 13,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Urban areas often have better digital infrastructure and more tech-savvy populations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q255",
+      "selected_text": "How close do you feel to your village, town or city?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "internet_access",
+      "context": "Basic prerequisite for using email regularly.",
+      "sub_items": [
+        "internet access at home",
+        "internet access at work"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "frequency_internet_use",
+      "context": "Heavy internet users may also use email more.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q206",
+      "selected_text": "How often do you use internet to obtain information about this country and the world?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "primary_devices",
+      "context": "Email usage patterns differ by device.",
+      "sub_items": [
+        "smartphone",
+        "computer",
+        "tablet"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "use_other_digital_sources",
+      "context": "Could indicate whether email is a preferred channel or not.",
+      "sub_items": [
+        "news apps",
+        "social media",
+        "etc."
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "main_news_sources",
+      "context": "If they already use email for news, frequency may be higher.",
+      "sub_items": [
+        "TV",
+        "newspapers",
+        "social media",
+        "email newsletters"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "email_newsletter_subscription",
+      "context": "Directly related to using email for information.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "trust_email_source",
+      "context": "Some may see it as reliable, others as spam.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "income_level",
+      "context": "Affects ability to afford devices and internet plans.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q288",
+      "selected_text": "What is the level of your household's income counting all wages, salaries, pensions and other incomes on an income scale on which 'lowest' indicates the lowest income group and 'tenth step' the highest income group in your country?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "language_skills",
+      "context": "If they prefer English/international content, they might use email for global info more.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q272",
+      "selected_text": "What language do you normally speak at home?",
+      "n_candidates": 7,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "political_civic_engagement",
+      "context": "People interested in politics/world affairs may actively seek info via email.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q220",
+      "selected_text": "Have you ever used the internet or social media to organize political activities, events, or protests, might you consider doing so, or would you never do so under any circumstances?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "privacy_concerns",
+      "context": "Some may avoid email for information due to security worries.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q197",
+      "selected_text": "Should the government have the right to monitor all emails and other information exchanged on the Internet?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "email_habits",
+      "context": "Whether they check email daily or rarely.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "openness_technology",
+      "context": "Tech-adoption attitudes influence usage frequency.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q45",
+      "selected_text": "If society placed more emphasis on developing technology in the future, would you consider that a good thing, a bad thing, or wouldn't you mind?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "interpretation_email",
+      "context": "Some may think of *newsletters*, others of *personal/professional messages*.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "time_frame_in_mind",
+      "context": "The question’s wording could lead to different interpretations.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "survey_mode",
+      "context": "Online survey takers may already be more email-active.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "east_west_germany",
+      "context": "May show historical differences in media trust/digital adoption.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "N_REGION_ISO",
+      "selected_text": "Which region do you currently live in?",
+      "n_candidates": 12,
+      "disambig_raw": "\nH"
+    }
+  ]
+}

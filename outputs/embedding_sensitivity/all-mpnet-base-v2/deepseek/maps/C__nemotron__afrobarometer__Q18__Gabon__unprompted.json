@@ -1,0 +1,228 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q18",
+  "country": "Gabon",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 17,
+  "n_piped": 15,
+  "n_mapped": 11,
+  "n_none": 2,
+  "n_bundled": 2,
+  "type_counts": {
+    "respondent_attribute": 12,
+    "temporal_contextual": 3,
+    "instrument_methodology": 2
+  },
+  "mapped_codes": [
+    "Q19A",
+    "Q37B",
+    "Q12B",
+    "Q1",
+    "Q94",
+    "Q33I",
+    "Q11D",
+    "Q39A",
+    "Q23",
+    "Q13",
+    "Q89B"
+  ],
+  "features": [
+    {
+      "feature": "political_ideology",
+      "context": "People with low trust in government are more likely to prioritize accountability; authoritarian vs. libertarian leanings may influence preference for efficiency or checks and balances.",
+      "sub_items": [
+        "left-right_ideology",
+        "authoritarian-libertarian_orientation"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "trust_in_government",
+      "context": "People with low trust in government are more likely to prioritize accountability.",
+      "sub_items": [
+        "specific_trust",
+        "diffuse_trust"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37B",
+      "selected_text": "How much do you trust the national parliament?",
+      "n_candidates": 20,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "political_efficacy",
+      "context": "Belief in one’s ability to influence government may correlate with choosing accountability.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q12B",
+      "selected_text": "Thinking about how elections work in practice in this country, how well do elections enable voters to remove from office leaders who do not do what the people want?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "age",
+      "context": "Older respondents might prioritize stability and efficiency; younger ones may emphasize transparency and participation.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education",
+      "context": "Higher education often correlates with support for accountability mechanisms.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 16,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income_class",
+      "context": "Those in precarious economic situations might prioritize quick government action over procedural accountability.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q33I",
+      "selected_text": "How often, if ever, are people treated unfairly by the government based on their economic status, that is, how rich or poor they are?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_engagement",
+      "context": "More engaged citizens might value accountability; disengaged ones might prefer outcomes regardless of process.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q11D",
+      "selected_text": "During the past year, how often have you contacted a political party official about an important problem or to give your views?",
+      "n_candidates": 20,
+      "disambig_raw": "\nJ"
+    },
+    {
+      "feature": "recent_political_events",
+      "context": "If there’s been a major scandal or policy failure, accountability may be more salient.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q39A",
+      "selected_text": "In your opinion, over the past year, has the level of corruption in this country increased, decreased, or stayed the same?",
+      "n_candidates": 19,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "political_system_experience",
+      "context": "Experience with authoritarianism might push someone toward accountability; experience with gridlock might push them toward efficiency.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q12B",
+      "selected_text": "Thinking about how elections work in practice in this country, how well do elections enable voters to remove from office leaders who do not do what the people want?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "cultural_context",
+      "context": "Societies emphasizing collectivism or strong leadership might lean toward 'get things done'.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 12,
+      "disambig_raw": "\nL"
+    },
+    {
+      "feature": "risk_tolerance",
+      "context": "Preference for stability vs. openness to change.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "cynicism_idealism",
+      "context": "Cynicism vs. idealism about politics.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q23",
+      "selected_text": "Which of these three statements is closest to your own opinion? Statement 1: Democracy is preferable to any other kind of government. Statement 2: In some circumstances, a non-democratic government can be preferable. Statement 3: For someone like me, it doesn't matter what kind of government we have?",
+      "n_candidates": 14,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "question_framing",
+      "context": "How the trade-off is presented (e.g., 'no influence' vs. 'decisions more slowly') could sway responses.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "statement_order",
+      "context": "Order of statements if randomized.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "country_region",
+      "context": "To account for political culture.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 11,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "voting_behavior",
+      "context": "Recent voting behavior or party identification.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q13",
+      "selected_text": "In the last national election, did you vote, or not, or were you too young to vote? Or can't you remember whether you voted?",
+      "n_candidates": 17,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "party_identification",
+      "context": "Recent voting behavior or party identification.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q89B",
+      "selected_text": "Which political party do you feel close to?",
+      "n_candidates": 18,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

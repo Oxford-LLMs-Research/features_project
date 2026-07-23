@@ -1,0 +1,173 @@
+{
+  "survey": "wvs",
+  "target": "Q263",
+  "country": "Macao SAR",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 11,
+  "n_piped": 10,
+  "n_mapped": 6,
+  "n_none": 4,
+  "n_bundled": 7,
+  "type_counts": {
+    "respondent_attribute": 10,
+    "instrument_methodology": 1
+  },
+  "mapped_codes": [
+    "Q266",
+    "Q269",
+    "Q272",
+    "Q290",
+    "Q262",
+    "Q275"
+  ],
+  "features": [
+    {
+      "feature": "actual_birthplace",
+      "context": "Actual birthplace (country of birth)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q266",
+      "selected_text": "In which country were you born?",
+      "n_candidates": 4,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "citizenship_status",
+      "context": "Citizenship/naturalization status and year acquired",
+      "sub_items": [
+        "citizenship_status",
+        "naturalization_year"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q269",
+      "selected_text": "Are you a citizen of this country?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age_at_arrival",
+      "context": "Age at arrival (if foreign-born) or generational status (1st, 2nd, 1.5 generation, etc.)",
+      "sub_items": [
+        "age_at_arrival",
+        "generational_status"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "language_dominance",
+      "context": "Language dominance (English proficiency, language spoken at home)",
+      "sub_items": [
+        "english_proficiency",
+        "language_spoken_at_home"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q272",
+      "selected_text": "What language do you normally speak at home?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "years_of_us_residence",
+      "context": "Years of U.S. residence",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "parents_birthplace",
+      "context": "Parents' birthplace (to distinguish 2nd generation from immigrants)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "legal_permanent_residence_status",
+      "context": "Legal permanent residence status (green card holder, visa type, undocumented status)",
+      "sub_items": [
+        "green_card_holder",
+        "visa_type",
+        "undocumented_status"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "race_ethnicity",
+      "context": "Race/ethnicity and national origin (correlated but not determinative—many immigrants are from diverse backgrounds, and many native-born citizens are racial minorities)",
+      "sub_items": [
+        "race",
+        "ethnicity",
+        "national_origin"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q290",
+      "selected_text": "How do you identify when it comes to Racial belonging/ ethnic group in your country?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age",
+      "context": "Age (older respondents more likely to be native-born, though age interacts with historical immigration waves)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q262",
+      "selected_text": "How old are you?",
+      "n_candidates": 18,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "educational_attainment",
+      "context": "Educational attainment and occupation (certain visa categories correlate with skills/education)",
+      "sub_items": [
+        "educational_attainment",
+        "occupation"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q275",
+      "selected_text": "What is the highest educational level that you have attained?",
+      "n_candidates": 11,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "methodological_follow_ups",
+      "context": "In survey research, this question is often paired with follow-ups about parents' birthplace and year of arrival to capture nuanced immigration/integration trajectories that a binary question misses.",
+      "sub_items": [
+        "parents_birthplace",
+        "year_of_arrival"
+      ],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

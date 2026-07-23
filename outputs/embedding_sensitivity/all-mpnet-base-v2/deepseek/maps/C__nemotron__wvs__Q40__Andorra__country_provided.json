@@ -1,0 +1,306 @@
+{
+  "survey": "wvs",
+  "target": "Q40",
+  "country": "Andorra",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 21,
+  "n_piped": 18,
+  "n_mapped": 15,
+  "n_none": 3,
+  "n_bundled": 9,
+  "type_counts": {
+    "respondent_attribute": 16,
+    "temporal_contextual": 2,
+    "instrument_methodology": 2,
+    "base_rate_prior": 1
+  },
+  "mapped_codes": [
+    "Q262",
+    "Q260",
+    "Q275",
+    "Q279",
+    "Q281",
+    "Q288",
+    "Q287",
+    "Q9",
+    "Q289CS9",
+    "Q6",
+    "Q240",
+    "Q284",
+    "Q150",
+    "Q152",
+    "Q228"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger generations might have different views on work as a societal duty compared to older generations shaped by post-war or traditional values.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q262",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender",
+      "context": "Social roles and expectations regarding work can differ.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q260",
+      "selected_text": "How do you identify your sex, male or female?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education might correlate with more critical or individualistic views of work.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q275",
+      "selected_text": "What is the highest educational level that you have attained?",
+      "n_candidates": 16,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "employment_status",
+      "context": "Employed, unemployed, retired, student, etc. – this directly shapes one's relationship to work.",
+      "sub_items": [
+        "employed",
+        "unemployed",
+        "retired",
+        "student"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q279",
+      "selected_text": "Are you employed now or not?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "occupation",
+      "context": "Public sector employees might feel stronger about societal duty than private sector workers; manual vs. knowledge work could influence perspectives.",
+      "sub_items": [
+        "public_sector",
+        "private_sector",
+        "manual_work",
+        "knowledge_work"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q281",
+      "selected_text": "To which occupational group do you belong?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income_level",
+      "context": "Economic security or precarity can affect whether work is seen as a duty or a necessity.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q288",
+      "selected_text": "What is the level of your household's income counting all wages, salaries, pensions and other incomes on an income scale on which 'lowest' indicates the lowest income group and 'tenth step' the highest income group in your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "social_class",
+      "context": "Perceptions of societal structures and one's role within them.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q287",
+      "selected_text": "Which social class would you say you belong to?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "family_background",
+      "context": "Upbringing and parental attitudes toward work and society.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q9",
+      "selected_text": "Do you consider hard work to be an especially important quality for children to learn at home?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "national_regional_identity",
+      "context": "Andorra has a mix of Catalan, Spanish, and French influences; local cultural values might emphasize community or individualism.",
+      "sub_items": [
+        "Catalan",
+        "Spanish",
+        "French"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "religious_affiliation",
+      "context": "Catholic social teaching, influential in Andorra, emphasizes the dignity of work and the common good.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q289CS9",
+      "selected_text": "Do you belong to a religion or religious denomination? If yes, which one?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "religiosity",
+      "context": "Catholic social teaching, influential in Andorra, emphasizes the dignity of work and the common good.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q6",
+      "selected_text": "In your life, would you say religion is very important, rather important, not very important or not important at all?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "Left-leaning individuals might stress collective responsibility, while right-leaning ones might emphasize individual responsibility or traditional values.",
+      "sub_items": [
+        "left-leaning",
+        "right-leaning"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q240",
+      "selected_text": "In politics, people often describe their views as more left-wing or right-wing. Where would you place your own views on a scale from 1 to 10, where 1 means 'left' and 10 means 'right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "civic_engagement",
+      "context": "Involvement in community organizations or volunteer work might correlate with a stronger sense of societal duty.",
+      "sub_items": [
+        "community_organizations",
+        "volunteer_work"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "job_satisfaction",
+      "context": "Those who find meaning in their work are more likely to agree.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "personal_work_history",
+      "context": "Experiences of unemployment, discrimination, or career success can shape attitudes.",
+      "sub_items": [
+        "unemployment",
+        "discrimination",
+        "career_success"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q284",
+      "selected_text": "Are you working for the government or public institution, for private business or industry, or for a private non-profit organization? If you do not work currently, characterize your major work in the past! Do you or did you work for?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "life_values",
+      "context": "Whether the respondent prioritizes self-expression, security, tradition, or altruism (e.g., using frameworks like Schwartz’s values).",
+      "sub_items": [
+        "self-expression",
+        "security",
+        "tradition",
+        "altruism"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q150",
+      "selected_text": "Most people consider both freedom and security to be important, but if you had to choose between them, which one would you consider more important?",
+      "n_candidates": 20,
+      "disambig_raw": "\nK"
+    },
+    {
+      "feature": "economic_climate",
+      "context": "Periods of recession or growth can influence collective attitudes.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q152",
+      "selected_text": "What do you think should be the most important goal for this country over the next ten years? Economic growth, strong defence, public participation, or environmental improvement?",
+      "n_candidates": 10,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "media_public_discourse",
+      "context": "How work and society are discussed in Andorran public life.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q228",
+      "selected_text": "In your view, how often are journalists providing fair coverage of elections in this country's elections?",
+      "n_candidates": 14,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "question_wording",
+      "context": "Understanding if the question was presented alone or as part of a battery of values questions.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "response_options",
+      "context": "Was it a simple agree/disagree, or a Likert scale? This affects the nuance of prediction.",
+      "sub_items": [
+        "agree/disagree",
+        "Likert scale"
+      ],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "historical_survey_data",
+      "context": "Access to historical survey data from Andorra (e.g., World Values Survey, European Social Survey) containing these variables and a similar question to train the model.",
+      "sub_items": [
+        "World Values Survey",
+        "European Social Survey"
+      ],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

@@ -1,0 +1,277 @@
+{
+  "survey": "arabbarometer",
+  "target": "Q534_2",
+  "country": "Mauritania",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 19,
+  "n_piped": 18,
+  "n_mapped": 8,
+  "n_none": 8,
+  "n_bundled": 9,
+  "type_counts": {
+    "respondent_attribute": 17,
+    "temporal_contextual": 1,
+    "base_rate_prior": 1
+  },
+  "mapped_codes": [
+    "Q1001",
+    "Q1003",
+    "Q1006B_2",
+    "Q431_1B",
+    "Q431_1A",
+    "Q534_3",
+    "Q421",
+    "Q103"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Older adults may be less trusting of digital communication or less familiar with security features.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1001",
+      "selected_text": "How old are you?",
+      "n_candidates": 18,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education often correlates with greater awareness of security risks and tools.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1003",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "occupation",
+      "context": "Especially if it involves handling sensitive information (e.g., legal, healthcare, journalism) or technical expertise (e.g., IT).",
+      "sub_items": [
+        "handles_sensitive_information",
+        "technical_expertise"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1006B_2",
+      "selected_text": "Which of the following best describes the industry you work in?",
+      "n_candidates": 15,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "smartphone_literacy",
+      "context": "Comfort with mobile technology and apps.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "awareness_of_security_features",
+      "context": "Knowledge of encryption (e.g., Signal, WhatsApp end-to-end encryption), secure calling options, or VPNs.",
+      "sub_items": [
+        "knowledge_of_encryption",
+        "knowledge_of_secure_calling_options",
+        "knowledge_of_vpns"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "past_security_experiences",
+      "context": "Has the respondent experienced phone hacking, SIM-swapping, or privacy breaches?",
+      "sub_items": [
+        "phone_hacking_experience",
+        "sim_swapping_experience",
+        "privacy_breach_experience"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 16,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "general_trust_in_institutions",
+      "context": "Trust in telecom providers, tech companies, or government surveillance.",
+      "sub_items": [
+        "trust_in_telecom_providers",
+        "trust_in_tech_companies",
+        "trust_in_government_surveillance"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "perceived_threat_model",
+      "context": "Who are they worried about? (e.g., hackers, corporations, government, family members.)",
+      "sub_items": [
+        "worried_about_hackers",
+        "worried_about_corporations",
+        "worried_about_government",
+        "worried_about_family_members"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q431_1B",
+      "selected_text": "Thinking of your use of social media, to what extent are you concerned about a foreign government monitoring your online activity?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "cultural_context",
+      "context": "In some countries, surveillance is a known reality, affecting perceived security.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q431_1A",
+      "selected_text": "Thinking of your use of social media, to what extent are you concerned about your government monitoring your online activity?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "type_of_private_information",
+      "context": "Health details, financial secrets, legal issues, or personal confidences.",
+      "sub_items": [
+        "health_details",
+        "financial_secrets",
+        "legal_issues",
+        "personal_confidences"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "severity_of_leak_consequences",
+      "context": "Would exposure lead to social, professional, or legal harm?",
+      "sub_items": [
+        "social_harm_risk",
+        "professional_harm_risk",
+        "legal_harm_risk"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "geographic_location_of_trusted_person",
+      "context": "Is the trusted person domestically or internationally located? International calls might be perceived as less secure.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "recipient_tech_savviness",
+      "context": "If the trusted person uses insecure devices or apps, it affects the overall security chain.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q534_3",
+      "selected_text": "When you have private information to share with a trusted person, how secure do you feel sending text messages on a mobile phone?",
+      "n_candidates": 3,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "recent_news_events",
+      "context": "Recent scandals (e.g., data breaches, spyware revelations) may temporarily lower trust.",
+      "sub_items": [
+        "exposure_to_data_breach_news",
+        "exposure_to_spyware_revelations"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q421",
+      "selected_text": "What is your primary source of information to follow breaking news as events unfold?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "alternative_communication_habits",
+      "context": "Preference for in-person conversations, landlines, or encrypted messaging instead of voice calls.",
+      "sub_items": [
+        "in_person_preference",
+        "landline_use",
+        "encrypted_messaging_use"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "regulatory_environment",
+      "context": "Living under strong data protection laws (e.g., GDPR) may increase sense of security.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q431_1A",
+      "selected_text": "Thinking of your use of social media, to what extent are you concerned about your government monitoring your online activity?",
+      "n_candidates": 11,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "general_risk_aversion",
+      "context": "A personality trait influencing cautiousness.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q103",
+      "selected_text": "Generally speaking, do you think most people can be trusted, or that you must be very careful in dealing with people?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "privacy_attitudes",
+      "context": "Views on privacy as a fundamental right vs. a trade-off for convenience.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q431_1A",
+      "selected_text": "Thinking of your use of social media, to what extent are you concerned about your government monitoring your online activity?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "baseline_survey_data",
+      "context": "Without contextual data, the best guess might rely on baseline surveys (e.g., Pew Research data on mobile privacy concerns).",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

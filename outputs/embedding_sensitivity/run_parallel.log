@@ -1,0 +1,26 @@
+2026-07-23T12:57:48.3536340+01:00 === embedding_sensitivity parallel resume ===
+2026-07-23T12:57:48.3804595+01:00 python=C:\Users\murrn\miniconda3\python.exe SCORE_N_DRAWS=10 PYTHONUNBUFFERED=1
+2026-07-23T12:57:48.3834648+01:00 START prewarm roberta embeddings
+2026-07-23T12:58:34.8836838+01:00 === embedding_sensitivity parallel resume ===
+2026-07-23T12:58:34.9002001+01:00 python=C:\Users\murrn\miniconda3\python.exe SCORE_N_DRAWS=10 PYTHONUNBUFFERED=1
+2026-07-23T12:58:34.9002001+01:00 START prewarm roberta embeddings
+2026-07-23T13:01:34.9068301+01:00 DONE prewarm roberta embeddings
+2026-07-23T13:01:34.9233675+01:00 START score kimi mpnet
+2026-07-23T13:01:34.9446899+01:00 START map deepseek roberta
+2026-07-23T13:01:34.9567535+01:00 START map kimi roberta
+2026-07-23T13:01:34.9735282+01:00 Wave 1 running: map deepseek roberta, score kimi mpnet, map kimi roberta
+2026-07-23T14:22:32.8265655+01:00 FAIL map deepseek roberta exit=
+2026-07-23T14:29:54.0445229+01:00 FAIL score kimi mpnet exit=
+2026-07-23T14:29:54.0445229+01:00 FAIL map kimi roberta exit=
+2026-07-23T14:51:34.6539429+01:00 === Wave 2 resume (orchestrator aborted after Wave 1 completed) ===
+2026-07-23T14:51:34.6724341+01:00 SCORE_N_DRAWS=10
+2026-07-23T14:51:34.7015385+01:00 START score deepseek roberta pid=15836
+2026-07-23T14:51:34.7182719+01:00 START score kimi roberta pid=30804
+2026-07-23T16:05:33.8358650+01:00 WATCH: waiting for wave-2 score pids=15836,30804 after orchestrator abort
+2026-07-23T16:28:05.4977381+01:00 TAIL log_score_deepseek_all-roberta-large-v1.txt :   scored wvs Q242 Macao SAR (+6 rows, 300 total) |   scored wvs Q40 Macao SAR (+6 rows, 306 total) | [score] wrote 306 rows -> C:\Users\murrn\cursor\features_project\outputs\embedding_sensitivity\all-roberta-large-v1\deepseek\scores_deepseek.csv
+2026-07-23T16:28:05.4977381+01:00 TAIL log_score_kimi_all-roberta-large-v1.txt :   scored wvs Q242 Macao SAR (+6 rows, 303 total) |   scored wvs Q40 Macao SAR (+6 rows, 309 total) | [score] wrote 309 rows -> C:\Users\murrn\cursor\features_project\outputs\embedding_sensitivity\all-roberta-large-v1\kimi\scores_kimi.csv
+2026-07-23T16:28:05.5137627+01:00 score rows deepseek=306 kimi=309
+2026-07-23T16:28:05.5137627+01:00 START analysis
+2026-07-23T16:28:08.2965553+01:00 FAIL analysis exit=1
+2026-07-23T16:31:26.0311358+01:00 DONE analysis (rerun after unicode fix)
+2026-07-23T16:31:26.0311358+01:00 ALL COMPLETE

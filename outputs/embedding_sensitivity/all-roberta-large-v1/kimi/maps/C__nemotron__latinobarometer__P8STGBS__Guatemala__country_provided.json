@@ -1,0 +1,276 @@
+{
+  "survey": "latinobarometer",
+  "target": "P8STGBS",
+  "country": "Guatemala",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 20,
+  "n_piped": 20,
+  "n_mapped": 13,
+  "n_none": 6,
+  "n_bundled": 6,
+  "type_counts": {
+    "respondent_attribute": 16,
+    "temporal_contextual": 4
+  },
+  "mapped_codes": [
+    "S5",
+    "S19",
+    "P6STGBS",
+    "S7",
+    "S11",
+    "REEDAD",
+    "P13ST.I",
+    "P58ST",
+    "S6",
+    "PERPART",
+    "S24",
+    "P7ST",
+    "S15.A"
+  ],
+  "features": [
+    {
+      "feature": "household_income_and_assets",
+      "context": "Current economic status is the strongest predictor of expectations (pessimism bias among the poor, optimism among upwardly mobile)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S5",
+      "selected_text": "Does your salary and total family income allow you to cover your needs in a satisfactory manner?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "employment_sector",
+      "context": "Formal vs. informal employment (Guatemala has ~70% informal economy), agricultural dependence, or service work",
+      "sub_items": [
+        "formal_vs_informal_employment",
+        "agricultural_dependence",
+        "service_work"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S19",
+      "selected_text": "What type of work do you currently do?",
+      "n_candidates": 17,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "recent_income_volatility",
+      "context": "Experience of economic shocks in the past 12 months",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "P6STGBS",
+      "selected_text": "Compared to 12 months ago, how would you describe the country's current economic situation?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "remittance_dependence",
+      "context": "Critical in Guatemala (remittances = ~15% of GDP). Households receiving remittances from the U.S. typically show different expectation patterns than non-recipient households",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 11,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "family_size_and_dependency_ratio",
+      "context": "Number of children/elderly dependents affecting household economic pressure",
+      "sub_items": [
+        "number_of_children",
+        "number_of_elderly_dependents"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "migration_history",
+      "context": "Whether family members are currently abroad or planning to migrate",
+      "sub_items": [
+        "family_members_currently_abroad",
+        "planning_to_migrate"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Rural indigenous communities often face different economic trajectories than urban areas",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "ethnicity_indigenous_status",
+      "context": "Mayan populations often face structural economic disadvantages and distinct expectation patterns",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S7",
+      "selected_text": "What ethnicity or race do you identify with most closely?",
+      "n_candidates": 9,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "education_level",
+      "context": "Human capital strongly correlates with economic optimism and actual mobility prospects",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S11",
+      "selected_text": "What is the highest level of education you have completed?",
+      "n_candidates": 14,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "age_cohort",
+      "context": "Younger respondents often differ from older heads of household in expectations",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REEDAD",
+      "selected_text": "Which age group do you belong to?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "trust_in_government_institutions",
+      "context": "Confidence in the current administration's economic management (particularly relevant given Guatemala's recent political transitions)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P13ST.I",
+      "selected_text": "How much trust do you have in the President?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "crime_victimization_experience",
+      "context": "Insecurity significantly dampens economic expectations independent of income",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "P58ST",
+      "selected_text": "In the past 12 months, have you or a relative been assaulted, attacked, or the victim of a crime?",
+      "n_candidates": 18,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "access_to_social_programs",
+      "context": "Participation in cash transfer programs or agricultural subsidies",
+      "sub_items": [
+        "cash_transfer_program_participation",
+        "agricultural_subsidy_participation"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S6",
+      "selected_text": "Are you or someone in your family receiving support or benefits from the government?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "partisan_affiliation",
+      "context": "Economic expectations are heavily colored by political identity (supporters of ruling parties typically more optimistic)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "PERPART",
+      "selected_text": "What type of political party does the respondent support?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Exposure to economic news (local vs. international) framing economic conditions",
+      "sub_items": [
+        "local_news_exposure",
+        "international_news_exposure"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 12,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "reference_groups",
+      "context": "Comparison to neighbors/community standards ('relative economic standing')",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S24",
+      "selected_text": "Based on the quality of the dwelling, furniture, and the interviewee's general appearance, how would you rate the interviewee's socioeconomic level?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "perceived_national_economic_trajectory",
+      "context": "Individual expectations correlate strongly with perceptions of national economic trends",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P7ST",
+      "selected_text": "Over the next 12 months, how do you expect the country's economic situation to change compared to now?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "exposure_to_external_shocks",
+      "context": "Awareness of commodity prices (coffee, sugar), exchange rates, or U.S. economic conditions (affecting remittances)",
+      "sub_items": [
+        "awareness_of_commodity_prices",
+        "awareness_of_exchange_rates",
+        "awareness_of_u.s._economic_conditions"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "indigenous_language_use",
+      "context": "As proxy for exclusion",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S15.A",
+      "selected_text": "What is your native language?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "recent_violence_exposure",
+      "context": "Recent violence exposure would likely be the highest-value predictors beyond standard socioeconomic status",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "P58ST",
+      "selected_text": "In the past 12 months, have you or a relative been assaulted, attacked, or the victim of a crime?",
+      "n_candidates": 11,
+      "disambig_raw": "\nJ"
+    }
+  ]
+}

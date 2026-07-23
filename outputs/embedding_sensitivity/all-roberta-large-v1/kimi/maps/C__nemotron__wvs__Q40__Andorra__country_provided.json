@@ -1,0 +1,160 @@
+{
+  "survey": "wvs",
+  "target": "Q40",
+  "country": "Andorra",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 10,
+  "n_piped": 10,
+  "n_mapped": 9,
+  "n_none": 1,
+  "n_bundled": 4,
+  "type_counts": {
+    "respondent_attribute": 10
+  },
+  "mapped_codes": [
+    "Q263",
+    "Q284",
+    "Q171",
+    "Q180",
+    "Q108",
+    "Q287",
+    "Q275",
+    "Q272",
+    "Q257"
+  ],
+  "features": [
+    {
+      "feature": "Citizenship/Residency Status and Tenure",
+      "context": "This is arguably the strongest predictor in the Andorran context; whether the respondent is an Andorran citizen, long-term resident, recent immigrant, or cross-border worker, with native Andorrans expressing stronger civic duty norms and expatriate workers viewing work more individually",
+      "sub_items": [
+        "Andorran citizen",
+        "long-term resident (10+ years)",
+        "recent immigrant",
+        "cross-border worker (frontaliers from France/Spain)"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q263",
+      "selected_text": "Were you born in this country or are you an immigrant?",
+      "n_candidates": 17,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "Sector of Employment",
+      "context": "Public sector vs. private sector, tourism/hospitality vs. banking/finance, and self-employment shape norms around service to collectivity, social utility, wealth generation, or individual merit",
+      "sub_items": [
+        "Public sector",
+        "Private sector",
+        "Tourism/hospitality",
+        "Banking/finance",
+        "Self-employment"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q284",
+      "selected_text": "Are you working for the government or public institution, for private business or industry, or for a private non-profit organization? If you do not work currently, characterize your major work in the past! Do you or did you work for?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "Generational Cohort",
+      "context": "Pre-1993 generation socialized under traditional economy with communal obligations; post-tourism boom generation during modernization; digital nomad era decoupling work from geographic obligation",
+      "sub_items": [
+        "Pre-1993 generation (before constitution)",
+        "Post-tourism boom generation (1990s-2000s)",
+        "Digital nomad era"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Religious Practice",
+      "context": "Religiosity predicts 'work as duty' attitudes through Catholic social teaching on dignity of labor and common good, with secularization linked to more instrumental views",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q171",
+      "selected_text": "Apart from weddings, funerals and christenings, about how often do you attend religious services these days?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "Attitudes toward taxation",
+      "context": "Views on Andorra's 2015 introduction of income tax predict whether work is seen as private benefit or social contribution",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q180",
+      "selected_text": "Is it justifiable to cheat on taxes if you have the chance?",
+      "n_candidates": 20,
+      "disambig_raw": "\nQ"
+    },
+    {
+      "feature": "Welfare state preferences",
+      "context": "Support for Andorra's social security system (CASS) correlates with solidarity-based work ethics",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q108",
+      "selected_text": "Should the government take more responsibility to ensure provision for all, or should individuals be more responsible for themselves?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "Socioeconomic Status",
+      "context": "High-net-worth individuals in banking may view work as optional or self-actualizing, contrasting with service workers",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q287",
+      "selected_text": "Which social class would you say you belong to?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Education Level",
+      "context": "Higher education correlates with post-material values like self-expression over duty, though mediated by field of study",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q275",
+      "selected_text": "What is the highest educational level that you have attained?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Language Dominance",
+      "context": "Catalan speakers (integrated locals) vs. Spanish/French dominant speakers (often newer residents) may differ in attachment to Andorran civic identity",
+      "sub_items": [
+        "Catalan speaker",
+        "Spanish dominant",
+        "French dominant"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q272",
+      "selected_text": "What language do you normally speak at home?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Permanence of Residence",
+      "context": "The most predictive single question: 'Do you consider Andorra your permanent home, or a temporary residence?' captures civic attachment underlying work as duty vs. private endeavor",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q257",
+      "selected_text": "How close do you feel to your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

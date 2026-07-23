@@ -1,0 +1,238 @@
+{
+  "survey": "latinobarometer",
+  "target": "P8STGBS",
+  "country": "Guatemala",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 15,
+  "n_piped": 15,
+  "n_mapped": 8,
+  "n_none": 7,
+  "n_bundled": 11,
+  "type_counts": {
+    "respondent_attribute": 13,
+    "temporal_contextual": 2
+  },
+  "mapped_codes": [
+    "S5",
+    "S18.A",
+    "REEDUC.1",
+    "REEDAD",
+    "REG",
+    "P5STGBS",
+    "S18.B",
+    "PERPART"
+  ],
+  "features": [
+    {
+      "feature": "current_financial_situation",
+      "context": "Existing financial strain or comfort is the strongest baseline predictor (autocorrelation in expectations)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S5",
+      "selected_text": "Does your salary and total family income allow you to cover your needs in a satisfactory manner?",
+      "n_candidates": 10,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "employment_characteristics",
+      "context": "Not just current employment status, but contract type (permanent vs. temporary), sector volatility, and employer stability",
+      "sub_items": [
+        "contract_type",
+        "sector_volatility",
+        "employer_stability"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S18.A",
+      "selected_text": "What is your current employment situation?",
+      "n_candidates": 9,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "balance_sheet_position",
+      "context": "Liquid savings (buffer stocks), debt-to-income ratio, and asset ownership (housing, investments)",
+      "sub_items": [
+        "liquid_savings",
+        "debt_to_income_ratio",
+        "asset_ownership"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "income_trajectory",
+      "context": "Recent changes in household income (rising, falling, or stagnant) often matter more than income level",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "human_capital",
+      "context": "Education level and occupational skills (adaptability to economic shocks)",
+      "sub_items": [
+        "education_level",
+        "occupational_skills"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REEDUC.1",
+      "selected_text": "What is the respondent's recoded education level?",
+      "n_candidates": 13,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "demographic_phase",
+      "context": "Age/proximity to retirement, number of dependents, and household structure (single vs. dual-earner)",
+      "sub_items": [
+        "age_or_proximity_to_retirement",
+        "number_of_dependents",
+        "household_structure"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REEDAD",
+      "selected_text": "Which age group do you belong to?",
+      "n_candidates": 13,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "spatial_context",
+      "context": "Local unemployment rates, industry concentration, and regional housing market trends (expectations are geographically clustered)",
+      "sub_items": [
+        "local_unemployment_rate",
+        "industry_concentration",
+        "regional_housing_market_trends"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "REG",
+      "selected_text": "Which region do you live in?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Exposure to economic news (frequency, source, and tone); partisanship often filters economic interpretation",
+      "sub_items": [
+        "frequency_of_economic_news_exposure",
+        "source_of_economic_news",
+        "tone_of_exposure"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 18,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "macroeconomic_awareness",
+      "context": "Knowledge of current inflation, interest rates, and GDP trends—though 'perceived' macro conditions often matter more than actual statistics",
+      "sub_items": [
+        "perceived_inflation",
+        "perceived_interest_rates",
+        "perceived_GDP_trends"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P5STGBS",
+      "selected_text": "How would you describe the country's current economic situation?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "social_network_effects",
+      "context": "Economic situations of friends/family (local labor market signals) and workplace rumors",
+      "sub_items": [
+        "economic_situations_of_friends_or_family",
+        "workplace_rumors"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "dispositional_optimism_pessimism",
+      "context": "General locus of control and trait anxiety",
+      "sub_items": [
+        "locus_of_control",
+        "trait_anxiety"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "economic_scarring",
+      "context": "Experience with past unemployment, bankruptcy, or foreclosure (creates persistent pessimism even after recovery)",
+      "sub_items": [
+        "past_unemployment",
+        "past_bankruptcy",
+        "past_foreclosure"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S18.B",
+      "selected_text": "What was your previous employment situation?",
+      "n_candidates": 5,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "uncertainty_tolerance",
+      "context": "How respondents process ambiguity about future shocks",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "policy_expectations",
+      "context": "Anticipated changes in tax policy, social benefits, minimum wage, or sector-specific regulations affecting the respondent's industry",
+      "sub_items": [
+        "anticipated_tax_policy_changes",
+        "anticipated_social_benefits_changes",
+        "anticipated_minimum_wage_changes",
+        "sector_specific_regulatory_expectations"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "political_affiliation",
+      "context": "Partisan identity predicts economic optimism/pessimism, particularly during election cycles or regime changes (the 'partisan bias' in expectations)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "PERPART",
+      "selected_text": "What type of political party does the respondent support?",
+      "n_candidates": 16,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

@@ -1,0 +1,417 @@
+{
+  "survey": "latinobarometer",
+  "target": "P8STGBS",
+  "country": "Guatemala",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 30,
+  "n_piped": 30,
+  "n_mapped": 11,
+  "n_none": 15,
+  "n_bundled": 14,
+  "type_counts": {
+    "respondent_attribute": 18,
+    "temporal_contextual": 12
+  },
+  "mapped_codes": [
+    "S5",
+    "S18.A",
+    "S4",
+    "REEDAD",
+    "REEDUC.1",
+    "S20.B",
+    "P7ST",
+    "S14M.3",
+    "S18.B",
+    "S6",
+    "P6STGBS"
+  ],
+  "features": [
+    {
+      "feature": "household_income",
+      "context": "Household income level and stability (e.g., steady job, gig work, unemployed)",
+      "sub_items": [
+        "income_level",
+        "income_stability"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S5",
+      "selected_text": "Does your salary and total family income allow you to cover your needs in a satisfactory manner?",
+      "n_candidates": 17,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "debt_levels",
+      "context": "Current debt levels (mortgage, credit card, student loans)",
+      "sub_items": [
+        "mortgage_debt",
+        "credit_card_debt",
+        "student_loan_debt"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "savings_status",
+      "context": "Savings and emergency fund status",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "recent_financial_shocks",
+      "context": "Recent financial shocks (medical bills, job loss, major repairs)",
+      "sub_items": [
+        "medical_bills",
+        "job_loss",
+        "major_repairs"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "employment_status",
+      "context": "Employment status (employed, underemployed, unemployed)",
+      "sub_items": [
+        "employed",
+        "underemployed",
+        "unemployed"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S18.A",
+      "selected_text": "What is your current employment situation?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "job_security",
+      "context": "Job security and industry outlook",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S4",
+      "selected_text": "How concerned are you that you will be left without work or become unemployed in the next 12 months, or do you not currently have a job?",
+      "n_candidates": 11,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "expected_compensation_changes",
+      "context": "Expected raises, promotions, or bonuses",
+      "sub_items": [
+        "expected_raises",
+        "promotions",
+        "bonuses"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "spouse_employment",
+      "context": "Spouse/partner employment situation",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "retirement_status",
+      "context": "Retirement status if applicable",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S18.A",
+      "selected_text": "What is your current employment situation?",
+      "n_candidates": 5,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "number_of_dependents",
+      "context": "Number of dependents (children, elderly parents)",
+      "sub_items": [
+        "children",
+        "elderly_parents"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age_life_stage",
+      "context": "Age and life stage (young adult, mid-career, near retirement)",
+      "sub_items": [
+        "age",
+        "life_stage"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REEDAD",
+      "selected_text": "Which age group do you belong to?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Education level",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REEDUC.1",
+      "selected_text": "What is the respondent's recoded education level?",
+      "n_candidates": 11,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "homeownership_status",
+      "context": "Homeownership status (renting, owning with mortgage, owning outright)",
+      "sub_items": [
+        "renting",
+        "owning_with_mortgage",
+        "owning_outright"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S20.B",
+      "selected_text": "Do you or your family own your home?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "local_economic_conditions",
+      "context": "Local/regional economic conditions",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "national_economic_outlook",
+      "context": "National economic outlook (inflation, recession concerns)",
+      "sub_items": [
+        "inflation_concerns",
+        "recession_concerns"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "P7ST",
+      "selected_text": "Over the next 12 months, how do you expect the country's economic situation to change compared to now?",
+      "n_candidates": 18,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "personal_economic_confidence",
+      "context": "Personal confidence in the economy",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P7ST",
+      "selected_text": "Over the next 12 months, how do you expect the country's economic situation to change compared to now?",
+      "n_candidates": 10,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Media consumption and economic narratives they're exposed to",
+      "sub_items": [
+        "media_consumption",
+        "exposure_to_economic_narratives"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "S14M.3",
+      "selected_text": "Do you use YouTube or any of these other social networking services?",
+      "n_candidates": 11,
+      "disambig_raw": "\nK"
+    },
+    {
+      "feature": "planned_life_events",
+      "context": "Expected changes (having a child, children leaving home, planned retirement)",
+      "sub_items": [
+        "having_a_child",
+        "children_leaving_home",
+        "planned_retirement"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "planned_major_purchases",
+      "context": "Major purchases planned (home, car, education)",
+      "sub_items": [
+        "home_purchase",
+        "car_purchase",
+        "education_expense"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "anticipated_medical_expenses",
+      "context": "Health issues or anticipated medical expenses",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "disposition_optimism",
+      "context": "General optimism/pessimism disposition",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "financial_literacy",
+      "context": "Financial literacy and planning habits",
+      "sub_items": [
+        "financial_literacy",
+        "planning_habits"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S5",
+      "selected_text": "Does your salary and total family income allow you to cover your needs in a satisfactory manner?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "past_economic_experiences",
+      "context": "Previous economic experiences (lived through recessions, etc.)",
+      "sub_items": [
+        "lived_through_recessions"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S18.B",
+      "selected_text": "What was your previous employment situation?",
+      "n_candidates": 14,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "government_benefits",
+      "context": "Government benefits received or expected",
+      "sub_items": [
+        "received_benefits",
+        "expected_benefits"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "S6",
+      "selected_text": "Are you or someone in your family receiving support or benefits from the government?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "tax_situation_changes",
+      "context": "Tax situation changes anticipated",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "interest_rate_exposure",
+      "context": "Interest rate exposure (adjustable rate mortgages, etc.)",
+      "sub_items": [
+        "adjustable_rate_mortgages"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "recent_income_changes",
+      "context": "Recent income changes",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "employment_stability",
+      "context": "Employment stability",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S4",
+      "selected_text": "How concerned are you that you will be left without work or become unemployed in the next 12 months, or do you not currently have a job?",
+      "n_candidates": 8,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "financial_stress_indicators",
+      "context": "Current financial stress indicators",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P6STGBS",
+      "selected_text": "Compared to 12 months ago, how would you describe the country's current economic situation?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "life_events_horizon",
+      "context": "Life events on the horizon",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

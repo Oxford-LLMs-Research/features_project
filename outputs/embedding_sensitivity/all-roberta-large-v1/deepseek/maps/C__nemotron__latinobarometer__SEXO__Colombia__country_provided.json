@@ -1,0 +1,102 @@
+{
+  "survey": "latinobarometer",
+  "target": "SEXO",
+  "country": "Colombia",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 6,
+  "n_piped": 5,
+  "n_mapped": 1,
+  "n_none": 4,
+  "n_bundled": 4,
+  "type_counts": {
+    "respondent_attribute": 5,
+    "base_rate_prior": 1
+  },
+  "mapped_codes": [
+    "S7"
+  ],
+  "features": [
+    {
+      "feature": "legal_sex_document",
+      "context": "National ID (*cédula de ciudadanía*) or birth certificate information, which in Colombia records sex assigned at birth.",
+      "sub_items": [
+        "cédula de ciudadanía",
+        "birth certificate"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "name",
+      "context": "First names in Colombia are often strongly gendered (e.g., *María*, *José*), which could serve as a proxy, though not perfectly accurate.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "gender_identity",
+      "context": "If the survey allowed for open identity beyond binary male/female, I’d need to know the respondent’s gender identity, but the question as phrased (“sex”) in many surveys refers to biological/legal sex in a binary way.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "voice_or_appearance",
+      "context": "In phone or in-person surveys, vocal characteristics or visual appearance might be used by an interviewer to *guess*, but this is unreliable and can be offensive or inaccurate.",
+      "sub_items": [
+        "vocal characteristics",
+        "visual appearance"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "historical_survey_data",
+      "context": "If I had past survey responses from the same person or similar demographic groups, I could use statistical patterns (e.g., sex ratio by age, region, etc.).",
+      "sub_items": [
+        "past survey responses from the same person",
+        "past survey responses from similar demographic groups"
+      ],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "other_demographics",
+      "context": "In some contexts, sex correlates with certain survey answers (e.g., occupation, hobbies), but these are weak proxies and can reinforce stereotypes.",
+      "sub_items": [
+        "occupation",
+        "hobbies"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S7",
+      "selected_text": "What ethnicity or race do you identify with most closely?",
+      "n_candidates": 6,
+      "disambig_raw": "\nC"
+    }
+  ]
+}

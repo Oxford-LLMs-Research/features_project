@@ -1,0 +1,240 @@
+{
+  "survey": "ess_wave_11",
+  "target": "bctprd",
+  "country": "Austria",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 16,
+  "n_piped": 16,
+  "n_mapped": 10,
+  "n_none": 5,
+  "n_bundled": 8,
+  "type_counts": {
+    "respondent_attribute": 15,
+    "temporal_contextual": 1
+  },
+  "mapped_codes": [
+    "agea",
+    "edlvept",
+    "hinctnta",
+    "lrscale",
+    "domicil",
+    "cptppola",
+    "impenva",
+    "donprty",
+    "netustm",
+    "pbldmna"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger adults (especially Millennials and Gen Z) are often more likely to engage in consumer activism.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 19,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education is correlated with greater awareness of social/environmental issues and a sense of personal efficacy.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvept",
+      "selected_text": "What is the highest level of education you have completed?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "income",
+      "context": "While higher income provides more choice, lower-income individuals may boycott based on affordability or labor issues. The relationship can be complex.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 16,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "political_ideology_partisanship",
+      "context": "Strong political identity, particularly on the left (concerned with environment, labor, social justice) or the right (concerned with corporate 'wokeness,' free speech), is a strong predictor.",
+      "sub_items": [
+        "concern_with_environment_labor_social_justice",
+        "concern_with_corporate_wokeness_free_speech"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "urban_rural_location",
+      "context": "Urban dwellers often have greater exposure to activist networks and alternative products.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_efficacy",
+      "context": "Does the person believe that individual actions, like boycotting, can effect change? This is crucial.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "cptppola",
+      "selected_text": "How confident are you in your ability to participate in politics?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "issue_salience",
+      "context": "What specific issues are most important to them (e.g., climate change, human rights, animal welfare, political stances of CEOs)? A 'yes' is more likely if a salient issue triggered a boycott.",
+      "sub_items": [
+        "climate_change",
+        "human_rights",
+        "animal_welfare",
+        "political_stances_of_CEOs"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "moral_obligation",
+      "context": "A strong personal moral code linked to consumption.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "impenva",
+      "selected_text": "How well does the following statement describe you: 'You strongly believe people should care for nature; looking after the environment is important to you'?",
+      "n_candidates": 18,
+      "disambig_raw": "\nM"
+    },
+    {
+      "feature": "general_trust_skepticism",
+      "context": "Trust in activist groups (to identify legitimate targets) vs. skepticism about the effectiveness or motives of boycotts.",
+      "sub_items": [
+        "trust_in_activist_groups",
+        "skepticism_about_effectiveness_or_motives_of_boycotts"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "past_political_social_activity",
+      "context": "Participation in protests, signing petitions, donating to causes is a strong indicator.",
+      "sub_items": [
+        "participation_in_protests",
+        "signing_petitions",
+        "donating_to_causes"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "donprty",
+      "selected_text": "In the past 12 months, have you donated to or taken part in a political party or pressure group?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Reliance on news sources or social media platforms that highlight corporate misconduct or promote ethical consumption.",
+      "sub_items": [
+        "news_sources_highlighting_corporate_misconduct",
+        "social_media_platforms_promoting_ethical_consumption"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "netustm",
+      "selected_text": "On a typical day, about how many hours do you spend using the internet on any device (computer, tablet, or smartphone) for work or personal use?",
+      "n_candidates": 4,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "social_network",
+      "context": "Being part of networks (online or offline) where boycotts are discussed and normed.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "consumer_habits",
+      "context": "General sensitivity to brand reputation, or prior purchase of 'ethical' products (fair trade, organic, etc.).",
+      "sub_items": [
+        "sensitivity_to_brand_reputation",
+        "prior_purchase_of_ethical_products"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "recent_events",
+      "context": "Was there a major, highly publicized corporate scandal or political event in the past 12 months that spurred organized boycotts (e.g., related to war, voting rights, environmental disaster)?",
+      "sub_items": [
+        "corporate_scandal",
+        "political_event",
+        "war",
+        "voting_rights",
+        "environmental_disaster"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "pbldmna",
+      "selected_text": "In the past 12 months, have you taken part in a public demonstration in this country to try to improve things or to prevent things from going wrong?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "personal_experience",
+      "context": "Direct negative experience with a company (e.g., poor labor practices, data breach, discriminatory policy).",
+      "sub_items": [
+        "poor_labor_practices",
+        "data_breach",
+        "discriminatory_policy"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "past_behavior",
+      "context": "Someone who has boycotted in a previous period is significantly more likely to have done so in the last 12 months.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "pbldmna",
+      "selected_text": "In the past 12 months, have you taken part in a public demonstration in this country to try to improve things or to prevent things from going wrong?",
+      "n_candidates": 5,
+      "disambig_raw": "\nC"
+    }
+  ]
+}

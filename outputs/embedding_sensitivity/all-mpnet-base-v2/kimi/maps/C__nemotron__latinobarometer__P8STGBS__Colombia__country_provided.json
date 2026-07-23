@@ -1,0 +1,249 @@
+{
+  "survey": "latinobarometer",
+  "target": "P8STGBS",
+  "country": "Colombia",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 17,
+  "n_piped": 17,
+  "n_mapped": 10,
+  "n_none": 6,
+  "n_bundled": 7,
+  "type_counts": {
+    "respondent_attribute": 15,
+    "temporal_contextual": 2
+  },
+  "mapped_codes": [
+    "S24",
+    "S20.A",
+    "REG",
+    "S3",
+    "P7ST",
+    "REEDAD",
+    "S11",
+    "REEDUC.2",
+    "S14M.3",
+    "S6"
+  ],
+  "features": [
+    {
+      "feature": "household_income_level_and_source",
+      "context": "Formal vs. informal employment (critical in Colombia where ~60% of workers are informal), sector (commodity-dependent regions vs. services), and income stability",
+      "sub_items": [
+        "formal_vs_informal_employment",
+        "sector_of_employment",
+        "income_stability"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S24",
+      "selected_text": "Based on the quality of the dwelling, furniture, and the interviewee's general appearance, how would you rate the interviewee's socioeconomic level?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "asset_and_debt_portfolio",
+      "context": "Savings buffers, property ownership, indebtedness levels (particularly consumer credit and informal lending), and access to financial services",
+      "sub_items": [
+        "savings_buffers",
+        "property_ownership",
+        "indebtedness_levels",
+        "access_to_financial_services"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "household_composition",
+      "context": "Number of dependents, presence of dual earners, and remittance receipts (significant for Colombian households)",
+      "sub_items": [
+        "number_of_dependents",
+        "presence_of_dual_earners",
+        "remittance_receipts"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S20.A",
+      "selected_text": "Does your household have a separate bedroom for parents and children?",
+      "n_candidates": 16,
+      "disambig_raw": "\nO"
+    },
+    {
+      "feature": "region_department",
+      "context": "Colombia has stark regional inequality—expectations in Bogotá or Medellín differ significantly from Chocó, La Guajira, or Cauca due to infrastructure, security, and labor market disparities",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REG",
+      "selected_text": "Which region do you live in?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural",
+      "context": "Agricultural commodity price exposure vs. urban service economy dynamics",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 14,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "security_context",
+      "context": "Local violence/displacement history affects economic confidence independent of national trends",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 18,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "recent_economic_trajectory",
+      "context": "Whether the household experienced recent shocks (job loss, medical emergencies, inflation spikes) or gains",
+      "sub_items": [
+        "job_loss",
+        "medical_emergencies",
+        "inflation_spikes",
+        "recent_gains"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "S3",
+      "selected_text": "In the past 12 months, how often have you or your family gone without food?",
+      "n_candidates": 18,
+      "disambig_raw": "\nR"
+    },
+    {
+      "feature": "exposure_to_inflation",
+      "context": "Colombia's inflation volatility disproportionately affects lower-income households' expectations",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P7ST",
+      "selected_text": "Over the next 12 months, how do you expect the country's economic situation to change compared to now?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "exchange_rate_exposure",
+      "context": "Families with dollarized obligations or import-dependent businesses vs. those with dollar remittances",
+      "sub_items": [
+        "dollarized_obligations",
+        "import_dependent_business",
+        "dollar_remittances"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age_and_life_stage",
+      "context": "Younger respondents typically show more volatility in expectations; older respondents near retirement focus on pension security (a major concern given Colombia's pension system challenges)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REEDAD",
+      "selected_text": "Which age group do you belong to?",
+      "n_candidates": 19,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Often correlates with labor market resilience and information access",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S11",
+      "selected_text": "What is the highest level of education you have completed?",
+      "n_candidates": 14,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "social_mobility_history",
+      "context": "Intergenerational economic trajectory influences optimism/pessimism",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REEDUC.2",
+      "selected_text": "What is the recoded education level of the respondent's parents?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Exposure to national economic news vs. local community economic signals",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S14M.3",
+      "selected_text": "Do you use YouTube or any of these other social networking services?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "reference_groups",
+      "context": "Comparison to neighbors, family members abroad, or past personal economic peaks",
+      "sub_items": [
+        "comparison_to_neighbors",
+        "comparison_to_family_abroad",
+        "comparison_to_past_personal_peaks"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 13,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "risk_aversion",
+      "context": "Individual tolerance for economic uncertainty (relevant given Colombia's historical macroeconomic volatility)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P7ST",
+      "selected_text": "Over the next 12 months, how do you expect the country's economic situation to change compared to now?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "government_transfer_dependence",
+      "context": "Whether the household receives subsidies (Familias en Acción, etc.) or anticipates policy changes",
+      "sub_items": [
+        "receives_subsidies",
+        "anticipates_policy_changes"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S6",
+      "selected_text": "Are you or someone in your family receiving support or benefits from the government?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "tax_exposure",
+      "context": "Recent or anticipated tax reforms affecting disposable income",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

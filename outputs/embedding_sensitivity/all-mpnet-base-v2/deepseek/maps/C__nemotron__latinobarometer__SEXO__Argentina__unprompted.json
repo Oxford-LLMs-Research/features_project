@@ -1,0 +1,160 @@
+{
+  "survey": "latinobarometer",
+  "target": "SEXO",
+  "country": "Argentina",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 11,
+  "n_piped": 9,
+  "n_mapped": 1,
+  "n_none": 8,
+  "n_bundled": 4,
+  "type_counts": {
+    "respondent_attribute": 8,
+    "temporal_contextual": 1,
+    "instrument_methodology": 2
+  },
+  "mapped_codes": [
+    "P37CSN.F"
+  ],
+  "features": [
+    {
+      "feature": "legal_sex_marker",
+      "context": "Government-issued identification (e.g., birth certificate, passport, driver’s license) often lists a legal sex marker.",
+      "sub_items": [
+        "birth_certificate",
+        "passport",
+        "driver’s_license"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "medical_sex_info",
+      "context": "Medical records may include sex assigned at birth or relevant biological information.",
+      "sub_items": [
+        "sex_assigned_at_birth",
+        "biological_information"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "sex_assigned_at_birth",
+      "context": "Sex assigned at birth (based on chromosomes, anatomy, etc.) is a strong predictor, as many people answer based on this.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "secondary_sex_characteristics",
+      "context": "Secondary sex characteristics (observable features) might be used if the survey is conducted in person or via video.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "name_pronouns",
+      "context": "Names and pronouns commonly associated with a particular sex in a given culture can be a proxy.",
+      "sub_items": [
+        "name",
+        "pronouns"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "gender_expression",
+      "context": "Appearance, clothing, or grooming norms linked to sex in a cultural context.",
+      "sub_items": [
+        "appearance",
+        "clothing",
+        "grooming_norms"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "cultural_religious_norms",
+      "context": "In some societies, sex roles are strongly defined and may influence disclosure.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "question_clarity",
+      "context": "If the question asks for 'sex' without further explanation, respondents may interpret it as biological/legal sex. If it asks for 'gender,' answers may differ.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "response_options",
+      "context": "Whether the survey only offers 'male'/'female' or includes additional categories (e.g., 'intersex,' 'prefer not to say') will affect answers.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "gender_identity",
+      "context": "For some individuals, sex and gender identity may differ (e.g., transgender or non-binary respondents).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "personal_interpretation",
+      "context": "Some may answer based on current legal sex, some on sex assigned at birth, and some on lived experience.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P37CSN.F",
+      "selected_text": "Do you agree or disagree that a person's gender change should be legally recognized on identity documents?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

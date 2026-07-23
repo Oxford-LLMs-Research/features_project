@@ -1,0 +1,245 @@
+{
+  "survey": "wvs",
+  "target": "Q205",
+  "country": "Macao SAR",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 17,
+  "n_piped": 15,
+  "n_mapped": 8,
+  "n_none": 7,
+  "n_bundled": 6,
+  "type_counts": {
+    "respondent_attribute": 15,
+    "base_rate_prior": 2
+  },
+  "mapped_codes": [
+    "Q262",
+    "Q275",
+    "Q281",
+    "Q288",
+    "Q206",
+    "Q272",
+    "Q100",
+    "Q199"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger respondents are generally more digitally native and may use email differently compared to older cohorts, who might rely on it more heavily for general information.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q262",
+      "selected_text": "How old are you?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education is often correlated with greater use of digital tools for information seeking and professional purposes.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q275",
+      "selected_text": "What is the highest educational level that you have attained?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "occupation",
+      "context": "White-collar, academic, and professional roles typically require and foster more frequent email use for information than some blue-collar or service industry roles.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q281",
+      "selected_text": "To which occupational group do you belong?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income_level",
+      "context": "Access to reliable internet and personal devices (smartphones, computers) can be influenced by income.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q288",
+      "selected_text": "What is the level of your household's income counting all wages, salaries, pensions and other incomes on an income scale on which 'lowest' indicates the lowest income group and 'tenth step' the highest income group in your country?",
+      "n_candidates": 17,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "internet_access",
+      "context": "Frequency and type (mobile-only vs. broadband at home/work).",
+      "sub_items": [
+        "mobile-only access",
+        "broadband at home",
+        "broadband at work"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "digital_literacy",
+      "context": "Comfort with technology, general frequency of internet use for any purpose.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q206",
+      "selected_text": "How often do you use internet to obtain information about this country and the world?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "primary_device",
+      "context": "Smartphone, desktop computer, or tablet? Email usage patterns differ significantly across devices.",
+      "sub_items": [
+        "smartphone",
+        "desktop computer",
+        "tablet"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "primary_news_sources",
+      "context": "Do they rely more on social media (e.g., Facebook, WeChat), news apps, television, radio, or print media? Email might compete with or complement these.",
+      "sub_items": [
+        "social media",
+        "news apps",
+        "television",
+        "radio",
+        "print media"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 12,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "types_of_information_sought",
+      "context": "Are they interested in local Macao news, mainland China news, international business, entertainment, etc.? This influences which channels they might use.",
+      "sub_items": [
+        "local Macao news",
+        "mainland China news",
+        "international business",
+        "entertainment"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "subscription_behavior",
+      "context": "Do they subscribe to newsletters from news outlets (e.g., *Macao Daily News*, *Ponto Final*, *Plataforma*), government updates (e.g., from the Macao SAR Government Information Bureau), or international organizations?",
+      "sub_items": [
+        "news outlet newsletters",
+        "government updates",
+        "international organization emails"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "language_proficiency",
+      "context": "Macao's multilingual environment (Chinese, Portuguese, English) means the languages of the email content they receive are crucial. Their proficiency in these languages will gatekeep access to certain information streams.",
+      "sub_items": [
+        "Chinese proficiency",
+        "Portuguese proficiency",
+        "English proficiency"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q272",
+      "selected_text": "What language do you normally speak at home?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "social_professional_networks",
+      "context": "Being embedded in professional, academic, or civic organizations that disseminate information via email lists would increase usage frequency.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q100",
+      "selected_text": "Are you a member of a professional association?",
+      "n_candidates": 10,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "interest_in_current_affairs",
+      "context": "General level of interest in 'this country and the world.'",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q199",
+      "selected_text": "How interested would you say you are in politics?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "trust_in_email",
+      "context": "Perceptions of email's reliability, credibility, and convenience compared to other information channels.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "email_habit",
+      "context": "Whether checking email for information is an established part of their daily or weekly routine.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "macao_aggregate_demographics",
+      "context": "Without any of this information, a prediction would be a rough guess based on Macao's aggregate demographics and internet penetration statistics.",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "internet_penetration_statistics",
+      "context": "Without any of this information, a prediction would be a rough guess based on Macao's aggregate demographics and internet penetration statistics.",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

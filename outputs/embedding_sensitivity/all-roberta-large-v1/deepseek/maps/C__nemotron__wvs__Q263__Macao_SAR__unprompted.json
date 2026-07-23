@@ -1,0 +1,165 @@
+{
+  "survey": "wvs",
+  "target": "Q263",
+  "country": "Macao SAR",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 12,
+  "n_piped": 12,
+  "n_mapped": 8,
+  "n_none": 4,
+  "n_bundled": 1,
+  "type_counts": {
+    "respondent_attribute": 12
+  },
+  "mapped_codes": [
+    "Q262",
+    "Q266",
+    "Q290",
+    "Q272",
+    "Q269",
+    "Q275",
+    "N_REGION_ISO",
+    "Q268"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger individuals in some countries are more likely to be immigrants or children of immigrants.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q262",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "country_of_birth",
+      "context": "if available, but that’s essentially the answer itself",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q266",
+      "selected_text": "In which country were you born?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "parents_country_of_birth",
+      "context": "proxies like parents’ country of birth",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "ethnicity_race",
+      "context": "ethnicity/race (as immigration patterns often differ by group)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q290",
+      "selected_text": "How do you identify when it comes to Racial belonging/ ethnic group in your country?",
+      "n_candidates": 7,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "language_spoken_at_home",
+      "context": "language spoken at home (if different from national language)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q272",
+      "selected_text": "What language do you normally speak at home?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "length_of_residence",
+      "context": "length of residence in the country (if known from other questions)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "citizenship_status",
+      "context": "citizenship status (if available)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q269",
+      "selected_text": "Are you a citizen of this country?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "education level (in some contexts, immigrants have different education profiles)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q275",
+      "selected_text": "What is the highest educational level that you have attained?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "current_region_neighborhood",
+      "context": "current region/neighborhood (some areas have higher immigrant concentrations)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "N_REGION_ISO",
+      "selected_text": "Which region do you currently live in?",
+      "n_candidates": 11,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "surname",
+      "context": "surname analysis (some surnames strongly indicate foreign origin in certain countries)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "accent_language_proficiency",
+      "context": "accent or language proficiency (if interview is oral)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "past_survey_answers",
+      "context": "past answers to related questions (e.g., parents’ birthplace, year of arrival)",
+      "sub_items": [
+        "parents_birthplace",
+        "year_of_arrival"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q268",
+      "selected_text": "In which country was your father born? List of codes in Annex",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

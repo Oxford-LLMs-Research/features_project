@@ -1,0 +1,268 @@
+{
+  "survey": "ess_wave_11",
+  "target": "bctprd",
+  "country": "Austria",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 20,
+  "n_piped": 20,
+  "n_mapped": 15,
+  "n_none": 5,
+  "n_bundled": 3,
+  "type_counts": {
+    "respondent_attribute": 20
+  },
+  "mapped_codes": [
+    "edlvdis",
+    "hinctnta",
+    "isco08",
+    "polintr",
+    "cptppola",
+    "trstprl",
+    "lrscale",
+    "impfuna",
+    "impenva",
+    "mbtru",
+    "domicil",
+    "nwspol",
+    "region",
+    "agegroup",
+    "atcherp"
+  ],
+  "features": [
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates with political awareness and ability to process information about corporate practices",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvdis",
+      "selected_text": "What is the highest level of education you have completed in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income",
+      "context": "Boycotting often requires paying premium prices for alternatives; financial constraint is a major barrier",
+      "sub_items": [
+        "income",
+        "disposable_income"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 10,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "occupation",
+      "context": "White-collar/professional workers typically show higher rates of ethical consumption",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "isco08",
+      "selected_text": "What is or was the job title of your main job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "political_interest",
+      "context": "General engagement with public affairs predicts unconventional participation",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "polintr",
+      "selected_text": "How interested would you say you are in politics?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "internal_efficacy",
+      "context": "Belief that 'I can influence politics through my choices' (crucial for consumerism-as-politics)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "cptppola",
+      "selected_text": "How confident are you in your ability to participate in politics?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "institutional_trust",
+      "context": "Low trust in government/parties often correlates with alternative participation like boycotting",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trstprl",
+      "selected_text": "How much do you personally trust your country's parliament?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "ideology",
+      "context": "Left-leaning orientation (particularly Green/Left-libertarian) strongly predicts boycotting in European contexts",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "post_materialist_values",
+      "context": "Self-expression values vs. survival values",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "impfuna",
+      "selected_text": "How well does this statement describe you: \"I seek every chance to have fun and it's important to me to do things that give me pleasure\"?",
+      "n_candidates": 15,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "environmental_concern",
+      "context": "Particularly relevant in Austria given strong Green Party tradition and environmental movement",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "impenva",
+      "selected_text": "How well does the following statement describe you: 'You strongly believe people should care for nature; looking after the environment is important to you'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "ethical_consumption_attitudes",
+      "context": "Belief that purchasing decisions have political consequences",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 19,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "cosmopolitanism",
+      "context": "Concern for labor rights, human rights in global supply chains",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "social_capital",
+      "context": "Membership in NGOs, environmental groups, or civic associations (boycotting is often organizationally mobilized)",
+      "sub_items": [
+        "membership_in_ngos",
+        "membership_in_environmental_groups",
+        "membership_in_civic_associations"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "mbtru",
+      "selected_text": "Are you currently a member of a trade union or similar organisation, have you been one in the past, or have you never been a member?",
+      "n_candidates": 7,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "discussion_networks",
+      "context": "Whether friends/family discuss ethical consumption (social contagion effect)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "urban_residence",
+      "context": "Cities like Vienna, Graz, or Innsbruck have higher concentrations of politically progressive consumers and alternative shopping infrastructure",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 10,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "news_consumption",
+      "context": "Awareness of corporate scandals or ethical issues requires information exposure",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "nwspol",
+      "selected_text": "On a typical day, about how much time do you spend watching, reading, or listening to news about politics and current affairs?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "social_media_use",
+      "context": "Platforms facilitate boycott mobilization (e.g., #Boycott trends)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "product_labeling_awareness",
+      "context": "Knowledge of Fair Trade, organic, or ethical certifications",
+      "sub_items": [
+        "fair_trade_awareness",
+        "organic_awareness",
+        "ethical_certifications_awareness"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "region",
+      "context": "Urban vs. rural Alpine areas (different consumption patterns)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "region",
+      "selected_text": "Which region do you live in?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age_cohort",
+      "context": "Younger Austrians (18-35) show higher rates of climate-conscious consumption",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agegroup",
+      "selected_text": "Which age group do you fall into?",
+      "n_candidates": 20,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "eu_identity",
+      "context": "Attitudes toward 'buying European' vs. global supply chains",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "atcherp",
+      "selected_text": "How emotionally attached do you feel to Europe?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

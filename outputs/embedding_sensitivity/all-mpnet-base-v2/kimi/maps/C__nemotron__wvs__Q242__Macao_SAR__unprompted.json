@@ -1,0 +1,231 @@
+{
+  "survey": "wvs",
+  "target": "Q242",
+  "country": "Macao SAR",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 17,
+  "n_piped": 17,
+  "n_mapped": 12,
+  "n_none": 2,
+  "n_bundled": 2,
+  "type_counts": {
+    "respondent_attribute": 17
+  },
+  "mapped_codes": [
+    "Q289CS9",
+    "Q171",
+    "Q173",
+    "Q240",
+    "Q248",
+    "Q239",
+    "Q246",
+    "Q275",
+    "Q283",
+    "Q260",
+    "Q255",
+    "Q238"
+  ],
+  "features": [
+    {
+      "feature": "religious_affiliation",
+      "context": "Which religion/denomination the respondent identifies with (e.g., Evangelical Protestant, Catholic, Muslim, Hindu, none), as traditions vary in their theological relationships to civil law",
+      "sub_items": [
+        "Evangelical Protestant",
+        "Catholic",
+        "Muslim",
+        "Hindu",
+        "none"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q289CS9",
+      "selected_text": "Do you belong to a religion or religious denomination? If yes, which one?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "religiosity",
+      "context": "Frequency of worship, prayer, or religious practice (typically positive correlation)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q171",
+      "selected_text": "Apart from weddings, funerals and christenings, about how often do you attend religious services these days?",
+      "n_candidates": 18,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "religious_orthodoxy",
+      "context": "Belief in the literal truth of scripture and exclusive access to moral truth",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 13,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "religious_identity_salience",
+      "context": "How central religion is to self-concept ('born again' status, etc.)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q173",
+      "selected_text": "Independently of whether you go to church or not, would you say you are a religious person?",
+      "n_candidates": 12,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "Right-wing/conservative orientation (typically positive correlation, though varies by country)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q240",
+      "selected_text": "In politics, people often describe their views as more left-wing or right-wing. Where would you place your own views on a scale from 1 to 10, where 1 means 'left' and 10 means 'right'?",
+      "n_candidates": 15,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "authoritarianism",
+      "context": "Especially right-wing authoritarianism (preference for conformity, traditional authority, and social order)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q248",
+      "selected_text": "How essential do you think it is for a democracy that people obey their rulers?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "support_for_secularism",
+      "context": "Beliefs about separation of religious and political institutions",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q239",
+      "selected_text": "Do you think having a system governed by religious law, without political parties or elections, is a good or bad way of governing this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "conceptualization_of_democracy",
+      "context": "Whether the respondent defines democracy procedurally (elections, rights) or substantively (good governance, moral order)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q246",
+      "selected_text": "How essential do you think it is for a democracy that civil rights protect people's liberty against state oppression?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "educational_attainment",
+      "context": "Higher education typically predicts lower support (secularization effect, critical thinking skills, exposure to pluralism)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q275",
+      "selected_text": "What is the highest educational level that you have attained?",
+      "n_candidates": 19,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "political_knowledge",
+      "context": "Understanding of liberal democratic theory and constitutional principles",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q246",
+      "selected_text": "How essential do you think it is for a democracy that civil rights protect people's liberty against state oppression?",
+      "n_candidates": 20,
+      "disambig_raw": "\nL"
+    },
+    {
+      "feature": "cognitive_style",
+      "context": "Need for cognitive closure, openness to experience, or preference for simple, absolute answers",
+      "sub_items": [
+        "need for cognitive closure",
+        "openness to experience",
+        "preference for simple, absolute answers"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "national_regional_context",
+      "context": "Crucial—effects reverse depending on whether the respondent is part of the religious majority or minority, and the country's history (e.g., post-Soviet states vs. theocratic regimes vs. established democracies)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q289CS9",
+      "selected_text": "Do you belong to a religion or religious denomination? If yes, which one?",
+      "n_candidates": 20,
+      "disambig_raw": "\nO"
+    },
+    {
+      "feature": "age_and_cohort",
+      "context": "Often curvilinear (older respondents may support traditional authority, but younger cohorts in religious revival movements may also score high)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q283",
+      "selected_text": "When you were 14, to which of the following occupational groups did your father belong?",
+      "n_candidates": 12,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "gender",
+      "context": "Often shows complex patterns (women frequently higher in religiosity but may oppose patriarchal religious authority in law)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q260",
+      "selected_text": "How do you identify your sex, male or female?",
+      "n_candidates": 17,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Rural residence often correlates with traditional authority support",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q255",
+      "selected_text": "How close do you feel to your village, town or city?",
+      "n_candidates": 16,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "definition_of_democracy",
+      "context": "Do they conflate 'democracy' with 'good governance' or 'majority rule'? Or do they distinguish liberal democracy from majoritarianism?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q238",
+      "selected_text": "Do you think having a democratic political system is a good or bad way of governing this country?",
+      "n_candidates": 17,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "religious_free_riding",
+      "context": "Whether non-religious respondents support religious authority because they believe it creates social order (a 'belief in belief' phenomenon)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q239",
+      "selected_text": "Do you think having a system governed by religious law, without political parties or elections, is a good or bad way of governing this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    }
+  ]
+}

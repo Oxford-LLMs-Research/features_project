@@ -1,0 +1,207 @@
+{
+  "survey": "wvs",
+  "target": "Q205",
+  "country": "Germany",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 15,
+  "n_piped": 15,
+  "n_mapped": 11,
+  "n_none": 2,
+  "n_bundled": 2,
+  "type_counts": {
+    "respondent_attribute": 15
+  },
+  "mapped_codes": [
+    "Q204",
+    "Q206",
+    "Q262",
+    "Q275",
+    "Q279",
+    "Q284",
+    "Q199",
+    "Q66",
+    "Q288",
+    "N_REGION_ISO",
+    "Q263"
+  ],
+  "features": [
+    {
+      "feature": "device_ownership",
+      "context": "Whether they own a smartphone, computer, or tablet, and have reliable internet access (broadband vs. mobile-only)",
+      "sub_items": [
+        "owns_smartphone",
+        "owns_computer",
+        "owns_tablet",
+        "internet_access_type"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "digital_skills",
+      "context": "Their comfort level with technology (Germany has a notable 'digital divide' among older populations)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q204",
+      "selected_text": "How often do you use mobile phone to obtain information about this country and the world?",
+      "n_candidates": 6,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "internet_usage_frequency",
+      "context": "Frequency of online activity overall (email for news is typically a secondary behavior for heavy internet users)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q206",
+      "selected_text": "How often do you use internet to obtain information about this country and the world?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age",
+      "context": "The strongest predictor. Email newsletters see bimodal usage in Germany—high among professionals (35-65) and low among younger digital natives (<35) and seniors (>70)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q262",
+      "selected_text": "How old are you?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates strongly with newsletter subscriptions and text-based information consumption",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q275",
+      "selected_text": "What is the highest educational level that you have attained?",
+      "n_candidates": 11,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "employment_status",
+      "context": "Critical distinction between knowledge workers (who live in email ecosystems) vs. manual/service workers",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q279",
+      "selected_text": "Are you employed now or not?",
+      "n_candidates": 19,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "employment_sector",
+      "context": "Whether they work in information-intensive fields (journalism, academia, policy, finance)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q284",
+      "selected_text": "Are you working for the government or public institution, for private business or industry, or for a private non-profit organization? If you do not work currently, characterize your major work in the past! Do you or did you work for?",
+      "n_candidates": 9,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "news_interest",
+      "context": "Their level of interest in politics and current affairs (the 'need for cognition')",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q199",
+      "selected_text": "How interested would you say you are in politics?",
+      "n_candidates": 19,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "current_media_diet",
+      "context": "Whether they already consume news via apps, websites, or social media (email is often a supplementary channel)",
+      "sub_items": [
+        "news_consumption_via_apps",
+        "news_consumption_via_websites",
+        "news_consumption_via_social_media"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q206",
+      "selected_text": "How often do you use internet to obtain information about this country and the world?",
+      "n_candidates": 9,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "trust_in_institutional_media",
+      "context": "Germans with high trust in traditional newspapers (e.g., *Süddeutsche Zeitung*, *Die Zeit*, *FAZ*) are more likely to subscribe to email newsletters; those with low trust or high privacy concerns avoid giving email addresses",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q66",
+      "selected_text": "How much confidence do you have in the press?",
+      "n_candidates": 15,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income_level",
+      "context": "Affects both device access and the 'attention economy' capacity to process lengthy email content",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q288",
+      "selected_text": "What is the level of your household's income counting all wages, salaries, pensions and other incomes on an income scale on which 'lowest' indicates the lowest income group and 'tenth step' the highest income group in your country?",
+      "n_candidates": 15,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Rural areas in Eastern Germany sometimes have infrastructure gaps; urban centers (Berlin, Munich, Hamburg) show higher digital news consumption",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "N_REGION_ISO",
+      "selected_text": "Which region do you currently live in?",
+      "n_candidates": 11,
+      "disambig_raw": "\nJ"
+    },
+    {
+      "feature": "east_west_germany",
+      "context": "Persistent differences in media habits and digital infrastructure from reunification",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q206",
+      "selected_text": "How often do you use internet to obtain information about this country and the world?",
+      "n_candidates": 5,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "migration_background",
+      "context": "First or second-generation immigrants often use email to maintain connections with home country news, whereas ethnic Germans might interpret this as domestic news only",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q263",
+      "selected_text": "Were you born in this country or are you an immigrant?",
+      "n_candidates": 12,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "privacy_sensitivity",
+      "context": "Unusually high in Germany compared to other countries. Respondents with strong data protection concerns (*Datenschutz*) may deliberately avoid email news subscriptions to prevent tracking",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

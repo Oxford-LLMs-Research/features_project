@@ -86,6 +86,34 @@ python scripts/run_main.py --phase score   --selector deepseek   # -> outputs/fo
 
 Prerequisites on disk: per-cell `outputs/<target>_<country>/oracle.csv` (from the legacy grid or `survey_features.oracle`) and `outputs/leakage_audit.csv` (from `python scripts/leakage_audit.py`).
 
+### Embedding-model sensitivity
+
+To test whether map → disambiguation → score results move with the sentence-transformer, pass `--embedding-model`. Gen/extract stay in `outputs/format_pilot/`; only map and score are re-run into an isolated tree (existing MiniLM `format_pilot` artifacts are the baseline and are never overwritten):
+
+| Role | Model | Approx. size |
+|------|--------|--------------|
+| Baseline (already in `format_pilot/`) | `all-MiniLM-L6-v2` | ~22M |
+| Mid | `all-mpnet-base-v2` | ~110M |
+| Large | `all-roberta-large-v1` | ~355M |
+
+```bash
+# Mid — both selectors, arm C + nemotron only
+python scripts/run_main.py --phase map   --selector deepseek --disambiguator nemotron --arms C --embedding-model all-mpnet-base-v2
+python scripts/run_main.py --phase score --selector deepseek --embedding-model all-mpnet-base-v2
+python scripts/run_main.py --phase map   --selector kimi     --disambiguator nemotron --arms C --embedding-model all-mpnet-base-v2
+python scripts/run_main.py --phase score --selector kimi     --embedding-model all-mpnet-base-v2
+
+# Large
+python scripts/run_main.py --phase map   --selector deepseek --disambiguator nemotron --arms C --embedding-model all-roberta-large-v1
+python scripts/run_main.py --phase score --selector deepseek --embedding-model all-roberta-large-v1
+python scripts/run_main.py --phase map   --selector kimi     --disambiguator nemotron --arms C --embedding-model all-roberta-large-v1
+python scripts/run_main.py --phase score --selector kimi     --embedding-model all-roberta-large-v1
+
+python analysis/embedding_sensitivity.py   # -> outputs/embedding_sensitivity/comparison.csv
+```
+
+Artifacts: `outputs/embedding_sensitivity/<model_slug>/<selector>/maps/` and `scores_<selector>.csv`, plus `manifest.json`. See `docs/embedding_sensitivity.md`.
+
 ### Pipeline steps (concept)
 
 ```
@@ -108,10 +136,11 @@ Key metrics per cell:
 ```bash
 python analysis/freetext_main_results.py   # headline T1/T2 numbers + tex tables
 python analysis/freetext_figures.py        # free-text figures
+python analysis/embedding_sensitivity.py   # MiniLM vs mid/large embedders (after sensitivity runs)
 python scripts/leakage_audit.py            # oracle leakage audit -> outputs/leakage_audit.csv
 ```
 
-Findings and design notes live in `docs/` (`main_experiment_design.md`, `format_findings.md`, `leakage_findings.md`, …).
+Findings and design notes live in `docs/` (`main_experiment_design.md`, `format_findings.md`, `embedding_sensitivity.md`, `leakage_findings.md`, …).
 
 ---
 
@@ -206,6 +235,10 @@ outputs/
   format_pilot/                         # free-text pipeline artifacts (run_main.py)
     <selector>/gen|extract|maps/        # per-cell checkpoints per phase
     scores_<selector>.csv               # per-cell scores, all arms x disambiguators
+  embedding_sensitivity/                # --embedding-model map/score runs (isolated)
+    manifest.json
+    <embed_slug>/<selector>/maps|scores_*.csv
+    comparison.csv                      # analysis/embedding_sensitivity.py
   logs/
 ```
 

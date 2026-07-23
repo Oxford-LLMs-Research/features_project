@@ -1,0 +1,259 @@
+{
+  "survey": "arabbarometer",
+  "target": "Q104",
+  "country": "Mauritania",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 16,
+  "n_piped": 16,
+  "n_mapped": 11,
+  "n_none": 5,
+  "n_bundled": 12,
+  "type_counts": {
+    "respondent_attribute": 16
+  },
+  "mapped_codes": [
+    "Q1001",
+    "Q1003",
+    "Q1005",
+    "Q1015A",
+    "Q13",
+    "Q101",
+    "Q210",
+    "Q540B_3",
+    "Q104C",
+    "Q1012C_MOR",
+    "Q421"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Young adults (18-35) typically show highest emigration aspirations",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1001",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education",
+      "context": "Years of schooling and educational attainment (higher education often correlates with aspirations but can also reflect opportunity costs)",
+      "sub_items": [
+        "years of schooling",
+        "educational attainment"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1003",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "employment_status",
+      "context": "Unemployment, underemployment, or employment in declining sectors (fishing, agriculture vulnerable to desertification)",
+      "sub_items": [
+        "unemployment",
+        "underemployment",
+        "employment in declining sectors"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1005",
+      "selected_text": "Are you currently employed, self-employed, retired, a housewife, a student, unemployed and/or looking for work, or something else?",
+      "n_candidates": 18,
+      "disambig_raw": "\nK"
+    },
+    {
+      "feature": "household_wealth",
+      "context": "Ability to finance migration attempts; remittance receipt from abroad (strong predictor of 'migration culture')",
+      "sub_items": [
+        "household wealth and assets",
+        "remittance receipt from abroad"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1015A",
+      "selected_text": "Is your net monthly household income less than or greater than the median income in your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "social_networks",
+      "context": "Having immediate family or close friends already in Europe (Spain/France), the U.S., or elsewhere in West Africa (network effects are among the strongest predictors)",
+      "sub_items": [
+        "family in Europe (e.g., Spain, France)",
+        "friends in Europe (e.g., Spain, France)",
+        "family in the U.S.",
+        "friends in the U.S.",
+        "family in other West African countries",
+        "friends in other West African countries"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "marital_status",
+      "context": "Marital status and dependents can constrain or facilitate different types of migration",
+      "sub_items": [
+        "marital status",
+        "number of dependents"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "region_of_residence",
+      "context": "Urban (Nouakchott/Nouadhibou) vs. rural; specific ecological zones (Senegal River valley vs. Saharan interior); areas affected by drought/desertification or land degradation",
+      "sub_items": [
+        "urban vs. rural residence",
+        "ecological zone (e.g., Senegal River valley, Saharan interior)",
+        "exposure to drought/desertification",
+        "land degradation in area of residence"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q13",
+      "selected_text": "Is the area where you live urban, rural, or a camp?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "ethnic_group",
+      "context": "Whether the respondent identifies as White Moor (Bidhan), Haratine (Afro-Arab), or Black African (Pulaar, Soninke, Wolof) affects both push factors (discrimination, land access) and destination preferences",
+      "sub_items": [
+        "White Moor (Bidhan)",
+        "Haratine (Afro-Arab)",
+        "Black African (Pulaar, Soninke, Wolof)"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "migration_history",
+      "context": "Whether household members have previously attempted or completed migration",
+      "sub_items": [
+        "previous migration attempt by household member",
+        "completed migration by household member"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "economic_dissatisfaction",
+      "context": "Perceived gap between current living standards and expected/desired standards",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q101",
+      "selected_text": "How would you evaluate the current economic situation in your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "political_efficacy",
+      "context": "Perceptions of governance, corruption, or discrimination (particularly relevant given Mauritania's history of ethnic tensions and slavery abolition)",
+      "sub_items": [
+        "perceptions of governance",
+        "perceptions of corruption",
+        "perceptions of discrimination"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q210",
+      "selected_text": "To what extent do you think there is corruption within national state agencies and institutions in your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "environmental_stress",
+      "context": "Direct experience with land degradation, erratic rainfall, or resource scarcity—major drivers in the Sahel",
+      "sub_items": [
+        "experience with land degradation",
+        "experience with erratic rainfall",
+        "experience with resource scarcity"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q540B_3",
+      "selected_text": "To what extent does water scarcity impact your everyday life?",
+      "n_candidates": 17,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "risk_tolerance",
+      "context": "Psychological disposition toward uncertainty (relevant given dangerous migration routes through the Sahara and Atlantic)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "passport_access",
+      "context": "Legal ability to leave",
+      "sub_items": [
+        "possession of passport or travel documents"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q104C",
+      "selected_text": "Would you consider leaving your country even if you did not have the required papers?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "language_skills",
+      "context": "French, Arabic, or Spanish proficiency (affects destination feasibility)",
+      "sub_items": [
+        "French proficiency",
+        "Arabic proficiency",
+        "Spanish proficiency"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1012C_MOR",
+      "selected_text": "Do you speak a language other than Arabic?",
+      "n_candidates": 3,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "information_access",
+      "context": "Exposure to media/images of life abroad, migration information campaigns",
+      "sub_items": [
+        "exposure to media about life abroad",
+        "exposure to images of life abroad",
+        "exposure to migration information campaigns"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q421",
+      "selected_text": "What is your primary source of information to follow breaking news as events unfold?",
+      "n_candidates": 20,
+      "disambig_raw": "\nL"
+    }
+  ]
+}

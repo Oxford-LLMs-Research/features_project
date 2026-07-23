@@ -1,0 +1,168 @@
+{
+  "survey": "latinobarometer",
+  "target": "SEXO",
+  "country": "Colombia",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 12,
+  "n_piped": 10,
+  "n_mapped": 1,
+  "n_none": 9,
+  "n_bundled": 3,
+  "type_counts": {
+    "respondent_attribute": 10,
+    "instrument_methodology": 2
+  },
+  "mapped_codes": [
+    "REEDAD"
+  ],
+  "features": [
+    {
+      "feature": "sex_assigned_at_birth",
+      "context": "Medical records or birth certificates (though these are often private and may not match current identity)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "gender_identity",
+      "context": "Self-identification (the only reliable predictor)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "gender_expression",
+      "context": "Gender presentation (clothing, hairstyle, grooming, voice, pronouns used by others)",
+      "sub_items": [
+        "clothing",
+        "hairstyle",
+        "grooming",
+        "voice",
+        "pronouns_used_by_others"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "name",
+      "context": "Name (gendered naming conventions vary by culture)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "survey_context",
+      "context": "Medical surveys trigger biological interpretations; social surveys may trigger identity-based answers",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "cultural_background",
+      "context": "Different societies categorize sex/gender differently (e.g., some Indigenous cultures recognize third genders; some administrative systems only recognize binary options)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age_cohort",
+      "context": "Younger respondents more likely to distinguish 'sex' from 'gender' or reject binary options",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REEDAD",
+      "selected_text": "Which age group do you belong to?",
+      "n_candidates": 7,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "previous_survey_responses",
+      "context": "Answers to gendered questions (e.g., 'Are you the mother or father of any children?')",
+      "sub_items": [
+        "answers_to_gendered_questions",
+        "responses_to_gender_identity_questions"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "chromosomal_makeup",
+      "context": "Chromosomal makeup (XX, XY, variations)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "hormone_levels",
+      "context": "Hormone levels",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "anatomy",
+      "context": "Anatomy",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "proxy_variables",
+      "context": "Proxy variables like name-gendering algorithms or voice analysis, but you must acknowledge these produce misclassification errors",
+      "sub_items": [
+        "name-gendering_algorithms",
+        "voice_analysis"
+      ],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

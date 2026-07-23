@@ -1,0 +1,353 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q15",
+  "country": "Angola",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 27,
+  "n_piped": 24,
+  "n_mapped": 15,
+  "n_none": 4,
+  "n_bundled": 5,
+  "type_counts": {
+    "respondent_attribute": 24,
+    "base_rate_prior": 3
+  },
+  "mapped_codes": [
+    "Q19A",
+    "Q89B",
+    "Q37F",
+    "Q33C",
+    "Q28",
+    "Q23",
+    "Q9A",
+    "Q94",
+    "Q27C",
+    "Q25",
+    "Q37A",
+    "Q14C",
+    "Q101",
+    "Q37K",
+    "Q84C"
+  ],
+  "features": [
+    {
+      "feature": "left_right_economic_ideology",
+      "context": "extremists on both ends often favor banning opposing groups",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 14,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "libertarian_authoritarian_dimension",
+      "context": "more predictive than left-right for this specific question",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 12,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "partisan_intensity",
+      "context": "strong partisans more likely to support banning out-group organizations",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q89B",
+      "selected_text": "Which political party do you feel close to?",
+      "n_candidates": 18,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "affective_polarization",
+      "context": "strong partisans more likely to support banning out-group organizations",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37F",
+      "selected_text": "How much do you trust opposition political parties?",
+      "n_candidates": 7,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "populist_attitudes",
+      "context": "populists often support state action against 'elite' institutions",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q33C",
+      "selected_text": "In your opinion, how often, in this country does the president ignore Parliament and just do what he wants?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "right_wing_authoritarianism",
+      "context": "strong predictors of willingness to restrict civil liberties",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q28",
+      "selected_text": "Which of the following statements is closest to your view?\nStatement 1: Since the country's president was elected to lead the country, they should not be bound by laws or court decisions that the country's president thinks are wrong.\nStatement 2: The the country's president must always obey the laws and the courts, even if they think they are wrong?",
+      "n_candidates": 20,
+      "disambig_raw": "\nT"
+    },
+    {
+      "feature": "social_dominance_orientation",
+      "context": "strong predictors of willingness to restrict civil liberties",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 20,
+      "disambig_raw": "\nL"
+    },
+    {
+      "feature": "need_for_cognitive_closure",
+      "context": "preference for certainty predicts support for Statement 1",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "intolerance_of_ambiguity",
+      "context": "preference for certainty predicts support for Statement 1",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q23",
+      "selected_text": "Which of these three statements is closest to your own opinion? Statement 1: Democracy is preferable to any other kind of government. Statement 2: In some circumstances, a non-democratic government can be preferable. Statement 3: For someone like me, it doesn't matter what kind of government we have?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "openness_to_experience",
+      "context": "negatively correlated with support for banning organizations",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q9A",
+      "selected_text": "In this country, how free are you: to say what you think?",
+      "n_candidates": 5,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "education_level",
+      "context": "particularly college education, which correlates strongly with political tolerance",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_knowledge",
+      "context": "sophisticated respondents recognize implications for their own side",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q27C",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: After losing an election, opposition parties should monitor and criticize the government in order to hold it accountable. Statement 2: Once an election is over, opposition parties and politicians should accept defeat and cooperate with government to help it develop the country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nK"
+    },
+    {
+      "feature": "commitment_to_democratic_norms",
+      "context": "vs. procedural flexibility ('if the outcome is good, any means are justified')",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q23",
+      "selected_text": "Which of these three statements is closest to your own opinion? Statement 1: Democracy is preferable to any other kind of government. Statement 2: In some circumstances, a non-democratic government can be preferable. Statement 3: For someone like me, it doesn't matter what kind of government we have?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "procedural_flexibility",
+      "context": "'if the outcome is good, any means are justified'",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "support_for_pluralism",
+      "context": "support for pluralism specifically",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q25",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: Political parties create division and confusion; it is therefore unnecessary to have many political parties in Kenya. Statement 2: Many political parties are needed to make sure that Kenyans have real choices in who governs them?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "institutional_trust",
+      "context": "high trust in current government predicts Statement 1; low trust predicts Statement 2",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37A",
+      "selected_text": "How much do you trust the president?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "perceived_threat_level",
+      "context": "external threats or internal disorder increase willingness to sacrifice liberties",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q14C",
+      "selected_text": "During the last national election campaign, how much did you personally fear becoming a victim of political intimidation or violence?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "system_justification",
+      "context": "belief that current social arrangements are fair and legitimate",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q23",
+      "selected_text": "Which of these three statements is closest to your own opinion? Statement 1: Democracy is preferable to any other kind of government. Statement 2: In some circumstances, a non-democratic government can be preferable. Statement 3: For someone like me, it doesn't matter what kind of government we have?",
+      "n_candidates": 11,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "minority_group_status",
+      "context": "racial, religious, sexual minorities typically favor Statement 2 due to vulnerability",
+      "sub_items": [
+        "racial_minority_status",
+        "religious_minority_status",
+        "sexual_minority_status"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q101",
+      "selected_text": "How would you describe your racial or ethnic background?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "religiosity",
+      "context": "often correlate with support for moral conformity imposed by state",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37K",
+      "selected_text": "How much do you trust religious leaders?",
+      "n_candidates": 15,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "fundamentalism",
+      "context": "often correlate with support for moral conformity imposed by state",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37K",
+      "selected_text": "How much do you trust religious leaders?",
+      "n_candidates": 7,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "national_identity_strength",
+      "context": "ethnic vs. civic nationalism",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q84C",
+      "selected_text": "Do you identify more as a citizen of your country or as a member of your ethnic group?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "nationalism_type",
+      "context": "ethnic vs. civic nationalism",
+      "sub_items": [
+        "ethnic_nationalism",
+        "civic_nationalism"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q84C",
+      "selected_text": "Do you identify more as a citizen of your country or as a member of your ethnic group?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "interpretation_of_policies",
+      "context": "how they interpret 'goes against its policies'—do they imagine: terrorist organizations? opposition political parties? labor unions? religious minorities?",
+      "sub_items": [
+        "mental_reference_to_terrorist_organizations",
+        "mental_reference_to_opposition_parties",
+        "mental_reference_to_labor_unions",
+        "mental_reference_to_religious_minorities"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "democratic_consolidation",
+      "context": "newer democracies show less 'habituation' to civil liberties",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "historical_experience",
+      "context": "with totalitarianism vs. anarchic disorder",
+      "sub_items": [
+        "experience_with_totalitarianism",
+        "experience_with_anarchic_disorder"
+      ],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "legal_tradition",
+      "context": "common law vs. civil law traditions",
+      "sub_items": [
+        "common_law_tradition",
+        "civil_law_tradition"
+      ],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

@@ -1,0 +1,284 @@
+{
+  "survey": "arabbarometer",
+  "target": "Q501E_2",
+  "country": "Mauritania",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 20,
+  "n_piped": 18,
+  "n_mapped": 14,
+  "n_none": 4,
+  "n_bundled": 7,
+  "type_counts": {
+    "respondent_attribute": 17,
+    "instrument_methodology": 1,
+    "temporal_contextual": 1,
+    "base_rate_prior": 1
+  },
+  "mapped_codes": [
+    "Q1001",
+    "Q1002",
+    "Q1015",
+    "Q1005C",
+    "Q1003",
+    "Q13",
+    "Q551A",
+    "Q884A",
+    "Q412A",
+    "Q501D",
+    "Q266",
+    "Q432B",
+    "Q1012B2",
+    "QMOR7"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger volunteers may lean toward environmental, social justice, or skill-based causes; older adults might favor health, religious, or community-service organizations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1001",
+      "selected_text": "How old are you?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender",
+      "context": "Some causes show gender disparities in volunteer participation (e.g., more women in education/health, more men in sports/clubs).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1002",
+      "selected_text": "What is your gender?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income",
+      "context": "Affects availability and type of volunteering (e.g., pro bono professional services vs. hands-on community aid).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1015",
+      "selected_text": "What is your monthly household income in local currency?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "employment",
+      "context": "Affects availability and type of volunteering (e.g., pro bono professional services vs. hands-on community aid).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1005C",
+      "selected_text": "Are you looking for a job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "education_level",
+      "context": "Influences awareness of and access to certain causes (e.g., arts, advocacy, international NGOs).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1003",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "geographic_location",
+      "context": "Urban vs. rural settings offer different opportunities (e.g., urban: homeless shelters, cultural institutions; rural: agricultural, local conservation).",
+      "sub_items": [
+        "urban",
+        "rural"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q13",
+      "selected_text": "Is the area where you live urban, rural, or a camp?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "values_and_beliefs",
+      "context": "Political leaning, religiosity, and ethical priorities strongly predict cause alignment (e.g., religious volunteering, political activism).",
+      "sub_items": [
+        "political_leaning",
+        "religiosity",
+        "ethical_priorities"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q551A",
+      "selected_text": "Which of the following is the main pillar of human dignity?",
+      "n_candidates": 16,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "personal_experiences",
+      "context": "Health issues might lead to medical-cause volunteering; family background (e.g., immigration, military) can shape preferences.",
+      "sub_items": [
+        "health_issues",
+        "family_background"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q884A",
+      "selected_text": "In which of the following circumstances have you faced discrimination?",
+      "n_candidates": 14,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "social_networks",
+      "context": "People often volunteer through existing connections (friends, colleagues, religious groups).",
+      "sub_items": [
+        "friends",
+        "colleagues",
+        "religious_groups"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q412A",
+      "selected_text": "Which social media and text messaging services do you actively use?",
+      "n_candidates": 10,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "past_volunteering",
+      "context": "Previous involvement is a strong predictor of future cause choice.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q501D",
+      "selected_text": "In a typical month, do you volunteer your time to do unpaid work for or support a cause you care about?",
+      "n_candidates": 10,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "memberships",
+      "context": "Affiliation with organizations (e.g., alumni associations, professional groups) suggests aligned causes.",
+      "sub_items": [
+        "alumni_associations",
+        "professional_groups"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 12,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "donations",
+      "context": "Affiliation with organizations (e.g., alumni associations, professional groups) suggests aligned causes.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q266",
+      "selected_text": "In a typical month, do you donate money to a charity or to people in need?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "What news/issues they follow can signal passion areas (e.g., climate change, human rights).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q432B",
+      "selected_text": "What is the main topic that the social media influencers you follow talk about most of the time?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "available_time",
+      "context": "Retirees vs. students vs. full-time employees have different capacities.",
+      "sub_items": [
+        "retirees",
+        "students",
+        "full-time_employees"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "skills",
+      "context": "Teachers tutor; healthcare workers volunteer at clinics; lawyers offer legal aid.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "profession",
+      "context": "Teachers tutor; healthcare workers volunteer at clinics; lawyers offer legal aid.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 17,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "motivation_type",
+      "context": "Instrumental (career development) vs. altruistic (helping others) vs. social (connecting with people).",
+      "sub_items": [
+        "instrumental",
+        "altruistic",
+        "social"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1012B2",
+      "selected_text": "Which of the following best describes how you consider yourself?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "question_framing",
+      "context": "If the survey lists specific categories (e.g., “environment,” “education”), the order and wording may bias responses.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "survey_timing",
+      "context": "Current events (e.g., a natural disaster, an election) can temporarily shift volunteer focus.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "QMOR7",
+      "selected_text": "Did you participate in any efforts to support earthquake victims?",
+      "n_candidates": 13,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "base_rate_most_common_cause",
+      "context": "Without any data, the best guess might be the most common volunteer cause nationally (in the U.S., often religious or educational organizations).",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

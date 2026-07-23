@@ -1,0 +1,162 @@
+{
+  "survey": "asianbarometer",
+  "target": "SE2",
+  "country": "Mongolia",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 11,
+  "n_piped": 8,
+  "n_mapped": 4,
+  "n_none": 4,
+  "n_bundled": 3,
+  "type_counts": {
+    "respondent_attribute": 8,
+    "instrument_methodology": 2,
+    "base_rate_prior": 1
+  },
+  "mapped_codes": [
+    "SE3",
+    "level",
+    "SE5",
+    "SE9c"
+  ],
+  "features": [
+    {
+      "feature": "given_name",
+      "context": "Mongolian names are strongly gendered (e.g., -tsetseg [flower], -maa/-ee suffixes for women; Bat-, Erdene for men, though some are unisex)",
+      "sub_items": [
+        "name_suffixes",
+        "specific_name_meanings"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "biological_sex",
+      "context": "Mongolia has a slightly female-skewed sex ratio (approx. 50.8% female, 49.2% male), so without other information, you'd predict 'female' slightly better than chance",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "voice_or_appearance",
+      "context": "Traditional dress (deel) and hair length provide strong signals (if phone or in-person)",
+      "sub_items": [
+        "traditional_dress",
+        "hair_length"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age_cohort",
+      "context": "Younger Mongolians (especially in Ulaanbaatar) are more likely to be familiar with non-binary gender categories, though explicit transgender/non-binary self-identification remains rare in surveys",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE3",
+      "selected_text": "What is your year of birth?",
+      "n_candidates": 6,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Urban respondents may interpret 'gender' differently than rural herders who operate within stricter traditional gender roles",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "level",
+      "selected_text": "Do you live in a rural or urban area?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Mongolian women now complete higher education at higher rates than men; education level correlates with gender in demographic surveys",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE5",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "occupation",
+      "context": "Mining, herding, and military work are male-dominated; education, healthcare, and retail are female-dominated",
+      "sub_items": [
+        "mining",
+        "herding",
+        "military",
+        "education",
+        "healthcare",
+        "retail"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE9c",
+      "selected_text": "Which type of job do you have now?",
+      "n_candidates": 19,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "self_identification",
+      "context": "A small but growing number of Mongolians identify as transgender or non-binary (LGBTQ+ activism has increased since the 2010s)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "survey_mode",
+      "context": "Phone surveys (common in Mongolia's vast rural areas) may yield different response patterns than face-to-face due to privacy concerns",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "language_framing",
+      "context": "The Mongolian term 'хүйс' (khüis) can mean both biological sex and gender, potentially causing ambiguity",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "base_rate_prediction",
+      "context": "If you knew nothing else, predict 'Female' (slightly higher probability), but confidence intervals would be wide (roughly 49-51%)",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

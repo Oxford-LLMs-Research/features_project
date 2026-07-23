@@ -1,0 +1,302 @@
+{
+  "survey": "ess_wave_11",
+  "target": "stfgov",
+  "country": "Austria",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 21,
+  "n_piped": 21,
+  "n_mapped": 13,
+  "n_none": 7,
+  "n_bundled": 9,
+  "type_counts": {
+    "respondent_attribute": 18,
+    "temporal_contextual": 3
+  },
+  "mapped_codes": [
+    "clsprty",
+    "lrscale",
+    "trstprl",
+    "agea",
+    "edlvdis",
+    "hinctnta",
+    "domicil",
+    "uempla",
+    "stfedu",
+    "nwspol",
+    "polintr",
+    "dscrgrp",
+    "ipfrulea"
+  ],
+  "features": [
+    {
+      "feature": "party_identification",
+      "context": "Strong predictor of satisfaction with the incumbent government.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "clsprty",
+      "selected_text": "Is there any political party you feel closer to than the others?",
+      "n_candidates": 20,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "Especially if the government’s policies align or clash with their ideological preferences.",
+      "sub_items": [
+        "liberal",
+        "conservative",
+        "moderate"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "voting_behavior",
+      "context": "Did they vote for the current ruling party/coalition?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "trust_in_political_institutions",
+      "context": "General trust in government, parliament, or the political system.",
+      "sub_items": [
+        "trust in government",
+        "trust in parliament",
+        "trust in the political system"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trstprl",
+      "selected_text": "How much do you personally trust your country's parliament?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age",
+      "context": "Younger and older cohorts may have different expectations and experiences with government performance.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Can shape critical attitudes toward government actions.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvdis",
+      "selected_text": "What is the highest level of education you have completed in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income",
+      "context": "Affects perception of economic policies, taxation, and social services.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 17,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "socioeconomic_status",
+      "context": "Affects perception of economic policies, taxation, and social services.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "geographic_location",
+      "context": "Government performance may be perceived differently based on local conditions and regional policies.",
+      "sub_items": [
+        "urban vs. rural",
+        "region"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 4,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "employment_status",
+      "context": "Especially if government policies affect job markets or social benefits.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "uempla",
+      "selected_text": "In the past 7 days, were you unemployed and actively looking for a job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "views_on_important_problems",
+      "context": "If the respondent prioritizes an issue where the government is seen as failing, satisfaction will likely be low.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "economic_perceptions",
+      "context": "Personal and national economic outlook (e.g., “Is your financial situation better or worse than a year ago?”).",
+      "sub_items": [
+        "personal economic outlook",
+        "national economic outlook"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 14,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "evaluation_of_policy_areas",
+      "context": "Health care, education, security, immigration, environment, etc.",
+      "sub_items": [
+        "health care",
+        "education",
+        "security",
+        "immigration",
+        "environment"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "stfedu",
+      "selected_text": "How would you rate the state of education in this country today?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "main_news_sources",
+      "context": "Media framing and partisan media ecosystems strongly influence perceptions of government performance.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "frequency_of_news_exposure",
+      "context": "More attention to politics may increase either criticism or support, depending on context.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "nwspol",
+      "selected_text": "On a typical day, about how much time do you spend watching, reading, or listening to news about politics and current affairs?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_interest",
+      "context": "More interested individuals may have more stable and ideologically driven evaluations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "polintr",
+      "selected_text": "How interested would you say you are in politics?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "social_identity",
+      "context": "Identification with social, ethnic, or religious groups that are positively or negatively affected by government actions.",
+      "sub_items": [
+        "social group membership",
+        "ethnic group membership",
+        "religious group membership"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "dscrgrp",
+      "selected_text": "Are you a member of a group that faces discrimination in this country?",
+      "n_candidates": 5,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "personality_traits",
+      "context": "Such as authoritarianism, trust in others, or negativity bias.",
+      "sub_items": [
+        "authoritarianism",
+        "trust in others",
+        "negativity bias"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "ipfrulea",
+      "selected_text": "How much does this description sound like you: \"You believe people should do what they're told and follow rules at all times, even when no one is watching\"?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "timing_of_survey",
+      "context": "Is it right after a scandal, a major policy success, or an election?",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "political_system_type",
+      "context": "Presidential vs. parliamentary, two-party vs. multi-party, etc.",
+      "sub_items": [
+        "presidential vs. parliamentary",
+        "two-party vs. multi-party"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "incumbent_tenure_and_popularity",
+      "context": "How long the current administration has been in power and recent approval trends.",
+      "sub_items": [
+        "incumbent's tenure",
+        "incumbent's popularity",
+        "recent approval trends"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

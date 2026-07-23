@@ -1,0 +1,239 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q18",
+  "country": "Angola",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 16,
+  "n_piped": 16,
+  "n_mapped": 11,
+  "n_none": 5,
+  "n_bundled": 8,
+  "type_counts": {
+    "respondent_attribute": 16
+  },
+  "mapped_codes": [
+    "Q1",
+    "Q94",
+    "Q89B",
+    "Q37A",
+    "Q37K",
+    "Q46I",
+    "Q4B",
+    "Q71",
+    "Q84A",
+    "Q8",
+    "Q14B"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Older respondents who experienced war trauma often prioritize stability and 'getting things done,' while younger 'post-war generation' respondents (under 35) typically show stronger preference for accountability and democratic oversight.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates with preference for Statement 2 (accountability), while lower education often predicts preference for Statement 1 (efficiency).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Urban residents (particularly in Luanda) with greater access to information and exposure to governance failures typically favor accountability; rural residents often prioritize tangible service delivery over procedural accountability.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 15,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "employment_sector",
+      "context": "Those in the informal economy or dependent on state patronage networks often favor efficient delivery over accountability mechanisms.",
+      "sub_items": [
+        "informal_economy",
+        "state_patronage_dependence"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "partisan_affiliation",
+      "context": "Support for the ruling MPLA (Movimento Popular de Libertação de Angola) strongly predicts choosing Statement 1, while opposition supporters (UNITA) or independents favor Statement 2.",
+      "sub_items": [
+        "MPLA_support",
+        "UNITA_support",
+        "independent"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q89B",
+      "selected_text": "Which political party do you feel close to?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "trust_in_president_institutions",
+      "context": "High trust in João Lourenço or state institutions predicts preference for efficiency; low trust predicts demand for accountability.",
+      "sub_items": [
+        "trust_in_president",
+        "trust_in_state_institutions"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37A",
+      "selected_text": "How much do you trust the president?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "political_interest",
+      "context": "Higher political engagement and knowledge typically correlate with accountability preferences.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37K",
+      "selected_text": "How much do you trust religious leaders?",
+      "n_candidates": 17,
+      "disambig_raw": "\nO"
+    },
+    {
+      "feature": "perceived_government_performance",
+      "context": "Those satisfied with service delivery (electricity, water, roads) are more willing to sacrifice accountability for efficiency.",
+      "sub_items": [
+        "satisfaction_with_electricity",
+        "satisfaction_with_water",
+        "satisfaction_with_roads"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q46I",
+      "selected_text": "How well or badly would you say the current government is at providing water and sanitation services?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "personal_economic_situation",
+      "context": "Economic distress often increases preference for 'strong' government that delivers results quickly.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q4B",
+      "selected_text": "In general, how would you describe your own present living conditions?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "perceived_corruption",
+      "context": "High exposure to or perception of corruption strongly predicts preference for Statement 2 (accountability), as citizens see accountability as a remedy for graft.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "dependence_on_state_resources",
+      "context": "Those receiving government subsidies or public sector employment may favor efficiency to maintain benefits.",
+      "sub_items": [
+        "government_subsidies",
+        "public_sector_employment"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q71",
+      "selected_text": "Which statement do you agree with more? (1) The government should focus on creating jobs and increasing incomes, even if that means increasing pollution. (2) The government should focus on preventing pollution and protecting the environment, even if it causes job losses or disruptions?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "regional_ethnic_identity",
+      "context": "Respondents from the Central Highlands (Ovimbundu areas, traditional UNITA strongholds) typically favor accountability more than those from Luanda or northern regions (Mbundu areas, MPLA strongholds).",
+      "sub_items": [
+        "Central_Highlands_residence",
+        "Ovimbundu_ethnicity",
+        "Luanda_residence",
+        "Mbundu_ethnicity"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q84A",
+      "selected_text": "What is your ethnic community or cultural group?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "war_exposure",
+      "context": "Direct experience with civil war violence (measured by displacement or combat in region) increases preference for stability and efficient governance.",
+      "sub_items": [
+        "displacement_due_to_war",
+        "combat_exposure_or_region"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Regular access to independent media, radio, or internet predicts accountability preferences; reliance on state media predicts efficiency preferences.",
+      "sub_items": [
+        "independent_media_access",
+        "radio_access",
+        "internet_access",
+        "state_media_reliance"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "social_network_composition",
+      "context": "Exposure to diverse political views through social ties affects preferences.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q8",
+      "selected_text": "When you get together with your friends or family, how often would you say you discuss political matters?",
+      "n_candidates": 7,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "perceived_survey_anonymity",
+      "context": "Social desirability bias may lead respondents to overstate support for accountability (Statement 2) if they fear government surveillance, particularly in rural areas or among public sector workers.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q14B",
+      "selected_text": "How likely do you think it is that powerful people can find out how you voted, even though there is supposed to be a secret ballot in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    }
+  ]
+}

@@ -1,0 +1,239 @@
+{
+  "survey": "arabbarometer",
+  "target": "Q630",
+  "country": "Mauritania",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 18,
+  "n_piped": 17,
+  "n_mapped": 11,
+  "n_none": 6,
+  "n_bundled": 2,
+  "type_counts": {
+    "respondent_attribute": 16,
+    "base_rate_prior": 1,
+    "temporal_contextual": 1
+  },
+  "mapped_codes": [
+    "Q601_18B",
+    "Q503A_2",
+    "Q1002",
+    "Q1001",
+    "Q1003",
+    "Q609",
+    "Q1010",
+    "Q13",
+    "Q1006B_2",
+    "Q432B",
+    "Q631"
+  ],
+  "features": [
+    {
+      "feature": "own_attitude",
+      "context": "Their personal agreement with the statement (strongest predictor; those who agree will estimate higher prevalence)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "gender_role_attitudes",
+      "context": "Their gender role attitudes more broadly (traditional vs. egalitarian worldview)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q601_18B",
+      "selected_text": "How much do you agree or disagree with the statement: 'A man and a woman should have equal say in decisions concerning the family'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nL"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "Their political ideology (conservative vs. progressive)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q503A_2",
+      "selected_text": "Which political party, if any, do you feel closest to?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "gender",
+      "context": "Women often perceive less support for male dominance than men do, though this varies by context",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1002",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age",
+      "context": "Exposure to different normative eras regarding women in leadership",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1001",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates with exposure to egalitarian norms and different social circles",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1003",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 18,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "religious_tradition_and_practice",
+      "context": "Traditional religious adherence often predicts higher estimates of traditionalist views",
+      "sub_items": [
+        "religious tradition",
+        "religious practice"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q609",
+      "selected_text": "In general, would you describe yourself as religious, somewhat religious, or not religious?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "socioeconomic_status",
+      "context": "Socioeconomic status",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1010",
+      "selected_text": "What is your current social status?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "geographic_context",
+      "context": "Urban vs. rural residence, region within the country",
+      "sub_items": [
+        "urban vs. rural residence",
+        "region within the country"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q13",
+      "selected_text": "Is the area where you live urban, rural, or a camp?",
+      "n_candidates": 7,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "professional_environment",
+      "context": "Working in male-dominated vs. gender-balanced sectors",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1006B_2",
+      "selected_text": "Which of the following best describes the industry you work in?",
+      "n_candidates": 20,
+      "disambig_raw": "\nK"
+    },
+    {
+      "feature": "social_network_composition",
+      "context": "Homophily effects—people estimate based on their immediate circle",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Exposure to feminist discourse vs. traditionalist or backlash narratives",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q432B",
+      "selected_text": "What is the main topic that the social media influencers you follow talk about most of the time?",
+      "n_candidates": 15,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "awareness_of_women_in_politics",
+      "context": "Visibility of female leaders can signal changing norms",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q631",
+      "selected_text": "To what extent do you believe that having women in political leadership roles advances the women's rights agenda in your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "exposure_to_public_opinion_data",
+      "context": "If they know actual statistics on gender attitudes",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "numeracy_anchoring",
+      "context": "Some respondents anchor on 50%; others use availability heuristics based on memorable examples",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "social_desirability_bias_awareness",
+      "context": "Whether they adjust estimates to account for others hiding 'politically incorrect' views",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 19,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "actual_percentage_holding_view",
+      "context": "Actual percentage of citizens who hold this view in their country",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "recent_salient_events",
+      "context": "Recent salient events (e.g., election of first female president, #MeToo movements, or backlash against gender quotas)",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 18,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

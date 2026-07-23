@@ -1,0 +1,265 @@
+{
+  "survey": "arabbarometer",
+  "target": "Q104",
+  "country": "Mauritania",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 19,
+  "n_piped": 19,
+  "n_mapped": 13,
+  "n_none": 6,
+  "n_bundled": 5,
+  "type_counts": {
+    "respondent_attribute": 18,
+    "temporal_contextual": 1
+  },
+  "mapped_codes": [
+    "Q1001",
+    "Q1003",
+    "Q1005",
+    "Q1015A",
+    "Q1012C_MOR",
+    "Q210",
+    "Q204A_3",
+    "Q104B",
+    "Q1012B2",
+    "Q102",
+    "Q1014C",
+    "Q104B_TUN",
+    "Q1A_PAL"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger respondents (particularly 18-35) typically report higher emigration aspirations due to lower sunk costs and longer potential return on migration investment",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1001",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "education_level",
+      "context": "Secondary/university education increases aspirations (by raising awareness of opportunities and capability to migrate), though the very highly educated may have satisfactory domestic options",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1003",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "employment_status",
+      "context": "Unemployment or underemployment strongly predicts emigration considerations, particularly among the educated unemployed",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1005",
+      "selected_text": "Are you currently employed, self-employed, retired, a housewife, a student, unemployed and/or looking for work, or something else?",
+      "n_candidates": 20,
+      "disambig_raw": "\nP"
+    },
+    {
+      "feature": "income_wealth",
+      "context": "Relative deprivation matters more than absolute poverty; those who feel economically frustrated relative to their expectations or reference groups show higher aspirations",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1015A",
+      "selected_text": "Is your net monthly household income less than or greater than the median income in your country?",
+      "n_candidates": 17,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "family_friends_abroad",
+      "context": "Having close ties in destination countries is one of the strongest predictors (reduces costs, increases information, provides reception assistance)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "previous_international_experience",
+      "context": "Having lived, studied, or traveled abroad lowers psychological barriers to emigration",
+      "sub_items": [
+        "lived_abroad",
+        "studied_abroad",
+        "traveled_abroad"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "transnational_connectivity",
+      "context": "Internet access, foreign language proficiency, and consumption of foreign media",
+      "sub_items": [
+        "internet_access",
+        "foreign_language_proficiency",
+        "consumption_of_foreign_media"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1012C_MOR",
+      "selected_text": "Do you speak a language other than Arabic?",
+      "n_candidates": 4,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "economic_dissatisfaction",
+      "context": "Perceptions of blocked mobility, corruption affecting business opportunities, or lack of meritocracy",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q210",
+      "selected_text": "To what extent do you think there is corruption within national state agencies and institutions in your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "political_dissatisfaction",
+      "context": "Trust in government, perceived corruption, democratic deficits, or safety concerns (crime/violence)",
+      "sub_items": [
+        "trust_in_government",
+        "perceived_corruption",
+        "democratic_deficits",
+        "safety_concerns"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q204A_3",
+      "selected_text": "How satisfied are you with the government's overall performance in your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "life_satisfaction",
+      "context": "General happiness and place attachment serve as inhibitors",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "relative_deprivation",
+      "context": "How respondents compare their living standards to diaspora members, former classmates who emigrated, or imagined standards in destination countries",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "destination_country_knowledge",
+      "context": "Awareness of specific opportunities abroad (salary differentials, visa accessibility)",
+      "sub_items": [
+        "salary_differentials_knowledge",
+        "visa_accessibility_knowledge"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q104B",
+      "selected_text": "Which country are you thinking of emigrating to?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "risk_tolerance",
+      "context": "Willingness to trade certainty for potential advancement",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "cosmopolitanism_openness",
+      "context": "Identification with global culture versus national attachment",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1012B2",
+      "selected_text": "Which of the following best describes how you consider yourself?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "future_expectations",
+      "context": "Optimism/pessimism about personal and national economic trajectories",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q102",
+      "selected_text": "Compared with now, how do you think the economic situation in your country will be in the next 2–3 years?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "household_composition",
+      "context": "Presence of young children or elderly care responsibilities typically reduces mobility aspirations (though may increase aspirations for some household members to migrate alone)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1014C",
+      "selected_text": "Including yourself, how many family members live in this household on a permanent basis?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "partner_preferences",
+      "context": "If partnered, whether the partner shares emigration willingness",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 16,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "migration_capabilities",
+      "context": "Financial resources, legal eligibility for visas, occupational portability to distinguish between 'wishful thinking' and genuine potential emigrants",
+      "sub_items": [
+        "financial_resources",
+        "legal_eligibility_for_visas",
+        "occupational_portability"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q104B_TUN",
+      "selected_text": "Are you preparing to emigrate?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "contextual_environment",
+      "context": "Whether the respondent lives in a conflict zone, high-income OECD country, or rapidly developing economy with rising inequality",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q1A_PAL",
+      "selected_text": "Do you live in the West Bank or Gaza?",
+      "n_candidates": 20,
+      "disambig_raw": "\nQ"
+    }
+  ]
+}

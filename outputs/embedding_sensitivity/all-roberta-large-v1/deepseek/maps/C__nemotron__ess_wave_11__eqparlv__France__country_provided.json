@@ -1,0 +1,210 @@
+{
+  "survey": "ess_wave_11",
+  "target": "eqparlv",
+  "country": "France",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 16,
+  "n_piped": 16,
+  "n_mapped": 12,
+  "n_none": 4,
+  "n_bundled": 0,
+  "type_counts": {
+    "respondent_attribute": 16
+  },
+  "mapped_codes": [
+    "icgndra",
+    "agea",
+    "edlvdis",
+    "chldhhe",
+    "hinctnta",
+    "isco08",
+    "domicil",
+    "eqwrkbg",
+    "lrscale",
+    "trstprl",
+    "trwrkmw",
+    "tporgwk"
+  ],
+  "features": [
+    {
+      "feature": "gender",
+      "context": "Men and women may differ in their views on shared parental leave, given differing lived experiences and social expectations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "icgndra",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age",
+      "context": "Younger generations (especially under 40) in France tend to hold more egalitarian views on parenting and work.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education is often associated with more progressive attitudes toward gender equality in caregiving.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvdis",
+      "selected_text": "What is the highest level of education you have completed in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "parental_status",
+      "context": "Whether the respondent has children, especially young children, could influence their perception of practical challenges.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "chldhhe",
+      "selected_text": "Have you ever had any children — your own, stepchildren, adopted children, foster children, or a partner's children — living in your household?",
+      "n_candidates": 20,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "income",
+      "context": "Economic security and job type may affect support for mandatory leave policies (e.g., those in precarious work might worry about employer backlash).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 17,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "occupation",
+      "context": "Economic security and job type may affect support for mandatory leave policies (e.g., those in precarious work might worry about employer backlash).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "isco08",
+      "selected_text": "What is or was the job title of your main job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "geographic_location",
+      "context": "Urban vs. rural residence (urban areas in France are often more progressive on gender norms).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 15,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender_role_attitudes",
+      "context": "Beliefs about whether men and women should have equal roles in childcare vs. traditional divisions.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "eqwrkbg",
+      "selected_text": "Overall, how good or bad is it for family life in this country if equal numbers of women and men are in paid work?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_orientation",
+      "context": "Left-leaning voters in France generally support stronger state intervention for gender equality; right-leaning voters may emphasize family choice or traditional roles.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "trust_in_government",
+      "context": "Support for a mandatory policy (vs. optional) depends on views about state intervention in family life.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trstprl",
+      "selected_text": "How much do you personally trust your country's parliament?",
+      "n_candidates": 20,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "perceived_workplace_consequences",
+      "context": "Concerns about career impacts, especially for fathers taking extended leave.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trwrkmw",
+      "selected_text": "Have you ever been treated unfairly in hiring, pay, or promotions at work because of your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nO"
+    },
+    {
+      "feature": "personal_experience_with_parental_leave",
+      "context": "If the respondent or their partner has used leave, this could shape their views (positively or negatively).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "knowledge_of_existing_french_policy",
+      "context": "Familiarity with current French parental leave policies may affect desire for further reform.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "sector_of_employment",
+      "context": "Public-sector employees in France often have more protected leave conditions and may be more supportive.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "tporgwk",
+      "selected_text": "What type of organization do you work for, or did you work for?",
+      "n_candidates": 20,
+      "disambig_raw": "\nM"
+    },
+    {
+      "feature": "peer_family_norms",
+      "context": "Whether their social circle values shared parenting.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "exposure_to_egalitarian_arrangements",
+      "context": "Knowing families that have split leave equally could increase favorability.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 12,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

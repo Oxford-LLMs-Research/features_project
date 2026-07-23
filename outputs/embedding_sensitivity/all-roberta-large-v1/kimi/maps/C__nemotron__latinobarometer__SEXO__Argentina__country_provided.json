@@ -1,0 +1,110 @@
+{
+  "survey": "latinobarometer",
+  "target": "SEXO",
+  "country": "Argentina",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 7,
+  "n_piped": 4,
+  "n_mapped": 1,
+  "n_none": 3,
+  "n_bundled": 2,
+  "type_counts": {
+    "respondent_attribute": 4,
+    "base_rate_prior": 2,
+    "instrument_methodology": 1
+  },
+  "mapped_codes": [
+    "P37CSN.F"
+  ],
+  "features": [
+    {
+      "feature": "name",
+      "context": "Argentine naming conventions follow Spanish patterns where names are strongly gendered; with access to their first name, you could predict correctly in >95% of cases.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "visual_or_auditory_cues",
+      "context": "Physical appearance, clothing, or voice pitch (if conducting in-person or phone surveys).",
+      "sub_items": [
+        "physical_appearance",
+        "clothing",
+        "voice_pitch"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "legal_documentation_status",
+      "context": "Someone with a traditionally male name might legally be female (or vice versa) if they've changed their documentation under Law 26,743.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "current_gender_presentation",
+      "context": "For maximum predictive accuracy, you need their current gender presentation or legal documentation status.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P37CSN.F",
+      "selected_text": "Do you agree or disagree that a person's gender change should be legally recognized on identity documents?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "population_sex_ratio",
+      "context": "Without individual data, the population sex ratio in Argentina is approximately 51% female, 49% male.",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "birth_sex_ratio",
+      "context": "Births: Roughly 105 males per 100 females (biological standard).",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "question_ambiguity_interpretation",
+      "context": "The question 'sex' (*sexo*) may be interpreted as biological sex, legal sex, or gender identity.",
+      "sub_items": [
+        "biological_sex",
+        "legal_sex",
+        "gender_identity"
+      ],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

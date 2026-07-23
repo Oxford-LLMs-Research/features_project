@@ -1,0 +1,279 @@
+{
+  "survey": "arabbarometer",
+  "target": "Q630",
+  "country": "Kuwait",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 20,
+  "n_piped": 20,
+  "n_mapped": 13,
+  "n_none": 6,
+  "n_bundled": 6,
+  "type_counts": {
+    "respondent_attribute": 20
+  },
+  "mapped_codes": [
+    "Q601_3",
+    "Q1002",
+    "Q1001",
+    "Q1003",
+    "Q609",
+    "Q622E_IRQ",
+    "Q1006B_2",
+    "Q1034",
+    "QKUW38",
+    "Q412A",
+    "QPAL6",
+    "Q501E_2",
+    "Q879"
+  ],
+  "features": [
+    {
+      "feature": "personal_agreement",
+      "context": "Their personal agreement with the statement 'men are better at political leadership than women'",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q601_3",
+      "selected_text": "How much do you agree or disagree with the statement: 'In general, men are better at political leadership than women'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "attitude_confidence",
+      "context": "Their confidence in that belief (stronger attitudes produce stronger projection)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "perceived_social_desirability",
+      "context": "Their perception of whether this belief is socially desirable (which may cause them to hide their true estimate or adjust it upward/downward to match perceived norms)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 13,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "gender",
+      "context": "Women may estimate lower consensus (due to personal disagreement and exposure to gender discrimination) or potentially higher consensus if they perceive patriarchal barriers as widely accepted. Men may overestimate agreement due to in-group bias.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1002",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age",
+      "context": "Older respondents may perceive higher consensus reflecting traditional norms; younger respondents may project liberalization trends or underestimate conservative sentiment.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1001",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates with egalitarian attitudes and exposure to global norms, likely lowering estimates of agreement.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1003",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "religiosity_or_conservatism",
+      "context": "Frequency of mosque attendance, adherence to traditional Islamic jurisprudence, or self-identified social conservatism (strong predictor in Gulf contexts).",
+      "sub_items": [
+        "mosque_attendance_frequency",
+        "adherence_to_traditional_islamic_jurisprudence",
+        "self_identified_social_conservatism"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q609",
+      "selected_text": "In general, would you describe yourself as religious, somewhat religious, or not religious?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "tribal_vs_hadar_background",
+      "context": "Tribal affiliations in Kuwait often correlate with more traditional gender role attitudes; urban merchant-class backgrounds may correlate with more cosmopolitan views.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q622E_IRQ",
+      "selected_text": "In your opinion, which of the following are challenging barriers to men entering the workplace in your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nO"
+    },
+    {
+      "feature": "citizenship_status",
+      "context": "Are they Kuwaiti citizens (who vote and participate in political culture) or expatriates (who may rely on stereotypes or limited social contact with citizens)?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "workplace_gender_composition",
+      "context": "Do they work in gender-segregated environments (ministries, oil sector) or mixed professional settings (private sector, universities)?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1006B_2",
+      "selected_text": "Which of the following best describes the industry you work in?",
+      "n_candidates": 20,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "political_discussion_networks",
+      "context": "Do they discuss politics with women? With conservatives? With activists?",
+      "sub_items": [
+        "discuss_politics_with_women",
+        "discuss_politics_with_conservatives",
+        "discuss_politics_with_activists"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 15,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "family_structure",
+      "context": "Presence of female relatives in professional/leadership roles; family voting patterns since women gained suffrage in 2005.",
+      "sub_items": [
+        "presence_of_female_relatives_in_leadership_roles",
+        "family_voting_patterns_since_2005"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1034",
+      "selected_text": "Which, if any, female members of your family have ever worked for pay?",
+      "n_candidates": 20,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "media_diet",
+      "context": "Consumption of conservative religious programming (which may emphasize traditional gender roles) vs. liberal Kuwaiti outlets (e.g., *Al-Qabas*, *Al-Jarida*) that cover female MPs and women's rights activism.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "QKUW38",
+      "selected_text": "Which daily Arabic-language Kuwaiti newspaper do you read most?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "social_media_exposure",
+      "context": "Exposure to progressive vs. conservative Kuwaiti Twitter/X or Instagram discourse (highly polarized on gender issues).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q412A",
+      "selected_text": "Which social media and text messaging services do you actively use?",
+      "n_candidates": 20,
+      "disambig_raw": "\nT"
+    },
+    {
+      "feature": "awareness_of_political_events",
+      "context": "Knowledge of female parliamentary candidates, the 2009 election of first female MPs, or recent National Assembly debates on gender segregation.",
+      "sub_items": [
+        "knowledge_of_female_parliamentary_candidates",
+        "knowledge_of_2009_female_mps_election",
+        "knowledge_of_recent_gender_segregation_debates"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "political_knowledge",
+      "context": "Awareness of actual survey data on gender attitudes in Kuwait (if they know the true percentage is, say, 40%, they may adjust toward that anchor).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "voting_behavior",
+      "context": "Do they vote? For Islamist candidates (who often emphasize traditional gender roles) or liberal/secular candidates?",
+      "sub_items": [
+        "vote_or_not",
+        "candidate_ideology_preference"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "QPAL6",
+      "selected_text": "If new presidential elections were held today and the competition was between Marwan Barghouti, Ismail Haniyeh, and Mahmoud Abbas, for whom would you vote?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "civil_society_participation",
+      "context": "Involvement in women's rights organizations, student unions, or tribal diwaniyas (male-dominated political salons).",
+      "sub_items": [
+        "involvement_in_women_s_rights_organizations",
+        "involvement_in_student_unions",
+        "involvement_in_tribal_diwaniyas"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q501E_2",
+      "selected_text": "Which category best describes the cause you volunteer for?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "need_for_social_conformity",
+      "context": "High-conformity individuals may estimate higher consensus regardless of personal belief, assuming their view is 'what everyone thinks.'",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q879",
+      "selected_text": "Which of these is the most widespread form of discrimination in your country?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "cognitive_sophistication",
+      "context": "Education level and numeracy affect ability to generate accurate percentage estimates vs. rough heuristics ('most people' vs. '30%').",
+      "sub_items": [
+        "numeracy"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1003",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

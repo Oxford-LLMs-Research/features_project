@@ -1,0 +1,226 @@
+{
+  "survey": "ess_wave_11",
+  "target": "stfgov",
+  "country": "France",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 16,
+  "n_piped": 16,
+  "n_mapped": 12,
+  "n_none": 4,
+  "n_bundled": 4,
+  "type_counts": {
+    "respondent_attribute": 15,
+    "temporal_contextual": 1
+  },
+  "mapped_codes": [
+    "prtclclt",
+    "lrscale",
+    "prtvtfbg",
+    "stfeco",
+    "hincfel",
+    "agea",
+    "edlvdis",
+    "domicil",
+    "region",
+    "polintr",
+    "nwspol",
+    "euftf"
+  ],
+  "features": [
+    {
+      "feature": "partisan_identification",
+      "context": "Whether they support the current governing party/coalition (e.g., Renaissance, LR, etc.) versus opposition parties (RN, LFI, PS, etc.)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "prtclclt",
+      "selected_text": "Which political party in Lithuania do you feel closest to?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "ideological_self_placement",
+      "context": "Left-right positioning relative to the current government's stance",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "vote_choice_recent_election",
+      "context": "Proximity to the winner predicts satisfaction; most recent presidential/legislative election",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "prtvtfbg",
+      "selected_text": "In the most recent national election, which party did you vote for?",
+      "n_candidates": 20,
+      "disambig_raw": "\nT"
+    },
+    {
+      "feature": "sociotropic_economic_perceptions",
+      "context": "Their assessment of France's overall economic situation (more predictive than personal finances)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "stfeco",
+      "selected_text": "How satisfied are you with the current state of the economy in this country?",
+      "n_candidates": 11,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "personal_financial_situation",
+      "context": "Pocketbook evaluations (employment status, income changes)",
+      "sub_items": [
+        "employment_status",
+        "income_changes"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hincfel",
+      "selected_text": "Which description best matches how you feel about your household's income nowadays?",
+      "n_candidates": 18,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "occupation_class_position",
+      "context": "Public sector vs. private sector employment (crucial in France given the size of the public sector)",
+      "sub_items": [
+        "public_sector_employment",
+        "private_sector_employment"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 13,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age",
+      "context": "Older cohorts in France often show different satisfaction patterns with institutional performance",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates with political sophistication but often lower trust in specific governments",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvdis",
+      "selected_text": "What is the highest level of education you have completed in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural_location",
+      "context": "Urban vs. rural (the 'peripheral France' vs. metropolitan divide)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "region",
+      "context": "Region (e.g., satisfaction often varies between Île-de-France, Provence, and former industrial regions)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "region",
+      "selected_text": "Which region do you live in?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "commune_size",
+      "context": "Size of commune",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "political_interest",
+      "context": "High-information citizens tend to have more crystallized opinions",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "polintr",
+      "selected_text": "How interested would you say you are in politics?",
+      "n_candidates": 15,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Which outlets (national TV like France 2, regional press, or polarized online sources)",
+      "sub_items": [
+        "national_tv_consumption",
+        "regional_press_consumption",
+        "online_polarized_sources_consumption"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "nwspol",
+      "selected_text": "On a typical day, about how much time do you spend watching, reading, or listening to news about politics and current affairs?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "eu_attitudes",
+      "context": "Given France's EU integration, views on European policy affect national government ratings",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "euftf",
+      "selected_text": "To what extent do you think European unification should go further, is about right as it is, or has already gone too far?",
+      "n_candidates": 20,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "specific_policy_approval",
+      "context": "Handling of pensions, immigration, cost of living, or public services (hospitals, schools)",
+      "sub_items": [
+        "pension_policy_approval",
+        "immigration_policy_approval",
+        "cost_of_living_handling_approval",
+        "public_services_approval"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "survey_timing",
+      "context": "Whether fielded during cohabitation, major strikes (grèves), scandals, or economic shocks",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

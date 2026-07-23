@@ -1,0 +1,210 @@
+{
+  "survey": "asianbarometer",
+  "target": "level",
+  "country": "Indonesia",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 13,
+  "n_piped": 13,
+  "n_mapped": 4,
+  "n_none": 9,
+  "n_bundled": 9,
+  "type_counts": {
+    "respondent_attribute": 13
+  },
+  "mapped_codes": [
+    "SE10c",
+    "SE8a",
+    "SE5",
+    "SE11a"
+  ],
+  "features": [
+    {
+      "feature": "Province and regency/district",
+      "context": "Indonesia has clear administrative classifications — 'kota' (city) is urban, while many 'kabupaten' (regencies) are rural, though some contain urbanized subdistricts.",
+      "sub_items": [
+        "Province",
+        "Regency (kabupaten)",
+        "District (kota)"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Subdistrict or village",
+      "context": "'Kelurahan' are urban administrative villages, while 'desa' are rural villages.",
+      "sub_items": [
+        "Subdistrict (kecamatan)",
+        "Village (desa)",
+        "Village (kelurahan)"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Population density",
+      "context": "Density of the area (people per km²).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Infrastructure access",
+      "context": "Access to infrastructure: paved roads, electricity grid stability, piped water, internet coverage.",
+      "sub_items": [
+        "Paved roads",
+        "Electricity grid stability",
+        "Piped water",
+        "Internet coverage"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 19,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Distance to major city",
+      "context": "Distance to the nearest major city or economic center.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Primary livelihood",
+      "context": "Agriculture/fishing (rural) vs. manufacturing/services/trade (urban).",
+      "sub_items": [
+        "Agriculture",
+        "Fishing",
+        "Manufacturing",
+        "Services",
+        "Trade"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE10c",
+      "selected_text": "Which type of job does the main earner in your household have now?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "Economic center presence",
+      "context": "Presence of large markets, shopping malls, corporate offices, or government centers.",
+      "sub_items": [
+        "Large markets",
+        "Shopping malls",
+        "Corporate offices",
+        "Government centers"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Household size and composition",
+      "context": "Household size and composition (though not definitive).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE8a",
+      "selected_text": "How many people live in your household?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Education level",
+      "context": "Education level and access to schools/universities.",
+      "sub_items": [
+        "Education level",
+        "Access to schools",
+        "Access to universities"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE5",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 17,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Ethnic group or community type",
+      "context": "Some groups are traditionally agrarian.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE11a",
+      "selected_text": "What is your racial or ethnic background?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Land use",
+      "context": "Dominant land use: rice fields/plantations (rural) vs. concentrated residential/commercial (urban).",
+      "sub_items": [
+        "Rice fields",
+        "Plantations",
+        "Residential areas",
+        "Commercial areas"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Proximity to natural features",
+      "context": "Proximity to forests, mountains, or coastal fishing areas vs. industrial zones.",
+      "sub_items": [
+        "Forests",
+        "Mountains",
+        "Coastal fishing areas",
+        "Industrial zones"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Administrative village classification",
+      "context": "The administrative classification of the respondent’s village (desa vs. kelurahan) would be the most direct and accurate predictor, as Indonesia’s statistical agency uses this for official rural/urban categorization.",
+      "sub_items": [
+        "Desa",
+        "Kelurahan"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

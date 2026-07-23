@@ -1,0 +1,207 @@
+{
+  "survey": "ess_wave_11",
+  "target": "eqparlv",
+  "country": "Austria",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 15,
+  "n_piped": 15,
+  "n_mapped": 11,
+  "n_none": 3,
+  "n_bundled": 2,
+  "type_counts": {
+    "respondent_attribute": 15
+  },
+  "mapped_codes": [
+    "eqwrkbg",
+    "gndr",
+    "agegroup",
+    "edlvdis",
+    "clsprty",
+    "rlgdnbat",
+    "chldhhe",
+    "hswrkp",
+    "tporgwk",
+    "domicil",
+    "cntbrthd"
+  ],
+  "features": [
+    {
+      "feature": "gender_role_ideology",
+      "context": "The most powerful predictor. You need a scale measuring traditional vs. egalitarian views on the 'male breadwinner/female caregiver' model.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "eqwrkbg",
+      "selected_text": "Overall, how good or bad is it for family life in this country if equal numbers of women and men are in paid work?",
+      "n_candidates": 15,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "attitudes_toward_state_intervention",
+      "context": "Whether the respondent believes the state should mandate family arrangements ('daddy months' as coercion vs. nudging) or values parental autonomy to decide division of labor.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 12,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "support_for_gender_equality_domestic",
+      "context": "Specific measures of domestic gender equality, as abstract commitment to gender equality in the public sphere often diverges from support in the private sphere (care work).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "eqwrkbg",
+      "selected_text": "Overall, how good or bad is it for family life in this country if equal numbers of women and men are in paid work?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "respondent_gender",
+      "context": "Even with the symmetric scenario, gender predicts support due to socialization and divergent perceived costs/benefits. Austrian women typically show higher support for mandatory equal leave than men.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "gndr",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age_cohort",
+      "context": "Younger respondents (Millennials/Gen Z) in Austria are significantly more likely to support equal leave than older cohorts raised under the traditional 'Kinder, Küche, Kirche' paradigm.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agegroup",
+      "selected_text": "Which age group do you fall into?",
+      "n_candidates": 16,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education (especially university) correlates with egalitarian gender attitudes and exposure to workplace norms that support paternal leave.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvdis",
+      "selected_text": "What is the highest level of education you have completed in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_party_preference",
+      "context": "Greens/SPÖ voters: high support; ÖVP voters: mixed/traditional; FPÖ voters: likely opposition due to traditional family values and skepticism of gender mandates.",
+      "sub_items": [
+        "votes_Greens",
+        "votes_SPÖ",
+        "votes_ÖVP",
+        "votes_FPÖ"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "clsprty",
+      "selected_text": "Is there any political party you feel closer to than the others?",
+      "n_candidates": 20,
+      "disambig_raw": "\nN"
+    },
+    {
+      "feature": "religiosity_confessional_identity",
+      "context": "Practicing Catholics (still a significant demographic in Austria) often hold more traditional views on maternal care.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "rlgdnbat",
+      "selected_text": "What is your current religion or denomination in Austria?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "parental_status",
+      "context": "Whether the respondent has children.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "chldhhe",
+      "selected_text": "Have you ever had any children — your own, stepchildren, adopted children, foster children, or a partner's children — living in your household?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "leave_experience",
+      "context": "Whether the respondent (or their partner) took parental leave (*Karenz*), especially whether they utilized the 'Papamonat' (the non-transferable father’s month introduced in 2010).",
+      "sub_items": [
+        "took_parental_leave",
+        "partner_took_parental_leave",
+        "used_papamonat"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "current_division_of_labor",
+      "context": "For parents, the actual distribution of care work in their household reveals internalized norms that predict policy preferences.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hswrkp",
+      "selected_text": "In the last 7 days, has your partner done housework, looked after children, or cared for other people?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "employment_sector",
+      "context": "Public sector employees and those in large firms (with better leave coverage) are more supportive than those in small businesses or sectors with 'coverage crises'.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "tporgwk",
+      "selected_text": "What type of organization do you work for, or did you work for?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "knowledge_of_current_leave_policies",
+      "context": "Awareness that Austria already has a 'use-it-or-lose-it' month for fathers (Papamonat) and that leave can be transferred; this affects whether mandatory equal periods are seen as extension or overreach.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "regional_context",
+      "context": "Urban (Vienna, Graz, Linz) vs. rural (Alpine regions, Burgenland); urban respondents typically show higher support for egalitarian policies.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 14,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "migration_background",
+      "context": "Respondents from countries with different care regimes may carry alternative normative frameworks.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "cntbrthd",
+      "selected_text": "In which country were you born?",
+      "n_candidates": 19,
+      "disambig_raw": "\nG"
+    }
+  ]
+}

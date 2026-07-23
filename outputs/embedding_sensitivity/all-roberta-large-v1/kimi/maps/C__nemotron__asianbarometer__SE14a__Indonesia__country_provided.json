@@ -1,0 +1,373 @@
+{
+  "survey": "asianbarometer",
+  "target": "SE14a",
+  "country": "Indonesia",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 27,
+  "n_piped": 27,
+  "n_mapped": 10,
+  "n_none": 14,
+  "n_bundled": 11,
+  "type_counts": {
+    "respondent_attribute": 24,
+    "temporal_contextual": 3
+  },
+  "mapped_codes": [
+    "SE10a",
+    "Q161",
+    "SE5",
+    "SE9e",
+    "level",
+    "region",
+    "Q164",
+    "Q56",
+    "SE10",
+    "Q5"
+  ],
+  "features": [
+    {
+      "feature": "household_income_and_source",
+      "context": "Formal vs. informal sector employment; agricultural vs. non-agricultural income; seasonality of earnings",
+      "sub_items": [
+        "formal_or_informal_employment",
+        "agricultural_or_non_agricultural_income",
+        "seasonality_of_earnings"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE10a",
+      "selected_text": "Is the main earner in your household currently self-employed, working in a family business, or working for an outside employer?",
+      "n_candidates": 16,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "income_stability",
+      "context": "Regularity of paychecks vs. volatile daily wages (e.g., ojek drivers, street vendors, seasonal farmers)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q161",
+      "selected_text": "How worried are you that your family might lose its major source of income within the next 12 months?",
+      "n_candidates": 16,
+      "disambig_raw": "\nK"
+    },
+    {
+      "feature": "asset_base",
+      "context": "Land ownership, livestock, savings, and access to credit (often more predictive than income in rural Indonesia)",
+      "sub_items": [
+        "land_ownership",
+        "livestock",
+        "savings",
+        "access_to_credit"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "debt_burden",
+      "context": "Microfinance obligations (pinjaman), informal debt to family/neighbors, or predatory lending",
+      "sub_items": [
+        "microfinance_debt",
+        "informal_debt_to_family_or_neighbors",
+        "predatory_lending"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "dependency_ratio",
+      "context": "Number of children and elderly dependents; presence of working-age adults",
+      "sub_items": [
+        "number_of_children_dependents",
+        "number_of_elderly_dependents",
+        "presence_of_working_age_adults"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "household_head_gender",
+      "context": "Female-headed households often face different constraints",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 14,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "household_head_age",
+      "context": "Age of the household head",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "household_head_education_level",
+      "context": "Education level of the household head",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE5",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "health_status",
+      "context": "Chronic illness prevalence (out-of-pocket healthcare is a major shock in Indonesia)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE9e",
+      "selected_text": "What is your current status?",
+      "n_candidates": 7,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "education_expenditures",
+      "context": "Number of school-age children and whether they attend private or public schools (huge cost differential)",
+      "sub_items": [
+        "number_of_school_age_children",
+        "public_or_private_school_attendance"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "location_urban_rural",
+      "context": "Urban (Jakarta, Surabaya) vs. rural",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "level",
+      "selected_text": "Do you live in a rural or urban area?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "location_region",
+      "context": "Java/Bali vs. Eastern Indonesia (NTT, Papua, Maluku) where prices are higher and infrastructure weaker",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "region",
+      "selected_text": "What is your administrative region?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "social_protection_enrollment",
+      "context": "Enrollment in BPJS (health insurance), PKH (conditional cash transfers), BPNT (food assistance), or BLT (direct cash transfers)",
+      "sub_items": [
+        "BPJS_enrollment",
+        "PKH_enrollment",
+        "BPNT_enrollment",
+        "BLT_enrollment"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "cost_of_living_zone",
+      "context": "Provincial price indices vary dramatically (Jakarta vs. rural Central Java)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "region",
+      "selected_text": "What is your administrative region?",
+      "n_candidates": 2,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "natural_disaster_exposure",
+      "context": "Volcanic, flood, or earthquake risk affecting income security",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "relative_deprivation",
+      "context": "Comparison to neighbors, extended family (saudara), or migration networks (migrant remittances set consumption standards in origin villages)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "social_mobility_trajectory",
+      "context": "Recent upward/downward mobility often matters more than absolute level",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q164",
+      "selected_text": "As compared to your parents' generation, does your generation have more or fewer opportunities to improve the standard of living or social status?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "aspirational_benchmarks",
+      "context": "Education aspirations for children, housing goals, or marriage costs (mas kawin, wedding expenses)",
+      "sub_items": [
+        "education_aspirations_for_children",
+        "housing_goals",
+        "marriage_expense_expectations"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "religious_obligations",
+      "context": "Mandatory zakat (2.5% of wealth for Muslims) or church tithes (Christian communities) affect disposable income perceptions",
+      "sub_items": [
+        "zakat_payment",
+        "church_tithes"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 16,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "extended_family_obligations",
+      "context": "Support to parents (berbakti) or contributions to arisan (rotating savings groups) and communal events (kenduri)",
+      "sub_items": [
+        "support_to_parents",
+        "arisan_contributions",
+        "kenduri_contributions"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q56",
+      "selected_text": "Do you agree or disagree with the following statement: 'For the sake of the family, the individual should put his personal interests second'?",
+      "n_candidates": 2,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "gendered_financial_control",
+      "context": "Who manages household budget (women often control daily expenses but men control large purchases in patriarchal Javanese/Sundanese households)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE10",
+      "selected_text": "Are you the main earner in your household?",
+      "n_candidates": 6,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "seasonal_timing",
+      "context": "Harvest vs. planting season for agricultural households; Lebaran (Eid) proximity when expenses spike",
+      "sub_items": [
+        "harvest_or_planting_season",
+        "proximity_to_Lebaran"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "recent_shocks",
+      "context": "Job loss, illness, or COVID-19 economic impacts",
+      "sub_items": [
+        "job_loss",
+        "illness",
+        "COVID_19_economic_impact"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q5",
+      "selected_text": "How does your family's current economic condition compare to what it was a few years ago?",
+      "n_candidates": 12,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "income_trend",
+      "context": "Rising, stable, or declining over past 12 months",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q5",
+      "selected_text": "How does your family's current economic condition compare to what it was a few years ago?",
+      "n_candidates": 8,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "per_capita_household_expenditure",
+      "context": "More than income, due to underreporting in informal sectors",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "geographic_location",
+      "context": "Poverty rates vary 10x between provinces",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "region",
+      "selected_text": "What is your administrative region?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "earners_to_dependents_ratio",
+      "context": "Ratio of earners to dependents",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

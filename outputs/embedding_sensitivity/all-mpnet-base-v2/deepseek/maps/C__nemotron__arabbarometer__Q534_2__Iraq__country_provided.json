@@ -1,0 +1,254 @@
+{
+  "survey": "arabbarometer",
+  "target": "Q534_2",
+  "country": "Iraq",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 18,
+  "n_piped": 18,
+  "n_mapped": 16,
+  "n_none": 2,
+  "n_bundled": 5,
+  "type_counts": {
+    "respondent_attribute": 18
+  },
+  "mapped_codes": [
+    "Q1001",
+    "Q1002",
+    "Q1",
+    "Q1003",
+    "Q1015",
+    "Q1006B_2",
+    "Q105A",
+    "Q540_2",
+    "Q103",
+    "Q412A",
+    "Q211_2",
+    "Q431_1A",
+    "Q1012A_CHRISTIAN",
+    "Q421",
+    "Q534_5",
+    "Q534_3"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger respondents might be more tech-savvy but also more aware of digital surveillance risks; older respondents might have different threat perceptions.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1001",
+      "selected_text": "How old are you?",
+      "n_candidates": 17,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender",
+      "context": "In some conservative areas, women might face additional risks (e.g., family surveillance, social stigma) affecting their sense of security.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1002",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "location",
+      "context": "Security, network coverage, and community norms vary widely (e.g., Baghdad vs. Anbar vs. Kurdistan).",
+      "sub_items": [
+        "urban vs. rural",
+        "region/province"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "In which governorate do you live?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education often correlates with greater awareness of digital security risks.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1003",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income",
+      "context": "Affects phone type (smartphone vs. basic phone) and awareness of security tools.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1015",
+      "selected_text": "What is your monthly household income in local currency?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "occupation",
+      "context": "Affects phone type (smartphone vs. basic phone) and awareness of security tools.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1006B_2",
+      "selected_text": "Which of the following best describes the industry you work in?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "direct_experience_with_threats",
+      "context": "Previous negative experiences would heavily influence perceived security.",
+      "sub_items": [
+        "surveillance",
+        "hacking",
+        "phone-based threats"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q105A",
+      "selected_text": "How would you rate the safety of your neighborhood?",
+      "n_candidates": 13,
+      "disambig_raw": "\nM"
+    },
+    {
+      "feature": "exposure_to_conflict",
+      "context": "Living in high-conflict zones may increase distrust of communication channels.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q540_2",
+      "selected_text": "What is the second biggest environmental challenge facing your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nS"
+    },
+    {
+      "feature": "trust_in_recipient",
+      "context": "The question specifies 'trusted person,' but the respondent’s general trust in people and institutions (government, telecoms) matters.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q103",
+      "selected_text": "Generally speaking, do you think most people can be trusted, or that you must be very careful in dealing with people?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "phone_and_app_usage",
+      "context": "Smartphone users on encrypted apps (WhatsApp, Signal) may feel more secure than those using only voice calls.",
+      "sub_items": [
+        "type of phone",
+        "apps used"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q412A",
+      "selected_text": "Which social media and text messaging services do you actively use?",
+      "n_candidates": 9,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "awareness_of_security_features",
+      "context": "Knowledge of encryption, passwords, or anti-spyware tools.",
+      "sub_items": [
+        "encryption",
+        "passwords",
+        "anti-spyware tools"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "network_provider",
+      "context": "Perceptions of certain providers being more/less secure or aligned with state surveillance.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q211_2",
+      "selected_text": "To what extent is the national government working to crack down on corruption in your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nQ"
+    },
+    {
+      "feature": "perception_of_government_monitoring",
+      "context": "Belief that authorities monitor communications affects sense of security.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q431_1A",
+      "selected_text": "Thinking of your use of social media, to what extent are you concerned about your government monitoring your online activity?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "community_or_group_affiliation",
+      "context": "Ethnic, religious, or political groups might be under more surveillance (e.g., activists, minority groups).",
+      "sub_items": [
+        "ethnic",
+        "religious",
+        "political"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1012A_CHRISTIAN",
+      "selected_text": "What is your religious denomination?",
+      "n_candidates": 13,
+      "disambig_raw": "\nL"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Exposure to news about cyberattacks, espionage, or privacy breaches in Iraq.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q421",
+      "selected_text": "What is your primary source of information to follow breaking news as events unfold?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "risk_tolerance",
+      "context": "General personal disposition toward risk.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "privacy_norms",
+      "context": "Cultural attitudes toward privacy in communication.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q534_5",
+      "selected_text": "When you have private information to share with a trusted person, how secure do you feel sending an email?",
+      "n_candidates": 17,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "trust_in_technology",
+      "context": "General faith or skepticism toward mobile technology.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q534_3",
+      "selected_text": "When you have private information to share with a trusted person, how secure do you feel sending text messages on a mobile phone?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    }
+  ]
+}

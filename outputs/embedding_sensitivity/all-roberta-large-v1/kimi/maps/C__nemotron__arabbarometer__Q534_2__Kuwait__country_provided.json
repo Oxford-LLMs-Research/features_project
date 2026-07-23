@@ -1,0 +1,274 @@
+{
+  "survey": "arabbarometer",
+  "target": "Q534_2",
+  "country": "Kuwait",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 21,
+  "n_piped": 21,
+  "n_mapped": 12,
+  "n_none": 7,
+  "n_bundled": 2,
+  "type_counts": {
+    "respondent_attribute": 21
+  },
+  "mapped_codes": [
+    "Q1001",
+    "Q1002",
+    "Q201B_15",
+    "Q1016",
+    "QJOR5",
+    "Q534_3",
+    "Q552_2A",
+    "Q431_1A",
+    "Q1010D_1",
+    "Q601_KUW1",
+    "Q534_1",
+    "Q412A"
+  ],
+  "features": [
+    {
+      "feature": "nationality_citizenship",
+      "context": "Kuwaiti citizens vs. expatriates (who comprise ~70% of the population and may have different threat models regarding state surveillance and deportation risks)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age",
+      "context": "Digital natives vs. older users often differ in threat perception",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1001",
+      "selected_text": "How old are you?",
+      "n_candidates": 16,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender",
+      "context": "Women in Kuwait may face different surveillance risks (family monitoring, honor-related privacy concerns)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1002",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "tribal_affiliation",
+      "context": "Strong tribal identities may correlate with different trust networks and expectations of privacy within kinship groups",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q201B_15",
+      "selected_text": "How much trust do you have in tribal leaders?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "socioeconomic_status",
+      "context": "Access to encrypted services, device quality, and private spaces for conversations",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1016",
+      "selected_text": "Which of these statements comes closest to describing your net household income?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "digital_literacy_surveillance_knowledge",
+      "context": "Awareness of Kuwait's Cybercrime Law (e.g., Law No. 63/2015) and state monitoring infrastructure",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "QJOR5",
+      "selected_text": "Have you heard about the cybercrime law approved by the House of Representatives?",
+      "n_candidates": 14,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "digital_literacy_encryption_knowledge",
+      "context": "Whether they know if standard cellular calls vs. WhatsApp/Voice over IP offer different security levels",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "device_security_practices",
+      "context": "Use of VPNs, encrypted apps, or burner phones for sensitive topics",
+      "sub_items": [
+        "use_of_vpns",
+        "use_of_encrypted_apps",
+        "use_of_burner_phones"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q534_3",
+      "selected_text": "When you have private information to share with a trusted person, how secure do you feel sending text messages on a mobile phone?",
+      "n_candidates": 7,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "political_engagement",
+      "context": "Opposition supporters or human rights advocates face higher objective surveillance risks",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q552_2A",
+      "selected_text": "In the past year, did you contact government officials or institutions via social media?",
+      "n_candidates": 20,
+      "disambig_raw": "\nL"
+    },
+    {
+      "feature": "trust_in_government_institutions",
+      "context": "Perception of whether state security services monitor citizens",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q431_1A",
+      "selected_text": "Thinking of your use of social media, to what extent are you concerned about your government monitoring your online activity?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "media_consumption_surveillance",
+      "context": "Exposure to news about surveillance scandals (regional or international)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q431_1A",
+      "selected_text": "Thinking of your use of social media, to what extent are you concerned about your government monitoring your online activity?",
+      "n_candidates": 15,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "relationship_to_trusted_person",
+      "context": "Family member (where risks might involve familial surveillance) vs. friend vs. colleague",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "geographic_location_interlocutor",
+      "context": "Local calls (subject to Kuwaiti jurisdiction) vs. international calls",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "social_media_density",
+      "context": "Whether their trusted network overlaps heavily with their digital trace",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "prior_victimization",
+      "context": "Experience with hacking, doxxing, or leaked conversations (personally or within their network)",
+      "sub_items": [
+        "personal_experience_with_hacking",
+        "personal_experience_with_doxxing",
+        "personal_experience_with_leaked_conversations",
+        "knowing_someone_who_experienced_hacking_doxxing_leaks"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "secondhand_knowledge_surveillance_risks",
+      "context": "Awareness of cases where mobile communications led to legal trouble (e.g., blasphemy charges, morality policing, or state security cases stemming from WhatsApp conversations)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q431_1A",
+      "selected_text": "Thinking of your use of social media, to what extent are you concerned about your government monitoring your online activity?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "conceptualization_of_sitra",
+      "context": "Islamic concept of covering/protection of private matters",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1010D_1",
+      "selected_text": "Do you always wear the hijab when you are out in public?",
+      "n_candidates": 4,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "attitudes_toward_gender_mixed_communication",
+      "context": "Conservative respondents may view mobile phones as less secure due to fears of interception by family members (especially for women)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q601_KUW1",
+      "selected_text": "How much do you agree or disagree with the statement: 'It is acceptable for male and female university students to attend classes together'?",
+      "n_candidates": 14,
+      "disambig_raw": "\nL"
+    },
+    {
+      "feature": "preference_communication_mode",
+      "context": "Traditional authority of in-person private settings (*majlis*) vs. digital communication",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q534_1",
+      "selected_text": "When you have private information to share with a trusted person, how secure do you feel using a landline telephone?",
+      "n_candidates": 5,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "primary_communication_platform",
+      "context": "WhatsApp (end-to-end encrypted) vs. standard GSM calls vs. unencrypted apps",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q412A",
+      "selected_text": "Which social media and text messaging services do you actively use?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "device_sharing_practices",
+      "context": "Whether they share phones with family members (common in Kuwaiti households)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 14,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

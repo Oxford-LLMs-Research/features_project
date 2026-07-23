@@ -1,0 +1,225 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q15",
+  "country": "Mali",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 17,
+  "n_piped": 16,
+  "n_mapped": 10,
+  "n_none": 5,
+  "n_bundled": 1,
+  "type_counts": {
+    "respondent_attribute": 12,
+    "temporal_contextual": 4,
+    "instrument_methodology": 1
+  },
+  "mapped_codes": [
+    "Q19A",
+    "Q7B",
+    "Q71",
+    "Q94",
+    "Q1",
+    "Q96",
+    "Q7A",
+    "Q37A",
+    "Q28",
+    "Q14C"
+  ],
+  "features": [
+    {
+      "feature": "Right-Wing Authoritarianism (RWA)",
+      "context": "High-RWA individuals prioritize conformity, obedience, and security over autonomy, making them likely to choose Statement 1.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 15,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Need for Closure/Security",
+      "context": "People with high need for cognitive closure or perceived vulnerability to harm favor order over permissiveness.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q7B",
+      "selected_text": "Over the past year, how often, if ever, have you or anyone in your family feared crime in your own home?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Openness to Experience",
+      "context": "Low openness predicts preference for government control over organizational pluralism.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 19,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Libertarian-Authoritarian dimension",
+      "context": "This is often the strongest direct predictor—those scoring high on authoritarian values prefer Statement 1.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 19,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "Support for democratic norms",
+      "context": "Distinguishing 'procedural democrats' vs. 'outcome democrats'—the latter may sacrifice associational rights if they believe bans serve desirable policy ends.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "Post-materialism",
+      "context": "Inglehart's theory predicts post-materialists (emphasizing self-expression over economic security) strongly favor Statement 2.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q71",
+      "selected_text": "Which statement do you agree with more? (1) The government should focus on creating jobs and increasing incomes, even if that means increasing pollution. (2) The government should focus on preventing pollution and protecting the environment, even if it causes job losses or disruptions?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Education",
+      "context": "Higher education consistently correlates with support for civil liberties (Statement 2), though this varies by field of study and national context.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Age/Cohort",
+      "context": "Life-cycle effects (older respondents often favor stability) vs. cohort effects (those socialized during democratic transitions show different patterns).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "Urban residence",
+      "context": "Urban dwellers typically show higher tolerance for dissenting organizations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Partisan status",
+      "context": "Whether their preferred party is in power or in opposition. This creates 'situational authoritarianism'—people support government power when 'their' side controls it but favor freedoms when out of power.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q96",
+      "selected_text": "If presidential elections were held tomorrow, which candidate's party would you vote for?",
+      "n_candidates": 18,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "Perceived threat",
+      "context": "Economic insecurity, terrorism concerns, or cultural threat (immigration, social change) push respondents toward Statement 1.",
+      "sub_items": [
+        "Economic insecurity",
+        "Terrorism concerns",
+        "Cultural threat (immigration, social change)"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q7A",
+      "selected_text": "Over the past year, how often, if ever, have you or anyone in your family felt unsafe walking in your neighbourhood?",
+      "n_candidates": 20,
+      "disambig_raw": "\nL"
+    },
+    {
+      "feature": "Trust in current government",
+      "context": "High institutional trust correlates with granting government more power, regardless of ideology.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37A",
+      "selected_text": "How much do you trust the president?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "Democratic consolidation",
+      "context": "In new democracies, preference for Statement 1 often reflects 'authoritarian nostalgia' or desire for decisive governance.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q28",
+      "selected_text": "Which of the following statements is closest to your view?\nStatement 1: Since the country's president was elected to lead the country, they should not be bound by laws or court decisions that the country's president thinks are wrong.\nStatement 2: The the country's president must always obey the laws and the courts, even if they think they are wrong?",
+      "n_candidates": 20,
+      "disambig_raw": "\nK"
+    },
+    {
+      "feature": "History of extremism",
+      "context": "Countries with recent civil conflict or terrorist organizations show different tolerance thresholds for banned organizations.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Legal tradition",
+      "context": "Common law vs. civil law traditions shape baseline assumptions about state-society relations.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "Specific organizations primed",
+      "context": "If respondents imagine banning extremist/hate groups vs. labor unions/religious minorities, responses flip dramatically.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "Elite cues",
+      "context": "Recent statements by political leaders about specific 'threatening' organizations.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q14C",
+      "selected_text": "During the last national election campaign, how much did you personally fear becoming a victim of political intimidation or violence?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    }
+  ]
+}

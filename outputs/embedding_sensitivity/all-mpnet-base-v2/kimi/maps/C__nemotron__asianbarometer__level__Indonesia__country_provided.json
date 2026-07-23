@@ -1,0 +1,279 @@
+{
+  "survey": "asianbarometer",
+  "target": "level",
+  "country": "Indonesia",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 19,
+  "n_piped": 19,
+  "n_mapped": 7,
+  "n_none": 12,
+  "n_bundled": 10,
+  "type_counts": {
+    "respondent_attribute": 19
+  },
+  "mapped_codes": [
+    "SE9c",
+    "SE10a",
+    "region",
+    "SE5",
+    "SE3_1",
+    "SE11a",
+    "Q41"
+  ],
+  "features": [
+    {
+      "feature": "village_type",
+      "context": "Village type (*desa* vs. *kelurahan*) is the strongest predictor, as *desa* are legally rural and *kelurahan* are administratively urban.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "primary_occupation",
+      "context": "Agricultural work (farming, fishing, forestry) strongly predicts 'rural' self-identification, while formal sector, manufacturing, or services work predicts 'urban' identification.",
+      "sub_items": [
+        "farming",
+        "fishing",
+        "forestry",
+        "formal_sector",
+        "manufacturing",
+        "services"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE9c",
+      "selected_text": "Which type of job do you have now?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "household_income_source",
+      "context": "Subsistence vs. cash economy as a predictor of rural or urban self-identification.",
+      "sub_items": [
+        "subsistence",
+        "cash_economy"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE10a",
+      "selected_text": "Is the main earner in your household currently self-employed, working in a family business, or working for an outside employer?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "internet_broadband_quality",
+      "context": "Fiber optic availability predicts urban; spotty 3G/4G predicts rural.",
+      "sub_items": [
+        "fiber_optic",
+        "3G/4G_spotty"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "road_surface",
+      "context": "Asphalt vs. dirt/gravel roads as an indicator of urban or rural environment.",
+      "sub_items": [
+        "asphalt",
+        "dirt",
+        "gravel"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "waste_management",
+      "context": "Scheduled waste collection (urban) vs. burning/burying (rural).",
+      "sub_items": [
+        "scheduled_collection",
+        "burning",
+        "burying"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "water_source",
+      "context": "Piped water (PAM) vs. well/spring water as a marker of urban or rural infrastructure.",
+      "sub_items": [
+        "piped_water_PAM",
+        "well",
+        "spring_water"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "distance_to_district_capital",
+      "context": "Within 5km of district capital (*ibu kota kecamatan*) increases likelihood of urban identification.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "population_density",
+      "context": "Population density of the sub-district (*kecamatan*) as a geographic predictor.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "regional_location",
+      "context": "Java and Sumatra have different rural-urban gradients than Papua or Kalimantan; urban identification is more common in densely populated Java.",
+      "sub_items": [
+        "Java",
+        "Sumatra",
+        "Papua",
+        "Kalimantan"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "region",
+      "selected_text": "What is your administrative region?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates with urban residence, though this is reversing with rural schooling improvements.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE5",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age",
+      "context": "Younger, recent migrants to cities often retain rural identity; older, long-term residents of urbanizing villages may adopt urban identity.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE3_1",
+      "selected_text": "What is your actual age?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "migration_status",
+      "context": "Recent migrants to cities often retain rural identity; long-term residents of urbanizing villages may adopt urban identity.",
+      "sub_items": [
+        "recent_migrant",
+        "long_term_resident"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "ethnicity_indigeneity",
+      "context": "Certain ethnic or indigenous groups have stronger territorial associations with rural areas.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE11a",
+      "selected_text": "What is your racial or ethnic background?",
+      "n_candidates": 7,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "land_tenure",
+      "context": "Hak milik (ownership) vs. informal settlement status as a housing characteristic.",
+      "sub_items": [
+        "hak_milik",
+        "informal_settlement"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "building_materials",
+      "context": "Permanent materials (concrete, tile) vs. wood/bamboo as a housing characteristic.",
+      "sub_items": [
+        "concrete",
+        "tile",
+        "wood",
+        "bamboo"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "commuting_patterns",
+      "context": "Daily travel to city centers for work predicts urban self-identification even in administratively rural areas.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q41",
+      "selected_text": "How easy or difficult is it to access public transportation?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "self_assessment_facility_access",
+      "context": "Asking 'Do you consider your area to have urban facilities?' helps resolve ambiguity in peri-urban cases.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "village_neighborhood_name",
+      "context": "Most efficient single predictor: ask for nama desa/kelurahan and cross-reference with BPS administrative codes.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

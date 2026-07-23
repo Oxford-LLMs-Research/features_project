@@ -1,0 +1,302 @@
+{
+  "survey": "ess_wave_11",
+  "target": "stfgov",
+  "country": "Italy",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 22,
+  "n_piped": 21,
+  "n_mapped": 15,
+  "n_none": 2,
+  "n_bundled": 6,
+  "type_counts": {
+    "respondent_attribute": 20,
+    "temporal_contextual": 1,
+    "instrument_methodology": 1
+  },
+  "mapped_codes": [
+    "clsprty",
+    "ipstrgva",
+    "trstplt",
+    "trstprl",
+    "hinctnta",
+    "uempla",
+    "edlvept",
+    "agea",
+    "agegroup",
+    "feethngr",
+    "region",
+    "rlgdnrs",
+    "nwspol",
+    "polintr",
+    "stflife"
+  ],
+  "features": [
+    {
+      "feature": "party_identification",
+      "context": "Strong predictor of satisfaction with the incumbent government.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "clsprty",
+      "selected_text": "Is there any political party you feel closer to than the others?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "Aligns with government policies.",
+      "sub_items": [
+        "liberal",
+        "conservative",
+        "moderate"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "ipstrgva",
+      "selected_text": "How much does this description sound like you: 'It's important to me that the government ensures my safety against all threats, and I want the state to be strong so it can defend its citizens'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "approval_head_government",
+      "context": "Often correlates with overall government satisfaction.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trstplt",
+      "selected_text": "How much do you personally trust politicians?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "policy_views",
+      "context": "Views on specific government policies (economy, healthcare, foreign policy, etc.).",
+      "sub_items": [
+        "economy",
+        "healthcare",
+        "foreign_policy"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "ipstrgva",
+      "selected_text": "How much does this description sound like you: 'It's important to me that the government ensures my safety against all threats, and I want the state to be strong so it can defend its citizens'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nJ"
+    },
+    {
+      "feature": "trust_government_institutions",
+      "context": "General trust levels affect satisfaction.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trstprl",
+      "selected_text": "How much do you personally trust your country's parliament?",
+      "n_candidates": 18,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "income_level",
+      "context": "Affected by economic policies.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "employment_status",
+      "context": "Affected by economic policies.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "uempla",
+      "selected_text": "In the past 7 days, were you unemployed and actively looking for a job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "education_level",
+      "context": "Can shape political awareness and expectations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvept",
+      "selected_text": "What is the highest level of education you have completed?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "age",
+      "context": "Different age groups may have different priorities.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "generation",
+      "context": "Different age groups may have different priorities.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agegroup",
+      "selected_text": "Which age group do you fall into?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "race_ethnicity",
+      "context": "Government actions may impact groups differently.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "feethngr",
+      "selected_text": "Do you consider yourself part of the same race or ethnic group as most people in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "geographic_location",
+      "context": "Policies may benefit some areas more than others.",
+      "sub_items": [
+        "urban",
+        "rural",
+        "region"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "region",
+      "selected_text": "Which region do you live in?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "religion",
+      "context": "May influence views on social policies.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "rlgdnrs",
+      "selected_text": "Which religion or denomination do you belong to?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "recent_personal_economic_situation",
+      "context": "e.g., job loss, income change.",
+      "sub_items": [
+        "job_loss",
+        "income_change"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "uempla",
+      "selected_text": "In the past 7 days, were you unemployed and actively looking for a job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nN"
+    },
+    {
+      "feature": "exposure_political_events_scandals",
+      "context": "Exposure to recent political events or scandals.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "nwspol",
+      "selected_text": "On a typical day, about how much time do you spend watching, reading, or listening to news about politics and current affairs?",
+      "n_candidates": 4,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "media_consumption_habits",
+      "context": "Different sources frame government performance differently.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "nwspol",
+      "selected_text": "On a typical day, about how much time do you spend watching, reading, or listening to news about politics and current affairs?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "social_network_influence",
+      "context": "Family and peers’ political views.",
+      "sub_items": [
+        "family_views",
+        "peers_political_views"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "authoritarianism_libertarianism",
+      "context": "Preference for strong vs. limited government.",
+      "sub_items": [
+        "authoritarianism",
+        "libertarianism"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "ipstrgva",
+      "selected_text": "How much does this description sound like you: 'It's important to me that the government ensures my safety against all threats, and I want the state to be strong so it can defend its citizens'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "political_interest_engagement",
+      "context": "More engaged may have stronger views.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "polintr",
+      "selected_text": "How interested would you say you are in politics?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "general_life_satisfaction",
+      "context": "Can spill over into political attitudes.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "stflife",
+      "selected_text": "Overall, how satisfied are you with your life these days?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "survey_timing",
+      "context": "Right after an election, crisis, or major policy change.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "question_wording_context",
+      "context": "If other questions prime certain issues.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

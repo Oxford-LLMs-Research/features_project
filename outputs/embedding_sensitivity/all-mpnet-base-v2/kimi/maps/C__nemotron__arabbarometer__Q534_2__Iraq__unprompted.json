@@ -1,0 +1,231 @@
+{
+  "survey": "arabbarometer",
+  "target": "Q534_2",
+  "country": "Iraq",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 17,
+  "n_piped": 17,
+  "n_mapped": 10,
+  "n_none": 7,
+  "n_bundled": 3,
+  "type_counts": {
+    "respondent_attribute": 16,
+    "temporal_contextual": 1
+  },
+  "mapped_codes": [
+    "Q534_4",
+    "Q534_3",
+    "Q431_1A",
+    "Q1001",
+    "Q1016",
+    "Q549_2",
+    "COUNTRY",
+    "Q883",
+    "Q1006B_2",
+    "Q412A"
+  ],
+  "features": [
+    {
+      "feature": "encryption_knowledge",
+      "context": "Do they know whether their calls use end-to-end encryption (FaceTime Audio, Signal, WhatsApp) versus unencrypted cellular voice/SMS?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q534_4",
+      "selected_text": "When you have private information to share with a trusted person, how secure do you feel using an online chatting or messenger service like WhatsApp or Facebook Messenger?",
+      "n_candidates": 4,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "threat_awareness",
+      "context": "Do they understand that mobile networks can be intercepted (IMSI catchers, SS7 vulnerabilities, carrier data retention)?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q534_3",
+      "selected_text": "When you have private information to share with a trusted person, how secure do you feel sending text messages on a mobile phone?",
+      "n_candidates": 12,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "device_security_practices",
+      "context": "Do they use PINs/biometrics, update OS regularly, or worry about physical device access?",
+      "sub_items": [
+        "uses_pin_or_biometric",
+        "regularly_updates_os",
+        "worries_about_physical_device_access"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "general_privacy_concern",
+      "context": "Their score on scales like the Internet Users' Information Privacy Concerns (IUIPC) or Westin Privacy Segments",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q431_1A",
+      "selected_text": "Thinking of your use of social media, to what extent are you concerned about your government monitoring your online activity?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "risk_tolerance",
+      "context": "Are they generally risk-averse or risk-acceptant in other domains?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "trust_orientation",
+      "context": "Do they trust technology companies, telecommunications carriers, and government institutions?",
+      "sub_items": [
+        "trusts_tech_companies",
+        "trusts_telecom_carriers",
+        "trusts_government_institutions"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age_cohort",
+      "context": "Digital natives often have different threat models than older users (though paradoxically, sometimes less concern about corporate surveillance)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1001",
+      "selected_text": "How old are you?",
+      "n_candidates": 16,
+      "disambig_raw": "\nO"
+    },
+    {
+      "feature": "socioeconomic_status",
+      "context": "Access to newer devices with better security, and exposure to cybersecurity education",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1016",
+      "selected_text": "Which of these statements comes closest to describing your net household income?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "past_victimization",
+      "context": "Have they or someone they know experienced hacking, identity theft, or unauthorized surveillance?",
+      "sub_items": [
+        "personal_history_of_hacking_or_id_theft",
+        "knows_someone_who_experienced_surveillance_or_breach"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 14,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "relationship_type",
+      "context": "Spouse vs. therapist vs. journalist source (each carries different legal protections and breach consequences)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "information_sensitivity",
+      "context": "Are they discussing health data (HIPAA-protected), illegal activity, corporate secrets, or intimate relationships?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "urgency",
+      "context": "Time pressure reduces security deliberation",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q549_2",
+      "selected_text": "To what extent are you concerned about the impact of climate change on your personal safety?",
+      "n_candidates": 20,
+      "disambig_raw": "\nT"
+    },
+    {
+      "feature": "country_region",
+      "context": "Surveillance regime (authoritarian vs. democratic), data protection laws (GDPR vs. none), recent scandals (post-Snowden effects)",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "COUNTRY",
+      "selected_text": "Which country are you from?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "marginalized_status",
+      "context": "Minority groups, activists, or journalists facing targeted surveillance have different threat models",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q883",
+      "selected_text": "In your opinion, what is the main reason for being discriminated against?",
+      "n_candidates": 20,
+      "disambig_raw": "\nT"
+    },
+    {
+      "feature": "professional_role",
+      "context": "Lawyers, doctors, and journalists have ethical confidentiality obligations that heighten security awareness",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1006B_2",
+      "selected_text": "Which of the following best describes the industry you work in?",
+      "n_candidates": 17,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "platform_choice",
+      "context": "Do they typically use encrypted apps, regular cellular voice, or SMS?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q412A",
+      "selected_text": "Which social media and text messaging services do you actively use?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "compartmentalization",
+      "context": "Do they use different channels for different sensitivity levels?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

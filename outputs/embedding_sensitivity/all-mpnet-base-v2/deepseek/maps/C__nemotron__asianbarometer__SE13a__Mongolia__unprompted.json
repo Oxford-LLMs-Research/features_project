@@ -1,0 +1,315 @@
+{
+  "survey": "asianbarometer",
+  "target": "SE13a",
+  "country": "Mongolia",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 24,
+  "n_piped": 24,
+  "n_mapped": 12,
+  "n_none": 10,
+  "n_bundled": 4,
+  "type_counts": {
+    "respondent_attribute": 23,
+    "temporal_contextual": 1
+  },
+  "mapped_codes": [
+    "SE14",
+    "SE14a",
+    "SE9c",
+    "SE9",
+    "SE5",
+    "SE3_1",
+    "SE8a",
+    "country",
+    "Q5",
+    "SE12",
+    "Q161",
+    "Q160a"
+  ],
+  "features": [
+    {
+      "feature": "household_income",
+      "context": "Current household income, assets, debt, and perceived financial security.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE14",
+      "selected_text": "What is your household income group?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "wealth",
+      "context": "Current household income, assets, debt, and perceived financial security.",
+      "sub_items": [
+        "assets",
+        "debt",
+        "perceived_financial_security"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE14a",
+      "selected_text": "Does the total income of your household allow you to satisfactorily cover your needs?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "occupation",
+      "context": "Job type, industry, status, and highest level of education.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE9c",
+      "selected_text": "Which type of job do you have now?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "industry",
+      "context": "Job type, industry, status, and highest level of education.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "job_status",
+      "context": "Job type, industry, status, and highest level of education.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE9",
+      "selected_text": "Are you currently employed?",
+      "n_candidates": 11,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "education_level",
+      "context": "Job type, industry, status, and highest level of education.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE5",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age",
+      "context": "Age, household composition, homeownership status, and geographic location (cost of living).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE3_1",
+      "selected_text": "What is your actual age?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "household_composition",
+      "context": "Age, household composition, homeownership status, and geographic location (cost of living).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE8a",
+      "selected_text": "How many people live in your household?",
+      "n_candidates": 12,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "homeownership_status",
+      "context": "Age, household composition, homeownership status, and geographic location (cost of living).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "geographic_location",
+      "context": "Age, household composition, homeownership status, and geographic location (cost of living).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "country",
+      "selected_text": "Which country do you live in?",
+      "n_candidates": 8,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "relative_standing_comparison_group",
+      "context": "Who they compare themselves to (neighbors, colleagues, national averages).",
+      "sub_items": [
+        "neighbors",
+        "colleagues",
+        "national_averages"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "financial_satisfaction",
+      "context": "How satisfied they are with their current situation, and whether they feel they are moving up or down relative to the past or expectations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE14a",
+      "selected_text": "Does the total income of your household allow you to satisfactorily cover your needs?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "perceived_economic_mobility",
+      "context": "How satisfied they are with their current situation, and whether they feel they are moving up or down relative to the past or expectations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q5",
+      "selected_text": "How does your family's current economic condition compare to what it was a few years ago?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "aspirations",
+      "context": "Their desired future position and the 'step' they associate with their ideal peer group.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "ideal_peer_group_step",
+      "context": "Their desired future position and the 'step' they associate with their ideal peer group.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "optimism_pessimism_bias",
+      "context": "Tendency to overestimate or underestimate their position.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "cultural_norms",
+      "context": "Modesty (e.g., understating in some cultures) or self-enhancement tendencies.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "social_identity_class",
+      "context": "How strongly they identify with a particular economic class.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE12",
+      "selected_text": "On a ladder with 10 steps where step 1 represents the lowest status and step 10 represents the highest status, where would you place your family?",
+      "n_candidates": 20,
+      "disambig_raw": "\nQ"
+    },
+    {
+      "feature": "interpretation_scope_poorest_richest",
+      "context": "Whether they think in local, national, or global terms.",
+      "sub_items": [
+        "local",
+        "national",
+        "global"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "recent_economic_experiences",
+      "context": "Job loss, windfall, or economic shocks that may temporarily affect perception.",
+      "sub_items": [
+        "job_loss",
+        "windfall",
+        "economic_shocks"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q161",
+      "selected_text": "How worried are you that your family might lose its major source of income within the next 12 months?",
+      "n_candidates": 10,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "political_ideological_beliefs",
+      "context": "Views on inequality, fairness, and social stratification.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q160a",
+      "selected_text": "How much responsibility do you think the government should bear to narrow the gap between the rich and the poor?",
+      "n_candidates": 20,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "number_of_earners",
+      "context": "Household characteristics (number of earners, dependents).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 19,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "number_of_dependents",
+      "context": "Household characteristics (number of earners, dependents).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 13,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "monthly_expense_difficulty",
+      "context": "Perceptual measures from other survey questions (e.g., 'How difficult is it for you to cover monthly expenses?').",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE14a",
+      "selected_text": "Does the total income of your household allow you to satisfactorily cover your needs?",
+      "n_candidates": 11,
+      "disambig_raw": "\nC"
+    }
+  ]
+}

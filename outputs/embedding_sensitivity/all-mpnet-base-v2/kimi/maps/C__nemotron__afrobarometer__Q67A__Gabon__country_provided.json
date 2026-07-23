@@ -1,0 +1,217 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q67A",
+  "country": "Gabon",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 14,
+  "n_piped": 13,
+  "n_mapped": 10,
+  "n_none": 3,
+  "n_bundled": 8,
+  "type_counts": {
+    "respondent_attribute": 13,
+    "instrument_methodology": 1
+  },
+  "mapped_codes": [
+    "Q94",
+    "Q1",
+    "Q100",
+    "REGION",
+    "Q92A",
+    "Q2",
+    "Q90F",
+    "Q93BOTHER",
+    "Q90E",
+    "Q10A"
+  ],
+  "features": [
+    {
+      "feature": "Educational attainment",
+      "context": "formal education exposes individuals to scientific terminology and global environmental discourse; completion of secondary education or higher significantly increases likelihood of awareness",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 18,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Age",
+      "context": "younger cohorts (under 35) usually show higher awareness due to school curricula updates and digital connectivity, though this interacts with education level",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Gender",
+      "context": "men often show slightly higher awareness due to differential access to public sphere information, though this gap narrows with education",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q100",
+      "selected_text": "What is your gender?",
+      "n_candidates": 17,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Urban vs. rural residence",
+      "context": "urban dwellers are far more likely to have encountered the term through media, NGOs, and government campaigns; Gabon is ~80% urbanized, making this a crucial stratifier",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Regional location",
+      "context": "proximity to coastal areas or logging/mining regions may increase experiential awareness, though not necessarily familiarity with the scientific term",
+      "sub_items": [
+        "proximity to coastal areas",
+        "proximity to logging/mining regions"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REGION",
+      "selected_text": "Which region/province/state do you live in?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Access to electricity",
+      "context": "determines ability to consume electronic media",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q92A",
+      "selected_text": "Do you have an electric connection to your home from the national power grid?",
+      "n_candidates": 10,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "Media consumption",
+      "context": "regular access to radio, television (particularly state broadcaster RTG), or internet/social media; French-language media consumption is particularly important",
+      "sub_items": [
+        "radio access",
+        "television access",
+        "internet/social media access",
+        "French-language media consumption"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "Language proficiency",
+      "context": "whether the respondent speaks French versus only indigenous languages; the term 'climate change' is usually transmitted through French/official channels",
+      "sub_items": [
+        "French language proficiency",
+        "use of indigenous languages (Fang, Myene, Teke, etc.)"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q2",
+      "selected_text": "What is the primary language you speak in your home?",
+      "n_candidates": 11,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Mobile phone ownership",
+      "context": "proxy for information access and connectivity",
+      "sub_items": [
+        "mobile phone ownership",
+        "smartphone access"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q90F",
+      "selected_text": "Do you personally own a mobile phone? If not, does anyone else in your household own one?",
+      "n_candidates": 3,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "Occupation/sector",
+      "context": "employment in government, education, or extractive industries correlates with higher awareness compared to subsistence agriculture or informal sector work",
+      "sub_items": [
+        "government employment",
+        "education sector employment",
+        "extractive industries employment",
+        "subsistence agriculture",
+        "informal sector work"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q93BOTHER",
+      "selected_text": "What is your main occupation? If unemployed, retired, or disabled, what was your last main occupation?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "Household wealth",
+      "context": "economic status affects access to information infrastructure and educational opportunities",
+      "sub_items": [
+        "household wealth",
+        "asset index"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q90E",
+      "selected_text": "Do you personally have a bank account? If not, does anyone else in your household have one?",
+      "n_candidates": 9,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "Civil society engagement",
+      "context": "membership in community organizations, churches, or farmer cooperatives that might discuss environmental issues",
+      "sub_items": [
+        "community organization membership",
+        "church membership",
+        "farmer cooperative membership"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q10A",
+      "selected_text": "Have you attended a community meeting in the past year? If yes, how often?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "Migration status",
+      "context": "internal migrants from rural to urban areas may have differential exposure to environmental discourse",
+      "sub_items": [
+        "internal migration",
+        "rural to urban migration"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "Survey administration method",
+      "context": "awareness does not necessarily indicate understanding; want to know if the respondent distinguishes between 'climate change' as a global phenomenon versus local environmental changes",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

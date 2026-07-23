@@ -25,6 +25,11 @@ Examples:
   python scripts/run_main.py --phase extract --selector deepseek
   python scripts/run_main.py --phase map     --selector deepseek --disambiguator nemotron
   python scripts/run_main.py --phase score   --selector deepseek
+
+Embedding-model sensitivity (reuses gen/extract; writes under outputs/embedding_sensitivity/):
+  python scripts/run_main.py --phase map   --selector deepseek --disambiguator nemotron \\
+      --arms C --embedding-model all-mpnet-base-v2
+  python scripts/run_main.py --phase score --selector deepseek --embedding-model all-mpnet-base-v2
 """
 from __future__ import annotations
 
@@ -32,6 +37,7 @@ import argparse
 import json
 import os
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,6 +47,7 @@ for _p in (str(ROOT / "src"), str(ROOT)):
 
 from survey_features.config import (  # noqa: E402
     CONDITIONS,
+    DEFAULT_EMBEDDING_MODEL,
     DEFAULT_SELECTOR,
     DISAMBIGUATORS,
     EXTRACTOR_MODEL,
@@ -50,6 +57,8 @@ from survey_features.config import (  # noqa: E402
 )
 from survey_features.layout import (  # noqa: E402
     cell_tag,
+    embedding_run_dirs,
+    embedding_sensitivity_dir,
     format_pilot_dir,
     genuine_cells,
     selector_dirs,
@@ -85,16 +94,60 @@ def mapper_generate_fn(mapper_model: str):
 _survey_cache: dict = {}
 
 
-def survey_assets(survey_id):
-    """(survey_variables, embeddings, var_codes) — cached per survey."""
-    if survey_id not in _survey_cache:
+def survey_assets(survey_id, embedding_model: str = DEFAULT_EMBEDDING_MODEL):
+    """(survey_variables, embeddings, var_codes) — cached per (survey, embedding model)."""
+    key = (survey_id, embedding_model)
+    if key not in _survey_cache:
         from survey_features.retrieval import load_or_build_survey_embeddings
         from survey_features.surveys import extract_survey_variables, load_survey
         _, meta = load_survey(survey_id, os.environ["DATA_CONFIG_PATH"])
         svars = extract_survey_variables(meta)
-        emb, vcodes = load_or_build_survey_embeddings(svars, survey_id)
-        _survey_cache[survey_id] = (svars, emb, vcodes)
-    return _survey_cache[survey_id]
+        emb, vcodes = load_or_build_survey_embeddings(svars, survey_id, embedding_model)
+        _survey_cache[key] = (svars, emb, vcodes)
+    return _survey_cache[key]
+
+
+def _upsert_embedding_manifest(
+    *,
+    embedding_model: str,
+    selector_key: str,
+    phase: str,
+    disambiguator: str | None = None,
+    arms: tuple[str, ...] | None = None,
+    limit: int | None = None,
+) -> None:
+    """Create/update outputs/embedding_sensitivity/manifest.json for provenance."""
+    root = embedding_sensitivity_dir(OUT)
+    root.mkdir(parents=True, exist_ok=True)
+    path = root / "manifest.json"
+    now = datetime.now(timezone.utc).isoformat()
+    if path.is_file():
+        man = json.loads(path.read_text(encoding="utf-8"))
+    else:
+        man = {
+            "experiment": "embedding_sensitivity",
+            "baseline": {
+                "embedding_model": DEFAULT_EMBEDDING_MODEL,
+                "scores_root": "outputs/format_pilot",
+                "note": "Main-experiment MiniLM maps/scores; not re-run unless --embedding-model points at it.",
+            },
+            "disambiguator": "nemotron",
+            "arms": ["C"],
+            "models": {},
+            "created_at": now,
+        }
+    models = man.setdefault("models", {})
+    entry = models.setdefault(embedding_model, {"runs": []})
+    entry["runs"].append({
+        "phase": phase,
+        "selector": selector_key,
+        "disambiguator": disambiguator,
+        "arms": list(arms) if arms else None,
+        "limit": limit,
+        "at": now,
+    })
+    man["updated_at"] = now
+    path.write_text(json.dumps(man, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 _data_cache: dict = {}
@@ -202,21 +255,38 @@ def _json_arm_features(selector_key, target, country, cond):
     return out
 
 
-def phase_map(selector_key, disambig_key, arms=("B", "C"), force=False, limit=None):
+def phase_map(
+    selector_key,
+    disambig_key,
+    arms=("B", "C"),
+    force=False,
+    limit=None,
+    embedding_model: str | None = None,
+):
     from survey_features.disambig import map_features
     from survey_features.retrieval import make_embed_fn
+
+    emb_model = embedding_model or DEFAULT_EMBEDDING_MODEL
     dmodel = DISAMBIGUATORS[disambig_key]
     dgen = mapper_generate_fn(dmodel)
-    embed = make_embed_fn()
-    _, extract_dir, map_dir = selector_dirs(selector_key)
+    embed = make_embed_fn(emb_model)
+    _, extract_dir, default_map_dir = selector_dirs(selector_key)
+    if embedding_model:
+        map_dir, _ = embedding_run_dirs(embedding_model, selector_key)
+    else:
+        map_dir = default_map_dir
     cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
     map_dir.mkdir(parents=True, exist_ok=True)
-    print(f"[map] selector={selector_key} disambiguator={disambig_key} arms={arms} cells={len(cells)}")
+    print(
+        f"[map] selector={selector_key} disambiguator={disambig_key} arms={arms} "
+        f"cells={len(cells)} embedding={emb_model}"
+        + (f" -> {map_dir}" if embedding_model else "")
+    )
 
     for i, (survey, target, country) in enumerate(cells):
-        svars, emb, vcodes = survey_assets(survey)
+        svars, emb, vcodes = survey_assets(survey, emb_model)
         excluded = {target}
         ctag = cell_tag(survey, target, country)
 
@@ -233,7 +303,7 @@ def phase_map(selector_key, disambig_key, arms=("B", "C"), force=False, limit=No
                 cm = map_features(f"{target}_{country}", "C_free", feat_by_cond.get(cond, []),
                                   emb, vcodes, svars, embed, dgen, mapper_model=dmodel,
                                   excluded_codes=excluded, pipe_types=PIPE_TYPES)
-                _save_map(op, survey, target, country, cond, "C", disambig_key, cm)
+                _save_map(op, survey, target, country, cond, "C", disambig_key, cm, emb_model)
 
         if "B" in arms:
             for cond in CONDITIONS:
@@ -246,16 +316,26 @@ def phase_map(selector_key, disambig_key, arms=("B", "C"), force=False, limit=No
                 cm = map_features(f"{target}_{country}", "B_json", feats,
                                   emb, vcodes, svars, embed, dgen, mapper_model=dmodel,
                                   excluded_codes=excluded, pipe_types=PIPE_TYPES)
-                _save_map(op, survey, target, country, cond, "B", disambig_key, cm)
+                _save_map(op, survey, target, country, cond, "B", disambig_key, cm, emb_model)
 
         print(f"  [{i+1}/{len(cells)}] {survey} {target} {country} mapped ({disambig_key})")
     print(f"[map] done -> {map_dir}")
+    if embedding_model:
+        _upsert_embedding_manifest(
+            embedding_model=embedding_model,
+            selector_key=selector_key,
+            phase="map",
+            disambiguator=disambig_key,
+            arms=arms,
+            limit=limit,
+        )
 
 
-def _save_map(path, survey, target, country, cond, arm, disambig_key, cm):
+def _save_map(path, survey, target, country, cond, arm, disambig_key, cm, embedding_model=DEFAULT_EMBEDDING_MODEL):
     rec = {
         "survey": survey, "target": target, "country": country, "condition": cond,
         "arm": arm, "disambiguator": disambig_key, "disambig_model": cm.mapper_model,
+        "embedding_model": embedding_model,
         "n_features": cm.n_features, "n_piped": cm.n_piped, "n_mapped": cm.n_mapped,
         "n_none": cm.n_none, "n_bundled": cm.n_bundled, "type_counts": cm.type_counts(),
         "mapped_codes": cm.mapped_codes,
@@ -325,7 +405,7 @@ def _map_codes(map_dir, arm, disambig_key, survey, target, country, cond):
     return json.loads(p.read_text(encoding="utf-8")).get("mapped_codes", [])
 
 
-def phase_score(selector_key, force=False, limit=None):
+def phase_score(selector_key, force=False, limit=None, embedding_model: str | None = None):
     """Score all arms. Key efficiency: oracle top-k and the random-k baseline depend only
     on (cell, k) — NOT on the arm or disambiguator — so we compute them ONCE per (cell, k)
     and reuse, evaluating only the cheap per-arm model feature set each time. This avoids
@@ -337,20 +417,34 @@ def phase_score(selector_key, force=False, limit=None):
     Random draws are SERIAL: joblib/loky parallelism is unreliable in this environment
     (TerminatedWorkerError / OOM from re-pickling the full survey frame per call on
     Windows). Serial is slow but deterministic; SCORE_N_DRAWS (default 10) keeps a full
-    run manageable."""
+    run manageable.
+
+    With --embedding-model, scores only maps under embedding_sensitivity/ (no arm A) and
+    never overwrites format_pilot/scores_*.csv.
+    """
     import csv as _csv
     import numpy as np
     from survey_features.evaluation import evaluate_feature_set, single_random_draw
     from survey_features.metrics import captured_importance_df
 
     n_draws = int(os.environ.get("SCORE_N_DRAWS", "10"))
-    _, _, map_dir = selector_dirs(selector_key)
+    _, _, default_map_dir = selector_dirs(selector_key)
+    if embedding_model:
+        map_dir, out_csv = embedding_run_dirs(embedding_model, selector_key)
+        out_csv.parent.mkdir(parents=True, exist_ok=True)
+        include_arm_a = False
+        emb_label = embedding_model
+    else:
+        map_dir = default_map_dir
+        PILOT.mkdir(parents=True, exist_ok=True)
+        out_csv = PILOT / f"scores_{selector_key}.csv"
+        include_arm_a = True
+        emb_label = DEFAULT_EMBEDDING_MODEL
     cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
-    PILOT.mkdir(parents=True, exist_ok=True)
-    out_csv = PILOT / f"scores_{selector_key}.csv"
-    cols = ["survey","target","country","condition","arm","disambiguator","k_spec","k",
+    cols = ["survey","target","country","condition","arm","disambiguator","embedding_model",
+            "k_spec","k",
             "captured_importance","oracle_acc","model_acc","random_acc","majority",
             "value_over_random","cost_of_imperfect","error"]
     # Incremental write: open now, flush after each cell so progress is visible and a
@@ -359,6 +453,8 @@ def phase_score(selector_key, force=False, limit=None):
     writer = _csv.DictWriter(out_f, fieldnames=cols)
     writer.writeheader(); out_f.flush()
     n_written = 0
+
+    print(f"[score] selector={selector_key} embedding={emb_label} cells={len(cells)} -> {out_csv}")
 
     surveys = sorted({s for s, _, _ in cells})
     for survey in surveys:
@@ -379,7 +475,9 @@ def phase_score(selector_key, force=False, limit=None):
             majority = {}
             rows = []  # per-cell, flushed at end of cell
             for cond in CONDITIONS:
-                arm_specs = [("A", "", _arm_A_codes(selector_key, t, country, cond))]
+                arm_specs = []
+                if include_arm_a:
+                    arm_specs.append(("A", "", _arm_A_codes(selector_key, t, country, cond)))
                 for dk in DISAMBIGUATORS:
                     arm_specs.append(("B", dk, _map_codes(map_dir, "B", dk, survey, t, country, cond)))
                     arm_specs.append(("C", dk, _map_codes(map_dir, "C", dk, survey, t, country, cond)))
@@ -408,11 +506,13 @@ def phase_score(selector_key, force=False, limit=None):
                         except Exception as e:
                             rows.append({"survey": survey, "target": t, "country": country,
                                          "condition": cond, "arm": arm, "disambiguator": dk,
-                                         "k_spec": kspec, "error": f"{type(e).__name__}: {str(e)[:80]}"})
+                                         "embedding_model": emb_label, "k_spec": kspec,
+                                         "error": f"{type(e).__name__}: {str(e)[:80]}"})
                             continue
                         rows.append({
                             "survey": survey, "target": t, "country": country, "condition": cond,
-                            "arm": arm, "disambiguator": dk, "k_spec": kspec, "k": k,
+                            "arm": arm, "disambiguator": dk, "embedding_model": emb_label,
+                            "k_spec": kspec, "k": k,
                             "captured_importance": round(ci, 4) if ci is not None else "",
                             "oracle_acc": o, "model_acc": m, "random_acc": r,
                             "majority": majority.get(k),
@@ -427,6 +527,13 @@ def phase_score(selector_key, force=False, limit=None):
             print(f"  scored {s} {t} {country} (+{len(rows)} rows, {n_written} total)", flush=True)
     out_f.close()
     print(f"[score] wrote {n_written} rows -> {out_csv}")
+    if embedding_model:
+        _upsert_embedding_manifest(
+            embedding_model=embedding_model,
+            selector_key=selector_key,
+            phase="score",
+            limit=limit,
+        )
 
 
 def main():
@@ -436,21 +543,36 @@ def main():
                     help=f"test model whose capability is measured (default: {DEFAULT_SELECTOR})")
     ap.add_argument("--disambiguator", choices=list(DISAMBIGUATORS), help="required for --phase map")
     ap.add_argument("--arms", default="B,C", help="comma-separated arms for --phase map (default: B,C)")
+    ap.add_argument(
+        "--embedding-model",
+        default=None,
+        metavar="MODEL",
+        help=(
+            "Sentence-transformer for map/score. When set, writes under "
+            f"outputs/embedding_sensitivity/<slug>/ (default encode model: {DEFAULT_EMBEDDING_MODEL}; "
+            "omit this flag to keep writing under format_pilot/)."
+        ),
+    )
     ap.add_argument("--force", action="store_true", help="recompute cells already on disk")
     ap.add_argument("--limit", type=int, default=None, help="only the first N cells (smoke test)")
     args = ap.parse_args()
+
+    if args.embedding_model and args.phase in ("gen", "extract"):
+        ap.error("--embedding-model only applies to --phase map and --phase score "
+                 "(gen/extract are reused from format_pilot/)")
 
     if args.phase == "gen":
         phase_gen(args.selector, force=args.force, limit=args.limit)
     elif args.phase == "extract":
         phase_extract(args.selector, force=args.force, limit=args.limit)
     elif args.phase == "score":
-        phase_score(args.selector, force=args.force, limit=args.limit)
+        phase_score(args.selector, force=args.force, limit=args.limit,
+                    embedding_model=args.embedding_model)
     elif args.phase == "map":
         if not args.disambiguator:
             ap.error("--disambiguator required for --phase map")
         phase_map(args.selector, args.disambiguator, arms=tuple(args.arms.split(",")),
-                  force=args.force, limit=args.limit)
+                  force=args.force, limit=args.limit, embedding_model=args.embedding_model)
 
 
 if __name__ == "__main__":

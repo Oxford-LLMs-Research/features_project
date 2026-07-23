@@ -1,0 +1,75 @@
+[map] selector=deepseek disambiguator=nemotron arms=('C',) cells=52 embedding=all-roberta-large-v1 -> C:\Users\murrn\cursor\features_project\outputs\embedding_sensitivity\all-roberta-large-v1\deepseek\maps
+  Loaded cached embeddings (254 vars) from C:\Users\murrn\cursor\features_project\outputs\survey_embeddings__afrobarometer__all-roberta-large-v1.npz
+  [1/52] afrobarometer Q67A Angola mapped (nemotron)
+  [2/52] afrobarometer Q67A Mali mapped (nemotron)
+  Loaded cached embeddings (249 vars) from C:\Users\murrn\cursor\features_project\outputs\survey_embeddings__asianbarometer__all-roberta-large-v1.npz
+  [3/52] asianbarometer SE2 Indonesia mapped (nemotron)
+  [4/52] afrobarometer Q67A Gabon mapped (nemotron)
+  Loaded cached embeddings (343 vars) from C:\Users\murrn\cursor\features_project\outputs\survey_embeddings__wvs__all-roberta-large-v1.npz
+  [5/52] wvs Q263 Macao SAR mapped (nemotron)
+  Loaded cached embeddings (238 vars) from C:\Users\murrn\cursor\features_project\outputs\survey_embeddings__latinobarometer__all-roberta-large-v1.npz
+  [6/52] latinobarometer P8STGBS Guatemala mapped (nemotron)
+[generate] Empty message content (finish_reason='stop'); treating as ""
+[generate] Empty message content (finish_reason='stop'); treating as ""
+[generate] Empty message content (finish_reason='length'); treating as ""
+[generate] Empty message content (finish_reason='stop'); treating as ""
+  [7/52] asianbarometer SE13a Indonesia mapped (nemotron)
+  [8/52] wvs Q40 Andorra mapped (nemotron)
+  [9/52] wvs Q205 Andorra mapped (nemotron)
+  [10/52] wvs Q205 Macao SAR mapped (nemotron)
+  Loaded cached embeddings (600 vars) from C:\Users\murrn\cursor\features_project\outputs\survey_embeddings__ess_wave_11__all-roberta-large-v1.npz
+[generate] Empty message content (finish_reason='length'); treating as ""
+  [11/52] ess_wave_11 stfgov Italy mapped (nemotron)
+  [12/52] ess_wave_11 eqparlv Italy mapped (nemotron)
+[generate] Empty message content (finish_reason='stop'); treating as ""
+[generate] Empty message content (finish_reason='stop'); treating as ""
+  [13/52] ess_wave_11 stfgov Austria mapped (nemotron)
+  [14/52] ess_wave_11 stfgov France mapped (nemotron)
+  [15/52] afrobarometer Q93B Mali mapped (nemotron)
+  [16/52] afrobarometer Q93B Gabon mapped (nemotron)
+  [17/52] latinobarometer SEXO Colombia mapped (nemotron)
+  [18/52] asianbarometer level Indonesia mapped (nemotron)
+  [19/52] wvs Q205 Germany mapped (nemotron)
+  [20/52] afrobarometer Q93B Angola mapped (nemotron)
+  [21/52] latinobarometer SEXO Guatemala mapped (nemotron)
+  [22/52] asianbarometer SE13a Australia mapped (nemotron)
+  [23/52] wvs Q242 Macao SAR mapped (nemotron)
+  [24/52] asianbarometer SE14a Mongolia mapped (nemotron)
+  [25/52] wvs Q40 Macao SAR mapped (nemotron)
+[generate] Empty message content (finish_reason='length'); treating as ""
+  [26/52] ess_wave_11 eqparlv Austria mapped (nemotron)
+  [27/52] asianbarometer SE13a Mongolia mapped (nemotron)
+  Loaded cached embeddings (434 vars) from C:\Users\murrn\cursor\features_project\outputs\survey_embeddings__arabbarometer__all-roberta-large-v1.npz
+  [28/52] arabbarometer Q534_2 Iraq mapped (nemotron)
+  [29/52] asianbarometer SE7a Australia mapped (nemotron)
+[generate] Empty message content (finish_reason='length'); treating as ""
+  [30/52] latinobarometer P8STGBS Argentina mapped (nemotron)
+  [31/52] arabbarometer Q501E_2 Mauritania mapped (nemotron)
+  [32/52] latinobarometer P8STGBS Colombia mapped (nemotron)
+[generate] Empty message content (finish_reason='length'); treating as ""
+  [33/52] arabbarometer Q630 Mauritania mapped (nemotron)
+  [34/52] asianbarometer SE2 Mongolia mapped (nemotron)
+[generate] Empty message content (finish_reason='length'); treating as ""
+  [35/52] afrobarometer Q15 Angola mapped (nemotron)
+[generate] Empty message content (finish_reason='length'); treating as ""
+  [36/52] afrobarometer Q18 Gabon mapped (nemotron)
+  [37/52] asianbarometer SE2 Australia mapped (nemotron)
+[generate] Empty message content (finish_reason='length'); treating as ""
+  [38/52] arabbarometer Q534_2 Mauritania mapped (nemotron)
+  [39/52] latinobarometer SEXO Argentina mapped (nemotron)
+  [40/52] afrobarometer Q18 Angola mapped (nemotron)
+  [41/52] asianbarometer SE14a Indonesia mapped (nemotron)
+  [42/52] ess_wave_11 eqparlv France mapped (nemotron)
+  [43/52] arabbarometer Q534_2 Kuwait mapped (nemotron)
+  [44/52] latinobarometer S20.A Colombia mapped (nemotron)
+  [45/52] ess_wave_11 bctprd France mapped (nemotron)
+  [46/52] arabbarometer Q630 Kuwait mapped (nemotron)
+  [47/52] ess_wave_11 bctprd Austria mapped (nemotron)
+  [48/52] afrobarometer Q18 Mali mapped (nemotron)
+  [49/52] latinobarometer S20.A Guatemala mapped (nemotron)
+[generate] Empty message content (finish_reason='length'); treating as ""
+  [50/52] arabbarometer Q104 Mauritania mapped (nemotron)
+  [51/52] latinobarometer P61ST Guatemala mapped (nemotron)
+[generate] Empty message content (finish_reason='length'); treating as ""
+  [52/52] afrobarometer Q15 Mali mapped (nemotron)
+[map] done -> C:\Users\murrn\cursor\features_project\outputs\embedding_sensitivity\all-roberta-large-v1\deepseek\maps

@@ -1,0 +1,396 @@
+{
+  "survey": "wvs",
+  "target": "Q40",
+  "country": "Andorra",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 29,
+  "n_piped": 24,
+  "n_mapped": 17,
+  "n_none": 4,
+  "n_bundled": 9,
+  "type_counts": {
+    "respondent_attribute": 23,
+    "instrument_methodology": 4,
+    "temporal_contextual": 1,
+    "base_rate_prior": 1
+  },
+  "mapped_codes": [
+    "Q262",
+    "Q279",
+    "Q281",
+    "Q288",
+    "Q275",
+    "Q42",
+    "Q240",
+    "Q289CS9",
+    "Q41",
+    "Q101",
+    "Q5",
+    "Q284",
+    "Q154",
+    "Q108",
+    "Q14",
+    "Q16",
+    "Q118"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Older generations might be more likely to see work as a duty, while younger cohorts may emphasize personal fulfillment or work-life balance.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q262",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "generation",
+      "context": "Older generations might be more likely to see work as a duty, while younger cohorts may emphasize personal fulfillment or work-life balance.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "employment_status",
+      "context": "Employed vs. unemployed, retired, student, etc.",
+      "sub_items": [
+        "employed",
+        "unemployed",
+        "retired",
+        "student"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q279",
+      "selected_text": "Are you employed now or not?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "occupation_type",
+      "context": "Type of job (e.g., public service, corporate, creative, manual labor) and perceived social contribution.",
+      "sub_items": [
+        "public service",
+        "corporate",
+        "creative",
+        "manual labor"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q281",
+      "selected_text": "To which occupational group do you belong?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income",
+      "context": "Those struggling financially might see work as a necessity rather than a duty; affluent individuals might view it as a social contribution.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q288",
+      "selected_text": "What is the level of your household's income counting all wages, salaries, pensions and other incomes on an income scale on which 'lowest' indicates the lowest income group and 'tenth step' the highest income group in your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "economic_security",
+      "context": "Those struggling financially might see work as a necessity rather than a duty; affluent individuals might view it as a social contribution.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education could correlate with more abstract or critical views of work’s societal role.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q275",
+      "selected_text": "What is the highest educational level that you have attained?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "geographic_context",
+      "context": "National/regional norms (e.g., countries with strong Protestant work ethics vs. more collectivist vs. individualist societies).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q42",
+      "selected_text": "How would you describe your general outlook on how society should develop or respond to change?",
+      "n_candidates": 16,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "cultural_context",
+      "context": "National/regional norms (e.g., countries with strong Protestant work ethics vs. more collectivist vs. individualist societies).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q42",
+      "selected_text": "How would you describe your general outlook on how society should develop or respond to change?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_orientation",
+      "context": "Conservatives may emphasize duty and traditional roles; progressives might focus on equity, meaningful work, or systemic critique.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q240",
+      "selected_text": "In politics, people often describe their views as more left-wing or right-wing. Where would you place your own views on a scale from 1 to 10, where 1 means 'left' and 10 means 'right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "religious_affiliation",
+      "context": "Some religions (e.g., Protestantism, Confucianism) stress work as moral duty; secular humanists might frame it differently.",
+      "sub_items": [
+        "Protestantism",
+        "Confucianism",
+        "secular humanism"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q289CS9",
+      "selected_text": "Do you belong to a religion or religious denomination? If yes, which one?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "worldview",
+      "context": "Some religions (e.g., Protestantism, Confucianism) stress work as moral duty; secular humanists might frame it differently.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q41",
+      "selected_text": "Do you agree or disagree with the following statement: 'Work should always come first, even if it means less spare time'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "social_values",
+      "context": "Individualism vs. collectivism scores; importance placed on community contribution.",
+      "sub_items": [
+        "individualism",
+        "collectivism"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q101",
+      "selected_text": "Are you a member of a humanitarian or charitable organization?",
+      "n_candidates": 20,
+      "disambig_raw": "\nQ"
+    },
+    {
+      "feature": "job_satisfaction",
+      "context": "Those who find their work meaningful or socially useful may agree more strongly.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "work_meaning",
+      "context": "Those who find their work meaningful or socially useful may agree more strongly.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q5",
+      "selected_text": "In your life, would you say work is very important, rather important, not very important or not important at all?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "work_life_balance_priority",
+      "context": "People prioritizing leisure or personal time might disagree.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q41",
+      "selected_text": "Do you agree or disagree with the following statement: 'Work should always come first, even if it means less spare time'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "personal_work_history",
+      "context": "Experiences with unemployment, family work norms, or social mobility.",
+      "sub_items": [
+        "experiences with unemployment",
+        "family work norms",
+        "social mobility"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q284",
+      "selected_text": "Are you working for the government or public institution, for private business or industry, or for a private non-profit organization? If you do not work currently, characterize your major work in the past! Do you or did you work for?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "question_interpretation_duty",
+      "context": "How the respondent understands 'duty' (moral obligation? legal requirement?)",
+      "sub_items": [
+        "moral obligation",
+        "legal requirement"
+      ],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "question_interpretation_society",
+      "context": "How the respondent understands 'society' (local community? nation? humanity?)",
+      "sub_items": [
+        "local community",
+        "nation",
+        "humanity"
+      ],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "social_desirability_bias",
+      "context": "Some may agree because it sounds socially responsible, even if privately they don’t believe it.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "current_events",
+      "context": "Economic crises, pandemics, or social movements could temporarily shape responses.",
+      "sub_items": [
+        "economic crises",
+        "pandemics",
+        "social movements"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q154",
+      "selected_text": "People may value different national goals. Which of these goals is most important to you personally: maintaining order in the nation, giving people more say in important government decisions, fighting rising prices, or protecting freedom of speech?",
+      "n_candidates": 11,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "civic_engagement",
+      "context": "Volunteering, community involvement.",
+      "sub_items": [
+        "volunteering",
+        "community involvement"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q101",
+      "selected_text": "Are you a member of a humanitarian or charitable organization?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "attitudes_welfare_redistribution",
+      "context": "Beliefs about individual vs. societal responsibility.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q108",
+      "selected_text": "Should the government take more responsibility to ensure provision for all, or should individuals be more responsible for themselves?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "personality_conscientiousness",
+      "context": "Conscientiousness, agreeableness, openness to experience.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q14",
+      "selected_text": "Do you consider determination perseverance to be an especially important quality for children to learn at home?",
+      "n_candidates": 10,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "personality_agreeableness",
+      "context": "Conscientiousness, agreeableness, openness to experience.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q16",
+      "selected_text": "Do you consider unselfishness to be an especially important quality for children to learn at home?",
+      "n_candidates": 8,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "personality_openness",
+      "context": "Conscientiousness, agreeableness, openness to experience.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "prior_survey_data",
+      "context": "Prior survey data (if available) to identify correlations.",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "regression_models",
+      "context": "Regression models (logistic regression if predicting agree/disagree) with these variables.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "qualitative_insights",
+      "context": "Qualitative insights from interviews to understand reasoning behind choices.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q118",
+      "selected_text": "We want to know about your experience with local officials and service providers, like police officers, lawyers, doctors, teachers and civil servants in your community. How often do you think ordinary people like yourself or people from your neighbourhood have to pay a bribe, give a gift or do a favor to these people in order to get the services you need?",
+      "n_candidates": 16,
+      "disambig_raw": "\nD"
+    }
+  ]
+}

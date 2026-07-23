@@ -1,0 +1,271 @@
+{
+  "survey": "asianbarometer",
+  "target": "SE13a",
+  "country": "Indonesia",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 19,
+  "n_piped": 19,
+  "n_mapped": 11,
+  "n_none": 8,
+  "n_bundled": 7,
+  "type_counts": {
+    "respondent_attribute": 16,
+    "temporal_contextual": 3
+  },
+  "mapped_codes": [
+    "SE9a",
+    "SE5",
+    "SE15a_1",
+    "Q5",
+    "Q42",
+    "SE7a",
+    "SE13c",
+    "SE8a",
+    "SE11a",
+    "SE3_1",
+    "SE2"
+  ],
+  "features": [
+    {
+      "feature": "household_income_expenditure",
+      "context": "absolute level and relative to regional/urban-rural averages",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 13,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "occupation",
+      "context": "type of job, sector (formal/informal), and employment stability",
+      "sub_items": [
+        "job_type",
+        "sector_formal_informal",
+        "employment_stability"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE9a",
+      "selected_text": "Are you currently self-employed, working in a family business, or working for an outside employer?",
+      "n_candidates": 16,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "education_level",
+      "context": "often correlated with income and social status",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE5",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "assets_owned",
+      "context": "e.g., land, vehicle, electronics, housing quality",
+      "sub_items": [
+        "land",
+        "vehicle",
+        "electronics",
+        "housing_quality"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE15a_1",
+      "selected_text": "How many vehicles do you or your family own?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "location",
+      "context": "urban vs. rural, and region (e.g., Java vs. Papua), as cost of living and reference groups vary",
+      "sub_items": [
+        "urban_rural",
+        "region"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 14,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "self_perceived_social_class",
+      "context": "how they view themselves relative to neighbors or local community",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 17,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "financial_trajectory",
+      "context": "whether they feel their situation is improving, stable, or worsening",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q5",
+      "selected_text": "How does your family's current economic condition compare to what it was a few years ago?",
+      "n_candidates": 17,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "access_to_services",
+      "context": "quality of healthcare, schooling, electricity, clean water, internet",
+      "sub_items": [
+        "healthcare_quality",
+        "schooling_quality",
+        "electricity_access",
+        "clean_water_access",
+        "internet_access"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q42",
+      "selected_text": "How easy or difficult is it to obtain healthcare?",
+      "n_candidates": 16,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "social_networks",
+      "context": "whether they know people significantly richer or poorer than themselves",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 14,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "religiosity_and_values",
+      "context": "in Indonesia, Islamic or other religious norms might shape attitudes toward wealth and modesty",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE7a",
+      "selected_text": "Would you describe yourself as very religious, moderately religious, lightly religious, or not religious at all?",
+      "n_candidates": 3,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "aspirations_and_expectations",
+      "context": "younger or more educated respondents might rate themselves lower if they aspire to higher steps",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE13c",
+      "selected_text": "On a staircase with 10 steps where the poorest people are on the first step and the richest on the tenth step, where do you think your children will be?",
+      "n_candidates": 8,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "response_style",
+      "context": "tendency toward modesty (common in some Javanese cultural contexts) or self-enhancement",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "household_size_dependents",
+      "context": "affects perceived economic pressure",
+      "sub_items": [
+        "household_size",
+        "number_of_dependents"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE8a",
+      "selected_text": "How many people live in your household?",
+      "n_candidates": 17,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "ethnicity",
+      "context": "some groups have different average socioeconomic positions",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE11a",
+      "selected_text": "What is your racial or ethnic background?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age_life_stage",
+      "context": "older respondents might have more stable self-assessment",
+      "sub_items": [
+        "age",
+        "life_stage"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE3_1",
+      "selected_text": "What is your actual age?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender",
+      "context": "women’s perceived status may differ due to intra-household dynamics",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE2",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "recent_economic_shocks",
+      "context": "inflation, job loss, or harvest failure could lower placement",
+      "sub_items": [
+        "inflation",
+        "job_loss",
+        "harvest_failure"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "local_inequality",
+      "context": "in highly unequal areas, even middle-income respondents might place themselves lower",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 15,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "media_exposure",
+      "context": "awareness of national wealth gaps or poverty lines",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

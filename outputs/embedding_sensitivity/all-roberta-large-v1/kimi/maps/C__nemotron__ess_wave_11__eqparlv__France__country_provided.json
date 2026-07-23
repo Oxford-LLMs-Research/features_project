@@ -1,0 +1,266 @@
+{
+  "survey": "ess_wave_11",
+  "target": "eqparlv",
+  "country": "France",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 21,
+  "n_piped": 21,
+  "n_mapped": 10,
+  "n_none": 10,
+  "n_bundled": 1,
+  "type_counts": {
+    "respondent_attribute": 21
+  },
+  "mapped_codes": [
+    "icgndra",
+    "wkhtotp",
+    "wrkctra",
+    "lrscale",
+    "prtclgfr",
+    "agegroup",
+    "region",
+    "edlvdis",
+    "impfreea",
+    "ipfrulea"
+  ],
+  "features": [
+    {
+      "feature": "gender",
+      "context": "Research consistently shows gender gaps in support for parental leave policies, though the direction varies by policy design.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "icgndra",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "parental_status",
+      "context": "Parents of young children hold more concrete views based on lived experience with France's existing *congé parental* system.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 11,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "child_age",
+      "context": "Parents of young children hold more concrete views based on lived experience with France's existing *congé parental* system.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 11,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "partnership_status",
+      "context": "Whether the respondent is in a dual-earner household and their partner's work intensity (relevant for assessing personal impact).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "wkhtotp",
+      "selected_text": "About how many hours per week does your partner usually work in their main job, including any paid or unpaid overtime?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "partner_employment_intensity",
+      "context": "Whether the respondent is in a dual-earner household and their partner's work intensity (relevant for assessing personal impact).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "wkhtotp",
+      "selected_text": "About how many hours per week does your partner usually work in their main job, including any paid or unpaid overtime?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "egalitarianism_scale",
+      "context": "Beliefs about whether domestic and caregiving duties should be shared equally versus specialized by gender.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "essentialist_beliefs",
+      "context": "Views on whether maternal bonding is biologically necessary/immutable (common in French essentialist discourses about *maternité*).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "neoliberal_vs_structural_framing",
+      "context": "Whether the respondent attributes gender inequality to individual choices or structural barriers requiring state intervention.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "occupation_and_sector",
+      "context": "Public vs. private sector employment (French civil servants often have different leave calculations); professional vs. working-class positions (career interruption costs vary by wage trajectory).",
+      "sub_items": [
+        "public_vs_private_sector",
+        "professional_vs_working_class"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 14,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "job_security",
+      "context": "CDI (permanent) vs. CDD (temporary) contracts—those with precarious employment may view mandatory leave differently.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "wrkctra",
+      "selected_text": "Do you have a work contract of unlimited duration, limited duration, or no contract?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income_relative_to_partner",
+      "context": "Even though the vignette specifies equal earnings, respondents' actual experience with income disparities shapes views on feasibility.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "Left-wing voters typically support mandatory equality mechanisms; right-wing voters may emphasize family autonomy or employer flexibility.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "feminist_identification",
+      "context": "Support for 'equality feminism' (*féminisme de l'égalité*) vs. 'difference feminism' (*féminisme de la différence*)—the latter, historically influential in France, sometimes resists formal symmetry in favor of recognizing maternal specificity.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "knowledge_of_existing_policy",
+      "context": "Awareness that France already has non-transferable paternity leave (*congé paternité*, recently extended) and transferable parental leave (*congé parental*), which shapes whether they see this as incremental or radical.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "republican_universalism_vs_liberalism",
+      "context": "French Republican ideology traditionally resents state intrusion into the *espace privé*, but makes exceptions for equality promotion.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "prtclgfr",
+      "selected_text": "Which political party in France do you feel closest to?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "regulatory_preferences",
+      "context": "Views on 'soft' incentives (tax bonuses) vs. 'hard' mandates (use-it-or-lose-it quotas).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age_cohort",
+      "context": "Younger cohorts (Millennials/Gen Z) show higher support for equal leave due to changing labor market participation patterns among French women.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agegroup",
+      "selected_text": "Which age group do you fall into?",
+      "n_candidates": 11,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "regional_origin",
+      "context": "Urban (Paris/Lyon) vs. rural France, given varying gender norms and labor market structures.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "region",
+      "selected_text": "Which region do you live in?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "education_level",
+      "context": "Priority variables for a predictive model: Gender + Gender Role Attitudes + Political Ideology + Education Level + Parental Status + Employment Sector.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvdis",
+      "selected_text": "What is the highest level of education you have completed in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "libertarian_values",
+      "context": "Libertarian values and skepticism of state paternalism become additional predictive variables beyond simple gender egalitarianism.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "impfreea",
+      "selected_text": "How much does this description sound like you: \"It is important to me to make my own decisions; I like being free and not depending on others\"?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "skepticism_of_state_paternalism",
+      "context": "Libertarian values and skepticism of state paternalism become additional predictive variables beyond simple gender egalitarianism.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "ipfrulea",
+      "selected_text": "How much does this description sound like you: \"You believe people should do what they're told and follow rules at all times, even when no one is watching\"?",
+      "n_candidates": 13,
+      "disambig_raw": "\nC"
+    }
+  ]
+}

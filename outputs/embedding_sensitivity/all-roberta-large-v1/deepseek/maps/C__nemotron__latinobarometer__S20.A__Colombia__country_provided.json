@@ -1,0 +1,149 @@
+{
+  "survey": "latinobarometer",
+  "target": "S20.A",
+  "country": "Colombia",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 10,
+  "n_piped": 10,
+  "n_mapped": 5,
+  "n_none": 5,
+  "n_bundled": 3,
+  "type_counts": {
+    "respondent_attribute": 10
+  },
+  "mapped_codes": [
+    "S24",
+    "S20.B",
+    "S21B",
+    "REG",
+    "S7"
+  ],
+  "features": [
+    {
+      "feature": "socioeconomic_stratum",
+      "context": "Colombia officially classifies residential areas into socioeconomic strata (1–6, with 1 being the lowest). Higher strata correlate with larger homes and more rooms.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S24",
+      "selected_text": "Based on the quality of the dwelling, furniture, and the interviewee's general appearance, how would you rate the interviewee's socioeconomic level?",
+      "n_candidates": 10,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "urban_rural_location",
+      "context": "Urban households (especially in cities like Bogotá, Medellín, Cali) are more likely to have separate bedrooms than rural households, where housing may be more basic.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "number_of_children",
+      "context": "More children increase space pressure, possibly leading to shared rooms even if separate parent-child rooms were initially possible.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "type_of_housing",
+      "context": "Owned vs. rented, house vs. apartment, informal settlement vs. formal neighborhood — these affect space availability.",
+      "sub_items": [
+        "owned_vs_rented",
+        "house_vs_apartment",
+        "informal_vs_formal_settlement"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S20.B",
+      "selected_text": "Do you or your family own your home?",
+      "n_candidates": 4,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "education_level_household_head",
+      "context": "Higher education often correlates with higher income and smaller family size, influencing housing conditions.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S21B",
+      "selected_text": "What is the highest level of education completed by the head of your household?",
+      "n_candidates": 16,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "age_of_children",
+      "context": "Older children (especially adolescents) are more likely to have separate rooms for cultural and privacy reasons, if space allows.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "region",
+      "context": "Coastal areas, Amazon, Andean region, etc., have different typical housing layouts and construction traditions.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REG",
+      "selected_text": "Which region do you live in?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "household_composition",
+      "context": "Single-parent families, extended families living together, or households with non-parent adults (grandparents) affect room allocation.",
+      "sub_items": [
+        "single_parent",
+        "extended_family",
+        "non_parent_adults"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "access_to_housing_subsidies",
+      "context": "Beneficiaries of government housing programs (e.g., VIS — Vivienda de Interés Social) might have standardized designs with certain room arrangements.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "cultural_norms_ethnicity",
+      "context": "In some Indigenous or Afro-Colombian communities, traditional housing layouts or communal living arrangements might differ from urban mestizo norms.",
+      "sub_items": [
+        "indigenous_community",
+        "afro_colombian_community",
+        "cultural_housing_norms"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S7",
+      "selected_text": "What ethnicity or race do you identify with most closely?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

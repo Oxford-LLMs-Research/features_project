@@ -1,0 +1,244 @@
+{
+  "survey": "ess_wave_11",
+  "target": "stfgov",
+  "country": "Italy",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 18,
+  "n_piped": 18,
+  "n_mapped": 10,
+  "n_none": 5,
+  "n_bundled": 3,
+  "type_counts": {
+    "respondent_attribute": 17,
+    "temporal_contextual": 1
+  },
+  "mapped_codes": [
+    "lrscale",
+    "stfeco",
+    "hincfel",
+    "uempla",
+    "trstprl",
+    "agea",
+    "dscrgrp",
+    "domicil",
+    "nwspol",
+    "ipudrsta"
+  ],
+  "features": [
+    {
+      "feature": "partisan_identification",
+      "context": "Whether the respondent supports the ruling party/coalition (partisans typically rate 'their' government much higher)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "ideological_proximity",
+      "context": "Distance between respondent's left-right position and government's perceived position",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "vote_choice_last_election",
+      "context": "Whether they voted for the incumbent(s)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "sociotropic_economic_assessment",
+      "context": "Perceptions of national economic conditions ('Is the country's economy doing well?') — often stronger than personal finances",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "stfeco",
+      "selected_text": "How satisfied are you with the current state of the economy in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "pocketbook_evaluation",
+      "context": "Personal financial situation and job security",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hincfel",
+      "selected_text": "Which description best matches how you feel about your household's income nowadays?",
+      "n_candidates": 16,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "employment_status",
+      "context": "Unemployment strongly correlates with dissatisfaction",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "uempla",
+      "selected_text": "In the past 7 days, were you unemployed and actively looking for a job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "policy_domain_satisfaction",
+      "context": "Ratings of specific areas (economy, healthcare, education, crime/corruption, foreign policy)",
+      "sub_items": [
+        "economy",
+        "healthcare",
+        "education",
+        "crime/corruption",
+        "foreign_policy"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "stfeco",
+      "selected_text": "How satisfied are you with the current state of the economy in this country?",
+      "n_candidates": 8,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "perceived_government_competence",
+      "context": "'Can they get things done?'",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "corruption_perceptions",
+      "context": "Beliefs about government honesty/transparency",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trstprl",
+      "selected_text": "How much do you personally trust your country's parliament?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "education",
+      "context": "Often inversely related to satisfaction (higher education correlates with higher expectations/critical capacity)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age",
+      "context": "Life-cycle effects (older citizens sometimes more satisfied due to stability preferences) and generational effects",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "race_ethnicity_religion",
+      "context": "Whether respondent belongs to groups historically served or marginalized by the state",
+      "sub_items": [
+        "race",
+        "ethnicity",
+        "religion"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "dscrgrp",
+      "selected_text": "Are you a member of a group that faces discrimination in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Often maps onto government service delivery and political cleavages",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 11,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Partisan media echo chambers vs. diverse sources; exposure to scandal coverage",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "nwspol",
+      "selected_text": "On a typical day, about how much time do you spend watching, reading, or listening to news about politics and current affairs?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_interest_knowledge",
+      "context": "Informed citizens often give more nuanced but sometimes harsher evaluations",
+      "sub_items": [
+        "political_interest",
+        "political_knowledge"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "nwspol",
+      "selected_text": "On a typical day, about how much time do you spend watching, reading, or listening to news about politics and current affairs?",
+      "n_candidates": 20,
+      "disambig_raw": "\nJ"
+    },
+    {
+      "feature": "social_network_composition",
+      "context": "Discussing politics with like-minded vs. diverse others",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "ipudrsta",
+      "selected_text": "How much does this statement describe you: \"It is important to me to listen to people who are different from me; even when I disagree with them, I still want to understand them\"?",
+      "n_candidates": 13,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "duration_of_incumbency",
+      "context": "'Honeymoon' effects for new governments vs. weariness with long-tenured regimes",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 12,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "system_support",
+      "context": "General trust in political institutions (parliament, courts) vs. specific government approval",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trstprl",
+      "selected_text": "How much do you personally trust your country's parliament?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

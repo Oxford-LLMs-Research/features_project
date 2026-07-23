@@ -1,0 +1,347 @@
+{
+  "survey": "ess_wave_11",
+  "target": "bctprd",
+  "country": "France",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 25,
+  "n_piped": 25,
+  "n_mapped": 18,
+  "n_none": 5,
+  "n_bundled": 8,
+  "type_counts": {
+    "respondent_attribute": 24,
+    "temporal_contextual": 1
+  },
+  "mapped_codes": [
+    "edlvdis",
+    "hinctnta",
+    "isco08",
+    "agea",
+    "lrscale",
+    "cptppola",
+    "prtclgfr",
+    "pbldmna",
+    "impenva",
+    "ipeqopta",
+    "trstplt",
+    "wrclmch",
+    "mbtru",
+    "testjc38",
+    "domicil",
+    "nwspol",
+    "wlespdm",
+    "hhmmb"
+  ],
+  "features": [
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates strongly with political consumerism, as it provides cognitive skills to connect consumption to political outcomes and information-processing capacity",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvdis",
+      "selected_text": "What is the highest level of education you have completed in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income",
+      "context": "Sufficient disposable income enables the 'luxury' of ethical consumption (boycotting requires alternatives being affordable)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 8,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "occupation",
+      "context": "Professional/managerial classes show higher rates; also relevant whether they work in sectors with exposure to global supply chains",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "isco08",
+      "selected_text": "What is or was the job title of your main job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "age",
+      "context": "Often curvilinear—highest among young adults and middle-aged (not elderly), though recent data shows rising youth engagement via climate activism",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "left_right_ideology",
+      "context": "In France, left-wing orientation predicts boycotting (environmental, labor rights), though some conservative boycotts occur (secularism, 'localism')",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "political_interest_efficacy",
+      "context": "Those who believe their actions matter (*efficacité politique subjective*)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "cptppola",
+      "selected_text": "How confident are you in your ability to participate in politics?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "party_identification",
+      "context": "Proximity to Greens (EELV), La France Insoumise, or activist right",
+      "sub_items": [
+        "proximity_to_Greens_EELV",
+        "proximity_to_La_France_Insoumise",
+        "proximity_to_activist_right"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "prtclgfr",
+      "selected_text": "Which political party in France do you feel closest to?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "protest_repertoire",
+      "context": "Past participation in demonstrations, petitions (boycotting correlates with broader activist profiles)",
+      "sub_items": [
+        "past_demonstration_participation",
+        "past_petition_participation"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "pbldmna",
+      "selected_text": "In the past 12 months, have you taken part in a public demonstration in this country to try to improve things or to prevent things from going wrong?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "post_materialism",
+      "context": "Inglehart's self-expression values (measured via priority rankings: environment vs. economic growth)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "impenva",
+      "selected_text": "How well does the following statement describe you: 'You strongly believe people should care for nature; looking after the environment is important to you'?",
+      "n_candidates": 14,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "cosmopolitanism_global_justice",
+      "context": "Concern for distant others, human rights, fair trade",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "ipeqopta",
+      "selected_text": "How much is this person like you—someone who believes it's important that everyone be treated equally and have equal opportunities in life?",
+      "n_candidates": 16,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "political_distrust",
+      "context": "Cynicism toward corporate greenwashing or government inaction can motivate boycotts as alternative political channels",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trstplt",
+      "selected_text": "How much do you personally trust politicians?",
+      "n_candidates": 20,
+      "disambig_raw": "\nJ"
+    },
+    {
+      "feature": "environmental_concern",
+      "context": "Climate change salience (particularly strong predictor in contemporary France)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "wrclmch",
+      "selected_text": "How worried are you about climate change?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "organizational_membership",
+      "context": "Union membership, NGO participation (Greenpeace, Attac, Secours Catholique), or activist networks",
+      "sub_items": [
+        "union_membership",
+        "NGO_participation",
+        "activist_network_involvement"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "mbtru",
+      "selected_text": "Are you currently a member of a trade union or similar organisation, have you been one in the past, or have you never been a member?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "social_networks_boycott_influence",
+      "context": "Friends/family who boycott (social contagion effects)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "testjc38",
+      "selected_text": "How likely do you think it is that large numbers of people will actually limit their energy use to try to reduce climate change?",
+      "n_candidates": 3,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "urban_residence",
+      "context": "Paris and major cities show higher rates due to alternative shopping infrastructure and activist density",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "news_consumption",
+      "context": "Quality press (*Le Monde*, *Libération*) vs. TV; social media use (Instagram/TikTok for youth climate activism)",
+      "sub_items": [
+        "consumption_of_quality_press",
+        "TV_news_consumption",
+        "social_media_use"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "product_labeling_awareness",
+      "context": "Knowledge of AOP, Bio, Fair Trade certifications",
+      "sub_items": [
+        "AOP_knowledge",
+        "Bio_label_knowledge",
+        "Fair_Trade_knowledge"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "exposure_to_scandals",
+      "context": "Awareness of recent controversies (e.g., *Lactalis* contamination, fast fashion labor issues, pesticide use)",
+      "sub_items": [
+        "awareness_of_Lactalis_contamination",
+        "awareness_of_fast_fashion_labor_issues",
+        "awareness_of_pesticide_use"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "nwspol",
+      "selected_text": "On a typical day, about how much time do you spend watching, reading, or listening to news about politics and current affairs?",
+      "n_candidates": 5,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "issue_salience_environmental_climate",
+      "context": "Environmental/climate",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "wrclmch",
+      "selected_text": "How worried are you about climate change?",
+      "n_candidates": 4,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "issue_salience_labor_rights",
+      "context": "Labor rights/fair wages",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "wlespdm",
+      "selected_text": "How often are women paid less than men for the same work in this country?",
+      "n_candidates": 12,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "issue_salience_animal_welfare",
+      "context": "Animal welfare",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "impenva",
+      "selected_text": "How well does the following statement describe you: 'You strongly believe people should care for nature; looking after the environment is important to you'?",
+      "n_candidates": 2,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "issue_salience_geopolitical",
+      "context": "Geopolitical (boycotts of Israeli, Russian, or American products)",
+      "sub_items": [
+        "boycott_attitude_toward_Israeli_products",
+        "boycott_attitude_toward_Russian_products",
+        "boycott_attitude_toward_American_products"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "issue_salience_health_food_safety",
+      "context": "Health/food safety (*produits phytosanitaires*)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "household_composition",
+      "context": "Parents often report time constraints; single-person households may have more flexibility",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hhmmb",
+      "selected_text": "Including yourself, how many people, including children, regularly live here as members of this household?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "shopping_habits",
+      "context": "Online vs. local commerce, supermarket loyalty",
+      "sub_items": [
+        "online_shopping_habit",
+        "local_commerce_shopping_habit",
+        "supermarket_loyalty"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

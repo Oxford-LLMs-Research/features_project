@@ -1,0 +1,243 @@
+{
+  "survey": "ess_wave_11",
+  "target": "eqparlv",
+  "country": "Austria",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 19,
+  "n_piped": 19,
+  "n_mapped": 8,
+  "n_none": 10,
+  "n_bundled": 1,
+  "type_counts": {
+    "respondent_attribute": 19
+  },
+  "mapped_codes": [
+    "icgndra",
+    "agegroup",
+    "chldhhe",
+    "isco08",
+    "lrscale",
+    "impfreea",
+    "eqparep",
+    "edlvdsk"
+  ],
+  "features": [
+    {
+      "feature": "sex_gender",
+      "context": "Men and women often diverge due to asymmetric costs of childbearing and divergent expectations about career sacrifice, though this interacts heavily with other variables.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "icgndra",
+      "selected_text": "What is your gender?",
+      "n_candidates": 16,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age_generation",
+      "context": "Cohort effects in gender norm adoption (younger respondents typically more egalitarian).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agegroup",
+      "selected_text": "Which age group do you fall into?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "parental_status",
+      "context": "Whether they have children, ages of children, and whether they personally used parental leave (experience effects vs. hypothetical reasoning).",
+      "sub_items": [
+        "has_children",
+        "ages_of_children",
+        "personal_use_of_parental_leave"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "chldhhe",
+      "selected_text": "Have you ever had any children — your own, stepchildren, adopted children, foster children, or a partner's children — living in your household?",
+      "n_candidates": 20,
+      "disambig_raw": "\nO"
+    },
+    {
+      "feature": "employment_status_career_stage",
+      "context": "Those in 'up-or-out' professions or tenure tracks may view mandatory leave as career-threatening regardless of gender.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "income_relative_to_partner",
+      "context": "Even with the prompt's 'equal earnings' condition, respondents project from their own situations. High earners may resist mandates that disrupt workflow; those with bargaining power disparities at home may view mandates as protective.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "job_flexibility_sector",
+      "context": "Knowledge workers vs. shift workers have different leave feasibility calculations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "isco08",
+      "selected_text": "What is or was the job title of your main job?",
+      "n_candidates": 4,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "gender_role_traditionalism",
+      "context": "Beliefs about whether mothers are 'naturally' better suited for infant care or whether equal parenting is desirable.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "essentialist_beliefs",
+      "context": "Views on biological determinism (breastfeeding constraints, maternal 'instinct') that might justify unequal division despite equal eligibility.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "work_family_salience",
+      "context": "Whether they view work as primary identity vs. family.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "Predicts views on government intervention in family decisions.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "liberty_vs_paternalism",
+      "context": "Specifically, attitudes toward 'hard' mandates versus 'nudges' or voluntary choice architectures.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "impfreea",
+      "selected_text": "How much does this description sound like you: \"It is important to me to make my own decisions; I like being free and not depending on others\"?",
+      "n_candidates": 12,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "policy_feedback",
+      "context": "Exposure to existing leave regimes (e.g., respondents from 'use-it-or-lose-it' daddy quota countries vs. U.S. respondents).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "current_division_of_labor",
+      "context": "Whether they currently practice egalitarian parenting or specialization.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "perceived_fairness_of_arrangement",
+      "context": "Those who feel they sacrificed career for family may support mandates to prevent others facing similar pressures; those who chose specialization may view mandates as undermining their choice.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "eqparep",
+      "selected_text": "To what extent are you in favour or against a law that requires an equal number of seats for women and men in Parliament?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "gender_career_ambition_interaction",
+      "context": "High-ambition women often support mandates to normalize male leave-taking and reduce motherhood penalties; high-ambition men may resist if they perceive leave as career-limiting.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "parental_status_ideology_interaction",
+      "context": "Parents often show 'policy realism' that moderates ideological positions.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 12,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "country_education_interaction",
+      "context": "In Nordic countries, education weakly predicts support (ceiling effects); in liberal welfare states, education strongly predicts egalitarian attitudes.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvdsk",
+      "selected_text": "What is the highest level of education you have completed in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nP"
+    },
+    {
+      "feature": "equity_vs_equality_orientation",
+      "context": "Whether they focus on equal treatment (equal time) versus equal outcomes (flexibility to divide based on preferences/needs).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "eqparep",
+      "selected_text": "To what extent are you in favour or against a law that requires an equal number of seats for women and men in Parliament?",
+      "n_candidates": 9,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "zero_sum_reasoning",
+      "context": "Beliefs that father leave reduces mother leave vs. expands total family resources.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 11,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

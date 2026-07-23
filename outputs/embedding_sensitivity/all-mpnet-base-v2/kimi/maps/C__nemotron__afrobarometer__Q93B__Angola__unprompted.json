@@ -1,0 +1,337 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q93B",
+  "country": "Angola",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 25,
+  "n_piped": 25,
+  "n_mapped": 8,
+  "n_none": 17,
+  "n_bundled": 8,
+  "type_counts": {
+    "respondent_attribute": 23,
+    "temporal_contextual": 2
+  },
+  "mapped_codes": [
+    "Q93BOTHER",
+    "Q94",
+    "Q93C",
+    "Q1",
+    "Q100",
+    "Q101",
+    "REGION",
+    "Q4A"
+  ],
+  "features": [
+    {
+      "feature": "current_employment_status",
+      "context": "working, unemployed, retired, disabled, homemaker, student",
+      "sub_items": [
+        "working",
+        "unemployed",
+        "retired",
+        "disabled",
+        "homemaker",
+        "student"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q93BOTHER",
+      "selected_text": "What is your main occupation? If unemployed, retired, or disabled, what was your last main occupation?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "duration_since_last_employment",
+      "context": "for non-working respondents",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "reason_for_non_employment",
+      "context": "layoff, voluntary retirement, health limitation, family caregiving",
+      "sub_items": [
+        "layoff",
+        "voluntary retirement",
+        "health limitation",
+        "family caregiving"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "educational_attainment",
+      "context": "strongest predictor of occupational category",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "vocational_training_certifications",
+      "context": "vocational training or certifications",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "work_experience_tenure",
+      "context": "work experience or tenure in previous roles",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "household_income_wealth",
+      "context": "affects ability to retire early or afford disability leave",
+      "sub_items": [
+        "household income",
+        "household wealth"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q93C",
+      "selected_text": "Who in your household decides how to use any money that you have or earn, for example from a job, a business, selling things, or other activities?",
+      "n_candidates": 6,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "age",
+      "context": "predicts retirement status, career stage, and generational occupational patterns",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender",
+      "context": "due to occupational segregation and differential retirement patterns",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q100",
+      "selected_text": "What is your gender?",
+      "n_candidates": 7,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "race_ethnicity",
+      "context": "structural factors affect occupational distribution",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q101",
+      "selected_text": "How would you describe your racial or ethnic background?",
+      "n_candidates": 13,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "geographic_location",
+      "context": "region, urban/rural, local industrial composition",
+      "sub_items": [
+        "region",
+        "urban/rural",
+        "local industrial composition"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REGION",
+      "selected_text": "Which region/province/state do you live in?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "immigration_status_generation",
+      "context": "affects labor market access and occupational mobility",
+      "sub_items": [
+        "immigration status",
+        "generation"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "current_health_conditions",
+      "context": "current health conditions and work limitations",
+      "sub_items": [
+        "current health conditions",
+        "work limitations"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age_of_disability_onset",
+      "context": "distinguishes career-long vs. acquired disabilities",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "severity_of_functional_limitations",
+      "context": "severity of functional limitations",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "marital_status",
+      "context": "affects retirement timing and 'last occupation' relevance",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "spouse_occupation",
+      "context": "affects retirement timing and 'last occupation' relevance",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "presence_ages_of_children",
+      "context": "affects labor force interruptions, particularly for women",
+      "sub_items": [
+        "presence of children",
+        "ages of children"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "military_service_history",
+      "context": "military service history",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "parents_occupations",
+      "context": "intergenerational occupational transmission",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "survey_year_economic_conditions",
+      "context": "recession vs. boom affects unemployment composition",
+      "sub_items": [
+        "survey year",
+        "economic conditions"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q4A",
+      "selected_text": "In general, how would you describe the present economic condition of this country?",
+      "n_candidates": 12,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "birth_cohort",
+      "context": "different retirement ages and occupational structures across cohorts",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "industry_of_employment",
+      "context": "needed to predict specific occupation, not just employment category",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "firm_size",
+      "context": "needed to predict specific occupation, not just employment category",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "job_tasks_skills",
+      "context": "needed to predict specific occupation, not just employment category",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

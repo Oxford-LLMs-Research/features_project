@@ -1,0 +1,206 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q93B",
+  "country": "Gabon",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 15,
+  "n_piped": 15,
+  "n_mapped": 7,
+  "n_none": 7,
+  "n_bundled": 3,
+  "type_counts": {
+    "respondent_attribute": 14,
+    "temporal_contextual": 1
+  },
+  "mapped_codes": [
+    "Q1",
+    "Q94",
+    "Q100",
+    "REGION",
+    "Q101",
+    "Q93BOTHER",
+    "Q5B"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Critical given Gabon's demographic pyramid and labor market dynamics. Youth unemployment (ages 15-34) exceeds 35%, while retirement age is typically 55-60 for civil servants.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "educational_attainment",
+      "context": "Strongly predictive in Gabon's bifurcated labor market. University degrees (especially technical/engineering) correlate with formal sector employment (oil, mining, civil service), while primary education predicts informal sector or agricultural work.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender",
+      "context": "Women are overrepresented in informal commerce, agriculture, and social services; men dominate extractive industries and construction.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q100",
+      "selected_text": "What is your gender?",
+      "n_candidates": 17,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Essential in Gabon. Libreville and Port-Gentil concentrate oil sector jobs, government administration, and formal services, while rural areas (particularly in the interior) rely on subsistence agriculture, logging, and artisanal mining.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REGION",
+      "selected_text": "Which region/province/state do you live in?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "regional_origin",
+      "context": "Specific provinces correlate with occupational patterns (e.g., Haut-Ogooué with mining, Ogooué-Maritime with oil and timber, Ngounié with agriculture).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REGION",
+      "selected_text": "Which region/province/state do you live in?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "migration_status",
+      "context": "Whether the respondent is an internal migrant (rural-to-urban migration is common) or foreign national (significant West African and Lebanese communities dominate certain retail and import sectors).",
+      "sub_items": [
+        "internal_migration",
+        "foreign_nationality"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q101",
+      "selected_text": "How would you describe your racial or ethnic background?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "father_occupation",
+      "context": "Indicates social capital and networks crucial for accessing Gabon's formal sector, where patronage and connections often determine employment.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "household_head_occupation",
+      "context": "Indicates social capital and networks crucial for accessing Gabon's formal sector, where patronage and connections often determine employment.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q93BOTHER",
+      "selected_text": "What is your main occupation? If unemployed, retired, or disabled, what was your last main occupation?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "household_wealth_assets",
+      "context": "Distinguishes those who can afford unemployment (searching for formal work) from those who must engage in immediate survival activities in the informal sector.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "marital_status",
+      "context": "Affects labor force participation, particularly for women.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "children",
+      "context": "Affects labor force participation, particularly for women.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 11,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "survey_timing",
+      "context": "Seasonal fluctuations affect agricultural employment and construction. Economic shocks (oil price drops) dramatically affect formal sector employment in Gabon.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q5B",
+      "selected_text": "Looking ahead, do you expect economic conditions in this country to be better or worse in 12 months' time?",
+      "n_candidates": 6,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "duration_unemployment",
+      "context": "Distinguishes recent job losers (likely to report previous formal occupation) from long-term unemployed (may have transitioned to informal activities).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "civil_service_status",
+      "context": "Public employment is a major occupational category in Gabon; knowing if someone has passed the *concours* (competitive civil service exam) or has a *CDI* (permanent contract) vs. precarious work would be highly predictive.",
+      "sub_items": [
+        "passed_concours",
+        "has_CDI",
+        "precarious_work"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "sector_specific_training",
+      "context": "Technical certifications (e.g., in petroleum engineering, forestry, or maritime trades) strongly predict specific occupational categories.",
+      "sub_items": [
+        "petroleum_engineering_certification",
+        "forestry_certification",
+        "maritime_trades_certification"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

@@ -1,0 +1,269 @@
+{
+  "survey": "arabbarometer",
+  "target": "Q534_2",
+  "country": "Mauritania",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 16,
+  "n_piped": 16,
+  "n_mapped": 7,
+  "n_none": 8,
+  "n_bundled": 14,
+  "type_counts": {
+    "respondent_attribute": 16
+  },
+  "mapped_codes": [
+    "Q412A",
+    "Q431_1A",
+    "Q534_5",
+    "Q103",
+    "Q1001APPROX",
+    "Q1006B_2",
+    "Q534_3"
+  ],
+  "features": [
+    {
+      "feature": "device_type_and_security_features",
+      "context": "Whether they use encrypted apps (Signal, WhatsApp) vs. standard cellular voice/SMS; awareness of end-to-end encryption",
+      "sub_items": [
+        "use_of_encrypted_apps",
+        "use_of_standard_cellular_voice_or_sms",
+        "awareness_of_end-to-end_encryption"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q412A",
+      "selected_text": "Which social media and text messaging services do you actively use?",
+      "n_candidates": 5,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "digital_literacy",
+      "context": "Understanding of interception risks, metadata collection, and the difference between cellular networks and internet-based calls",
+      "sub_items": [
+        "understanding_of_interception_risks",
+        "understanding_of_metadata_collection",
+        "understanding_of_network_differences"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "access_conditions",
+      "context": "Whether they typically use phones on shared WiFi, public networks, or have concerns about physical device access by others",
+      "sub_items": [
+        "use_of_shared_wifi",
+        "use_of_public_networks",
+        "concerns_about_physical_device_access"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "perceived_adversaries",
+      "context": "Whether they worry about corporate surveillance, government interception, criminal hackers, or intimate partner surveillance",
+      "sub_items": [
+        "concern_about_corporate_surveillance",
+        "concern_about_government_interception",
+        "concern_about_criminal_hackers",
+        "concern_about_intimate_partner_surveillance"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q431_1A",
+      "selected_text": "Thinking of your use of social media, to what extent are you concerned about your government monitoring your online activity?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "past_victimization",
+      "context": "Previous experiences with hacked accounts, leaked conversations, or identity theft",
+      "sub_items": [
+        "experience_with_hacked_accounts",
+        "experience_with_leaked_conversations",
+        "experience_with_identity_theft"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "content_sensitivity",
+      "context": "The nature of the 'private information' (medical, legal, financial, romantic, political dissent) and perceived consequences of exposure",
+      "sub_items": [
+        "nature_of_private_information_medical",
+        "nature_of_private_information_legal",
+        "nature_of_private_information_financial",
+        "nature_of_private_information_romantic",
+        "nature_of_private_information_political_dissent",
+        "perceived_consequences_of_exposure"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q431_1A",
+      "selected_text": "Thinking of your use of social media, to what extent are you concerned about your government monitoring your online activity?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "relationship_specificity",
+      "context": "Nature of bond with the 'trusted person' (spouse, therapist, journalist source, activist colleague) and history of that relationship",
+      "sub_items": [
+        "type_of_relationship_spouse",
+        "type_of_relationship_therapist",
+        "type_of_relationship_journalist_source",
+        "type_of_relationship_activist_colleague",
+        "history_of_the_relationship"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q534_5",
+      "selected_text": "When you have private information to share with a trusted person, how secure do you feel sending an email?",
+      "n_candidates": 8,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "generalized_trust",
+      "context": "Dispositional tendency to trust others vs. paranoid/avoidant attachment styles",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q103",
+      "selected_text": "Generally speaking, do you think most people can be trusted, or that you must be very careful in dealing with people?",
+      "n_candidates": 11,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "institutional_trust",
+      "context": "Confidence in telecom providers, platform companies, and legal protections against unauthorized surveillance",
+      "sub_items": [
+        "trust_in_telecom_providers",
+        "trust_in_platform_companies",
+        "trust_in_legal_protections"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 14,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age_cohort",
+      "context": "Digital natives often have different threat models than older users who may fear 'being listened to' via different mechanisms",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1001APPROX",
+      "selected_text": "Approximately how old are you?",
+      "n_candidates": 12,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "socioeconomic_status",
+      "context": "Ability to afford secure devices/connections; vulnerability to coercion if information leaks",
+      "sub_items": [
+        "ability_to_afford_secure_devices",
+        "ability_to_afford_secure_connections",
+        "vulnerability_to_coercion"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "geopolitical_context",
+      "context": "Residence in authoritarian vs. democratic regimes; marginalized status (immigration status, criminal record) that increases surveillance vulnerability",
+      "sub_items": [
+        "residence_in_authoritarian_regime",
+        "residence_in_democratic_regime",
+        "marginalized_status_immigration",
+        "marginalized_status_criminal_record"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "professional_role",
+      "context": "Journalists, lawyers, activists, medical professionals, or domestic violence survivors face heightened risks",
+      "sub_items": [
+        "professional_role_journalist",
+        "professional_role_lawyer",
+        "professional_role_activist",
+        "professional_role_medical_professional",
+        "status_as_domestic_violence_survivor"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1006B_2",
+      "selected_text": "Which of the following best describes the industry you work in?",
+      "n_candidates": 15,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "privacy_protective_behaviors",
+      "context": "Use of VPNs, burner phones, or avoidance of digital communication for sensitive topics",
+      "sub_items": [
+        "use_of_vpns",
+        "use_of_burner_phones",
+        "avoidance_of_digital_communication_for_sensitive_topics"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "risk_tolerance",
+      "context": "Personality factors like sensation-seeking vs. anxiety about security",
+      "sub_items": [
+        "sensation_seeking",
+        "anxiety_about_security"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "communication_preferences",
+      "context": "Whether they default to voice calls, texting, or in-person meetings for sensitive matters",
+      "sub_items": [
+        "preference_for_voice_calls",
+        "preference_for_texting",
+        "preference_for_in_person_meetings"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q534_3",
+      "selected_text": "When you have private information to share with a trusted person, how secure do you feel sending text messages on a mobile phone?",
+      "n_candidates": 11,
+      "disambig_raw": "\nC"
+    }
+  ]
+}

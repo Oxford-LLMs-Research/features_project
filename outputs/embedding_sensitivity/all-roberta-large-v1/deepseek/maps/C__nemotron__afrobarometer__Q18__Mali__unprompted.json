@@ -1,0 +1,264 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q18",
+  "country": "Mali",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 19,
+  "n_piped": 18,
+  "n_mapped": 13,
+  "n_none": 5,
+  "n_bundled": 5,
+  "type_counts": {
+    "respondent_attribute": 16,
+    "temporal_contextual": 2,
+    "instrument_methodology": 1
+  },
+  "mapped_codes": [
+    "Q23",
+    "Q37B",
+    "Q1",
+    "Q94",
+    "COUNTRY",
+    "Q33F",
+    "Q42C",
+    "Q19A",
+    "Q12B",
+    "Q27C",
+    "Q39A",
+    "Q19B",
+    "Q14C"
+  ],
+  "features": [
+    {
+      "feature": "political_ideology",
+      "context": "Left-right political orientation (e.g., liberal, conservative, socialist, libertarian)",
+      "sub_items": [
+        "liberal",
+        "conservative",
+        "socialist",
+        "libertarian"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "democracy_vs_efficiency_values",
+      "context": "Views on democracy vs. efficiency (e.g., procedural vs. outcome-focused)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q23",
+      "selected_text": "Which of these three statements is closest to your own opinion? Statement 1: Democracy is preferable to any other kind of government. Statement 2: In some circumstances, a non-democratic government can be preferable. Statement 3: For someone like me, it doesn't matter what kind of government we have?",
+      "n_candidates": 18,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "trust_in_government",
+      "context": "Trust in government institutions",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37B",
+      "selected_text": "How much do you trust the national parliament?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "age",
+      "context": "Age (younger people may prioritize accountability, older may prioritize efficiency)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Education level (higher education often correlates with valuing democratic processes)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income_and_social_class",
+      "context": "Income and social class (marginalized groups may prioritize accountability)",
+      "sub_items": [
+        "income",
+        "social_class"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Urban vs. rural residence (different experiences with government responsiveness)",
+      "sub_items": [
+        "urban",
+        "rural"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "country_of_residence",
+      "context": "Country of residence (democratic vs. authoritarian contexts)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "COUNTRY",
+      "selected_text": "What is your country?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "recent_political_events",
+      "context": "Recent political events (scandals, crises, or government successes)",
+      "sub_items": [
+        "scandals",
+        "crises",
+        "government_successes"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q33F",
+      "selected_text": "In your opinion, how often, in this country: do officials who commit crimes go unpunished?",
+      "n_candidates": 18,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "personal_government_experience",
+      "context": "Personal experiences with government services or bureaucracy",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q42C",
+      "selected_text": "How often, if ever, did you have to pay a bribe, give a gift, or do a favor for a government official to get the document you needed?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "authoritarian_tendencies",
+      "context": "Authoritarian tendencies (valuing order and decisive leadership)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 14,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "political_efficacy",
+      "context": "Political efficacy (belief that citizens can influence government)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q12B",
+      "selected_text": "Thinking about how elections work in practice in this country, how well do elections enable voters to remove from office leaders who do not do what the people want?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "patience_with_processes",
+      "context": "Patience with political processes",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q27C",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: After losing an election, opposition parties should monitor and criticize the government in order to hold it accountable. Statement 2: Once an election is over, opposition parties and politicians should accept defeat and cooperate with government to help it develop the country?",
+      "n_candidates": 12,
+      "disambig_raw": "\nL"
+    },
+    {
+      "feature": "risk_aversion",
+      "context": "Risk aversion (preference for predictable vs. potentially flawed but accountable systems)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "government_satisfaction",
+      "context": "Satisfaction with current government",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "perceived_corruption",
+      "context": "Perception of government corruption",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q39A",
+      "selected_text": "In your opinion, over the past year, has the level of corruption in this country increased, decreased, or stayed the same?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "belief_in_collective_vs_expert_leadership",
+      "context": "Belief in collective decision-making vs. expert leadership",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19B",
+      "selected_text": "Which of the following statements is closest to your view? Choose Statement 1 or Statement 2. Statement 1: Statement 1: Our elected officials should listen to voters' views and do what they demand. Statement 2: Our elected leaders should follow their own ideas in deciding what is best for the country?",
+      "n_candidates": 12,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "question_framing",
+      "context": "How the question is framed (if other questions prime certain values)",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "survey_timing",
+      "context": "Timing relative to elections or crises",
+      "sub_items": [
+        "elections",
+        "crises"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q14C",
+      "selected_text": "During the last national election campaign, how much did you personally fear becoming a victim of political intimidation or violence?",
+      "n_candidates": 5,
+      "disambig_raw": "\nC"
+    }
+  ]
+}

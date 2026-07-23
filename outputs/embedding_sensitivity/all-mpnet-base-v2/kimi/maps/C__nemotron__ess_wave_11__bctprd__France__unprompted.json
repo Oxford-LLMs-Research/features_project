@@ -1,0 +1,229 @@
+{
+  "survey": "ess_wave_11",
+  "target": "bctprd",
+  "country": "France",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 17,
+  "n_piped": 17,
+  "n_mapped": 12,
+  "n_none": 5,
+  "n_bundled": 2,
+  "type_counts": {
+    "respondent_attribute": 15,
+    "temporal_contextual": 2
+  },
+  "mapped_codes": [
+    "hinctnta",
+    "edlvipl",
+    "hlpfmhr",
+    "lrscale",
+    "trstprl",
+    "cptppola",
+    "impenva",
+    "dscrgrp",
+    "nwspol",
+    "pstplonl",
+    "agea",
+    "gndr"
+  ],
+  "features": [
+    {
+      "feature": "income_wealth",
+      "context": "Boycotting requires the ability to afford alternatives (e.g., paying more for ethically sourced products or doing without). Higher SES predicts boycotting capacity.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 6,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "education",
+      "context": "Strong predictor of political consumerism; correlates with information-processing capacity and post-material values.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvipl",
+      "selected_text": "What is the highest level of education you completed in Poland?",
+      "n_candidates": 20,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "time_availability",
+      "context": "Those with fewer caretaking responsibilities or flexible schedules can research alternatives and change purchasing habits.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hlpfmhr",
+      "selected_text": "On average, how many hours per week do you spend looking after or helping family members, friends, neighbours, or others?",
+      "n_candidates": 10,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "Left-leaning respondents typically boycott for labor/environmental issues; right-leaning respondents may boycott for 'culture war' or patriotic reasons (e.g., avoiding 'woke' companies).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "general_political_engagement",
+      "context": "Voting history, protesting, petition-signing (boycotting is part of a 'repertoire of contention').",
+      "sub_items": [
+        "voting_history",
+        "protesting",
+        "petition_signing"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "institutional_trust",
+      "context": "Low trust in government/companies may drive boycotting as an alternative accountability mechanism.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trstprl",
+      "selected_text": "How much do you personally trust your country's parliament?",
+      "n_candidates": 12,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "political_efficacy",
+      "context": "Belief that consumer choices can create change ('consumer efficacy').",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "cptppola",
+      "selected_text": "How confident are you in your ability to participate in politics?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "post_materialist_values",
+      "context": "Prioritizing self-expression, environmental protection, and social justice over economic security.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "impenva",
+      "selected_text": "How well does the following statement describe you: 'You strongly believe people should care for nature; looking after the environment is important to you'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "group_consciousness",
+      "context": "Identification with affected communities (e.g., environmentalists, ethnic groups, workers in specific industries).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "dscrgrp",
+      "selected_text": "Are you a member of a group that faces discrimination in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "consumer_identity",
+      "context": "Whether the respondent views purchasing as a moral/political act versus purely transactional.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 16,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Exposure to investigative journalism, social media campaigns, or activist networks that publicize boycott targets.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "nwspol",
+      "selected_text": "On a typical day, about how much time do you spend watching, reading, or listening to news about politics and current affairs?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "social_networks",
+      "context": "Peer behavior (boycotting has social contagion effects); membership in advocacy organizations.",
+      "sub_items": [
+        "peer_behavior",
+        "membership_in_advocacy_organizations"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "pstplonl",
+      "selected_text": "In the past 12 months, have you posted or shared anything about politics online, for example on blogs, by email, or on social media like Facebook or Twitter?",
+      "n_candidates": 8,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "issue_awareness",
+      "context": "Knowledge of specific corporate malfeasance or controversies in the past 12 months (salient events like labor violations, environmental disasters, or political donations by companies).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "market_alternatives",
+      "context": "Availability of substitute products in their geographic area (rural vs. urban; access to farmers markets, ethical brands).",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "target_salience",
+      "context": "Whether companies headquartered in their country have been recently embroiled in scandals relevant to the respondent's values.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age",
+      "context": "Often curvilinear—young adults (18-35) typically show highest rates of political consumerism, though this varies by issue.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender",
+      "context": "Women often report higher rates of ethical consumption, though men may boycott specific domains (e.g., firearms-related corporate policies).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "gndr",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

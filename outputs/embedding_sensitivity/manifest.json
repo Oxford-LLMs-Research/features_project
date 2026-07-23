@@ -1,0 +1,114 @@
+{
+  "experiment": "embedding_sensitivity",
+  "baseline": {
+    "embedding_model": "all-MiniLM-L6-v2",
+    "scores_root": "outputs/format_pilot",
+    "note": "Main-experiment MiniLM maps/scores; not re-run unless --embedding-model points at it."
+  },
+  "disambiguator": "nemotron",
+  "arms": [
+    "C"
+  ],
+  "models": {
+    "all-mpnet-base-v2": {
+      "runs": [
+        {
+          "phase": "map",
+          "selector": "deepseek",
+          "disambiguator": "nemotron",
+          "arms": [
+            "C"
+          ],
+          "limit": 2,
+          "at": "2026-07-22T17:17:16.237129+00:00"
+        },
+        {
+          "phase": "score",
+          "selector": "deepseek",
+          "disambiguator": null,
+          "arms": null,
+          "limit": 2,
+          "at": "2026-07-22T17:18:55.830433+00:00"
+        },
+        {
+          "phase": "map",
+          "selector": "deepseek",
+          "disambiguator": "nemotron",
+          "arms": [
+            "C"
+          ],
+          "limit": null,
+          "at": "2026-07-22T18:39:52.314932+00:00"
+        },
+        {
+          "phase": "score",
+          "selector": "deepseek",
+          "disambiguator": null,
+          "arms": null,
+          "limit": null,
+          "at": "2026-07-22T20:22:38.145204+00:00"
+        },
+        {
+          "phase": "map",
+          "selector": "kimi",
+          "disambiguator": "nemotron",
+          "arms": [
+            "C"
+          ],
+          "limit": null,
+          "at": "2026-07-22T21:12:45.287157+00:00"
+        },
+        {
+          "phase": "score",
+          "selector": "kimi",
+          "disambiguator": null,
+          "arms": null,
+          "limit": null,
+          "at": "2026-07-23T13:29:53.743354+00:00"
+        }
+      ]
+    },
+    "all-roberta-large-v1": {
+      "runs": [
+        {
+          "phase": "map",
+          "selector": "kimi",
+          "disambiguator": "nemotron",
+          "arms": [
+            "C"
+          ],
+          "limit": null,
+          "at": "2026-07-23T13:22:30.161109+00:00"
+        },
+        {
+          "phase": "map",
+          "selector": "deepseek",
+          "disambiguator": "nemotron",
+          "arms": [
+            "C"
+          ],
+          "limit": null,
+          "at": "2026-07-23T13:22:31.943457+00:00"
+        },
+        {
+          "phase": "score",
+          "selector": "deepseek",
+          "disambiguator": null,
+          "arms": null,
+          "limit": null,
+          "at": "2026-07-23T15:26:41.620495+00:00"
+        },
+        {
+          "phase": "score",
+          "selector": "kimi",
+          "disambiguator": null,
+          "arms": null,
+          "limit": null,
+          "at": "2026-07-23T15:27:45.861568+00:00"
+        }
+      ]
+    }
+  },
+  "created_at": "2026-07-22T17:17:16.237129+00:00",
+  "updated_at": "2026-07-23T15:27:45.861568+00:00"
+}

@@ -1,0 +1,218 @@
+{
+  "survey": "wvs",
+  "target": "Q205",
+  "country": "Andorra",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 16,
+  "n_piped": 16,
+  "n_mapped": 8,
+  "n_none": 7,
+  "n_bundled": 3,
+  "type_counts": {
+    "respondent_attribute": 16
+  },
+  "mapped_codes": [
+    "Q262",
+    "Q275",
+    "Q281",
+    "Q288",
+    "Q266",
+    "Q206",
+    "Q66",
+    "Q284"
+  ],
+  "features": [
+    {
+      "feature": "device_access",
+      "context": "Computer/laptop ownership (vs. smartphone-only), since email-for-information is more common on desktop platforms",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "internet_quality",
+      "context": "Broadband reliability in specific parishes (rural mountain areas vs. Andorra la Vella/Escaldes)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "digital_skills",
+      "context": "Ability to manage subscriptions, filter spam, and navigate email interfaces (particularly among older residents)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age",
+      "context": "Generational divides in email vs. social media/app-based news consumption (likely strong predictor)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q262",
+      "selected_text": "How old are you?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates with newsletter subscriptions and institutional email use",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q275",
+      "selected_text": "What is the highest educational level that you have attained?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "occupation",
+      "context": "White-collar/professional workers (finance, government, tech) who use email professionally; Tourism/hospitality workers (often seasonal/immigrant populations with different patterns)",
+      "sub_items": [
+        "white_collar_professional",
+        "tourism_hospitality_worker"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q281",
+      "selected_text": "To which occupational group do you belong?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income",
+      "context": "Ability to pay for data plans and devices",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q288",
+      "selected_text": "What is the level of your household's income counting all wages, salaries, pensions and other incomes on an income scale on which 'lowest' indicates the lowest income group and 'tenth step' the highest income group in your country?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "nationality_origin",
+      "context": "Native Andorrans vs. Spanish/French/Portuguese immigrants (different media ecosystems)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q266",
+      "selected_text": "In which country were you born?",
+      "n_candidates": 17,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "language_proficiency",
+      "context": "Catalan (local news sources); Spanish/French (access to neighboring countries' media newsletters); English (international news sources)",
+      "sub_items": [
+        "catalan_proficiency",
+        "spanish_proficiency",
+        "french_proficiency",
+        "english_proficiency"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 14,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "length_of_residence",
+      "context": "Recent immigrants may rely on email to stay connected with home countries",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 13,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "news_interest",
+      "context": "Political engagement and civic participation (email skews toward 'high-intent' information seekers)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q206",
+      "selected_text": "How often do you use internet to obtain information about this country and the world?",
+      "n_candidates": 20,
+      "disambig_raw": "\nK"
+    },
+    {
+      "feature": "media_trust",
+      "context": "Preference for traditional media (which often use email newsletters) vs. social media algorithms",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q66",
+      "selected_text": "How much confidence do you have in the press?",
+      "n_candidates": 11,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "work_email_requirement",
+      "context": "Whether their employment requires monitoring email for operational updates",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "employment_sector",
+      "context": "Government workers (Andorra has high public sector employment), finance professionals, and students use email more heavily",
+      "sub_items": [
+        "government_worker",
+        "finance_professional",
+        "student"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q284",
+      "selected_text": "Are you working for the government or public institution, for private business or industry, or for a private non-profit organization? If you do not work currently, characterize your major work in the past! Do you or did you work for?",
+      "n_candidates": 14,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "educational_enrollment",
+      "context": "University students rely on email for institutional communications",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q275",
+      "selected_text": "What is the highest educational level that you have attained?",
+      "n_candidates": 8,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "organizational_membership",
+      "context": "NGOs, business associations, or expatriate groups that distribute information via listservs",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

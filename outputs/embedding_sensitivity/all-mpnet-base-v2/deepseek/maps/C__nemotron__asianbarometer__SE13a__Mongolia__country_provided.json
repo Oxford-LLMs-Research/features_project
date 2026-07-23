@@ -1,0 +1,270 @@
+{
+  "survey": "asianbarometer",
+  "target": "SE13a",
+  "country": "Mongolia",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 19,
+  "n_piped": 16,
+  "n_mapped": 12,
+  "n_none": 4,
+  "n_bundled": 7,
+  "type_counts": {
+    "respondent_attribute": 14,
+    "temporal_contextual": 2,
+    "instrument_methodology": 2,
+    "base_rate_prior": 1
+  },
+  "mapped_codes": [
+    "SE14",
+    "SE9c",
+    "SE5",
+    "region",
+    "Q41",
+    "SE12",
+    "Q5",
+    "Q164",
+    "SE8a",
+    "SE11a",
+    "SE3_1",
+    "SE2"
+  ],
+  "features": [
+    {
+      "feature": "household_income_and_assets",
+      "context": "Household income and assets (livestock, property, vehicles, etc.)",
+      "sub_items": [
+        "livestock",
+        "property",
+        "vehicles"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE14",
+      "selected_text": "What is your household income group?",
+      "n_candidates": 19,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "employment_status_and_occupation",
+      "context": "Employment status and occupation (herder, miner, government employee, informal sector, etc.)",
+      "sub_items": [
+        "herder",
+        "miner",
+        "government employee",
+        "in informal sector"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE9c",
+      "selected_text": "Which type of job do you have now?",
+      "n_candidates": 15,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Education level",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE5",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "location",
+      "context": "Location (urban vs. rural; specific aimag/province)",
+      "sub_items": [
+        "urban vs. rural",
+        "specific aimag/province"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "region",
+      "selected_text": "What is your administrative region?",
+      "n_candidates": 5,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "access_to_public_services",
+      "context": "Access to public services and infrastructure",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q41",
+      "selected_text": "How easy or difficult is it to access public transportation?",
+      "n_candidates": 13,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "self_perceived_economic_standing",
+      "context": "Self-perceived economic standing relative to neighbors/community",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE12",
+      "selected_text": "On a ladder with 10 steps where step 1 represents the lowest status and step 10 represents the highest status, where would you place your family?",
+      "n_candidates": 20,
+      "disambig_raw": "\nO"
+    },
+    {
+      "feature": "recent_financial_changes",
+      "context": "Recent changes in financial situation (improving or worsening)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q5",
+      "selected_text": "How does your family's current economic condition compare to what it was a few years ago?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "perception_of_inequality_and_mobility",
+      "context": "Perception of inequality and mobility in Mongolian society",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q164",
+      "selected_text": "As compared to your parents' generation, does your generation have more or fewer opportunities to improve the standard of living or social status?",
+      "n_candidates": 17,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "household_size_and_dependents",
+      "context": "Household size and number of dependents",
+      "sub_items": [
+        "household size",
+        "number of dependents"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE8a",
+      "selected_text": "How many people live in your household?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "ethnicity",
+      "context": "Ethnicity (potential socioeconomic disparities)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE11a",
+      "selected_text": "What is your racial or ethnic background?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age",
+      "context": "Age and gender (may affect labor opportunities, inheritance, etc.)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE3_1",
+      "selected_text": "What is your actual age?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender",
+      "context": "Age and gender (may affect labor opportunities, inheritance, etc.)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE2",
+      "selected_text": "What is your gender?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "local_economic_conditions",
+      "context": "Local economic conditions (e.g., dependence on mining, climate impact on pastoralism)",
+      "sub_items": [
+        "dependence on mining",
+        "climate impact on pastoralism"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "exposure_to_economic_shocks",
+      "context": "Exposure to economic shocks (dzud/winter disasters, commodity price changes)",
+      "sub_items": [
+        "dzud/winter disasters",
+        "commodity price changes"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "modesty_norms",
+      "context": "Modesty norms (possible understatement of position)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "reference_group",
+      "context": "Reference group (whether comparing to local community or national elite)",
+      "sub_items": [
+        "local community",
+        "national elite"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "question_understanding",
+      "context": "Understanding of the question (clear analogy of “steps”)",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "survey_trust_and_anonymity",
+      "context": "Trust in survey/anonymity (willingness to report accurately)",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "national_averages",
+      "context": "Without such data, a prediction would rely on national averages, which mask large variations",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

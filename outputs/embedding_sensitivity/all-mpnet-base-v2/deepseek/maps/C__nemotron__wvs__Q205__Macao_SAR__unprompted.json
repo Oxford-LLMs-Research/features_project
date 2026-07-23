@@ -1,0 +1,194 @@
+{
+  "survey": "wvs",
+  "target": "Q205",
+  "country": "Macao SAR",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 15,
+  "n_piped": 15,
+  "n_mapped": 7,
+  "n_none": 7,
+  "n_bundled": 0,
+  "type_counts": {
+    "respondent_attribute": 15
+  },
+  "mapped_codes": [
+    "Q275",
+    "Q281",
+    "Q206",
+    "Q199",
+    "N_REGION_ISO",
+    "Q204",
+    "Q207"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Older adults might rely more on email newsletters, while younger generations may use social media or apps.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 9,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education often correlates with greater use of email for news (e.g., newsletters from professional or academic sources).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q275",
+      "selected_text": "What is the highest educational level that you have attained?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "occupation",
+      "context": "Office-based or knowledge-economy jobs often involve regular email use for professional updates, including news.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q281",
+      "selected_text": "To which occupational group do you belong?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "digital_literacy_and_access",
+      "context": "Whether the respondent has reliable internet access and is comfortable using digital tools.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q206",
+      "selected_text": "How often do you use internet to obtain information about this country and the world?",
+      "n_candidates": 7,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "primary_news_sources",
+      "context": "Does the person already use email newsletters (e.g., from The New York Times, BBC, local news outlets)?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q206",
+      "selected_text": "How often do you use internet to obtain information about this country and the world?",
+      "n_candidates": 9,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "email_use_frequency",
+      "context": "How often they check email in general.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "subscription_behavior",
+      "context": "Whether they subscribe to news digests, political updates, or organizational newsletters.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "interest_in_current_affairs",
+      "context": "People more interested in politics/world events may actively seek news via email.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q199",
+      "selected_text": "How interested would you say you are in politics?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "trust_in_email_source",
+      "context": "Some may view email as credible (e.g., official updates), while others may see it as spam-prone.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "national_regional_context",
+      "context": "In countries with high internet penetration and popular email-based news services (e.g., some Western countries), usage might be higher.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "N_REGION_ISO",
+      "selected_text": "Which region do you currently live in?",
+      "n_candidates": 12,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "smartphone_device_use",
+      "context": "Mobile email users might be more likely to check news on-the-go.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q204",
+      "selected_text": "How often do you use mobile phone to obtain information about this country and the world?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "email_management_style",
+      "context": "Do they actively organize subscriptions, or ignore promotional/news emails?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "alternative_news_channels",
+      "context": "Heavy social media or news app users might use email less for news.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q207",
+      "selected_text": "How often do you use social media (facebook, twitter, etc.) to obtain information about this country and the world?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "daily_routine",
+      "context": "People with structured daily routines might include email news checks (e.g., morning briefings).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "time_availability",
+      "context": "Busy schedules might lead to preference for concise email digests over browsing news sites.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}

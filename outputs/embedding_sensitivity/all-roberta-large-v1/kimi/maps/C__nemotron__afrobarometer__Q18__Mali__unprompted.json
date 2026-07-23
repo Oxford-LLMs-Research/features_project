@@ -1,0 +1,258 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q18",
+  "country": "Mali",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 18,
+  "n_piped": 18,
+  "n_mapped": 13,
+  "n_none": 4,
+  "n_bundled": 7,
+  "type_counts": {
+    "respondent_attribute": 17,
+    "temporal_contextual": 1
+  },
+  "mapped_codes": [
+    "Q19B",
+    "Q15",
+    "Q24",
+    "Q37A",
+    "Q19A",
+    "Q31",
+    "Q10C",
+    "Q7A",
+    "Q72B",
+    "Q94",
+    "Q1",
+    "Q74B",
+    "Q30"
+  ],
+  "features": [
+    {
+      "feature": "procedural_vs_substantive_democratic_values",
+      "context": "Does the respondent believe democracy is about processes (voting, deliberation) or outcomes (economic growth, security)?",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19B",
+      "selected_text": "Which of the following statements is closest to your view? Choose Statement 1 or Statement 2. Statement 1: Statement 1: Our elected officials should listen to voters' views and do what they demand. Statement 2: Our elected leaders should follow their own ideas in deciding what is best for the country?",
+      "n_candidates": 12,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "authoritarian_libertarian_orientation",
+      "context": "Measures of authoritarian personality, deference to authority, or need for cognitive closure",
+      "sub_items": [
+        "authoritarian_personality",
+        "deference_to_authority",
+        "need_for_cognitive_closure"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q15",
+      "selected_text": "Let's talk for a moment about the kind of society you would like to have in this country. Which of the following statements is closest to your view? Statement 1: The government should be able to ban any organization that goes against its policies. Statement 2: We should be able to join any organization, whether or not the government approves of it?",
+      "n_candidates": 4,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "populist_attitudes",
+      "context": "Anti-elite sentiment and preference for 'strongman' leadership that bypasses institutional checks",
+      "sub_items": [
+        "anti_elite_sentiment",
+        "preference_for_strongman_leadership"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q24",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: We should choose our leaders in this country through regular, open, and honest elections. Statement 2: Since elections sometimes produce bad results, we should adopt other methods for choosing this country's leaders?",
+      "n_candidates": 20,
+      "disambig_raw": "\nJ"
+    },
+    {
+      "feature": "trust_in_current_government",
+      "context": "Crucial interaction variable—those who trust incumbents often prefer 'getting things done' (the 'efficiency premium')",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q37A",
+      "selected_text": "How much do you trust the president?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "bureaucratic_competence_beliefs",
+      "context": "Beliefs about whether government can actually deliver if given unchecked power",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "satisfaction_with_democratic_performance",
+      "context": "Democratic fatigue or perception that gridlock/paralysis stems from too much accountability",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q31",
+      "selected_text": "Overall, how satisfied are you with the way democracy works in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "internal_efficacy",
+      "context": "Confidence in one's own ability to understand politics (low efficacy → preference for deferring to experts/leaders)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 15,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "external_efficacy",
+      "context": "Belief that government responds to citizens (low external efficacy makes 'accountability' seem like empty ritual)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q19A",
+      "selected_text": "Which of the following statements is closest to your view? Statement 1: The government is like the people's boss. People should respect the government and do what it directs. Statement 2: The government is like the people's employee. It should respect the citizens and do what they request?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "participation_history",
+      "context": "Past experience with petitioning, protesting, or voting (shapes beliefs about whether accountability mechanisms actually work)",
+      "sub_items": [
+        "petitioning_experience",
+        "protesting_experience",
+        "voting_experience"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q10C",
+      "selected_text": "Have you participated in a demonstration or protest march in the past year? If yes, how often?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "economic_evaluations",
+      "context": "Both pocketbook and sociotropic; economic crisis often increases preference for decisive action over procedure",
+      "sub_items": [
+        "pocketbook_evaluations",
+        "sociotropic_evaluations"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "perceived_threat_level",
+      "context": "Security threats, pandemic conditions, or chaos perceptions increase demand for 'getting things done'",
+      "sub_items": [
+        "security_threats",
+        "pandemic_conditions",
+        "chaos_perceptions"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q7A",
+      "selected_text": "Over the past year, how often, if ever, have you or anyone in your family felt unsafe walking in your neighbourhood?",
+      "n_candidates": 3,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "developmental_priorities",
+      "context": "Post-material vs. material values (Inglehart thesis—affluent respondents prioritize accountability; struggling respondents prioritize results)",
+      "sub_items": [
+        "post_material_values",
+        "material_values"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q72B",
+      "selected_text": "What is the most important environmental issue in your community?",
+      "n_candidates": 3,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "education",
+      "context": "Civic education exposure correlates with valuing accountability; but technical education may favor efficiency",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age",
+      "context": "Life cycle effects (older respondents often prioritize stability) and generational socialization (experience with authoritarianism vs. democratic transition)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 10,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Urban dwellers often have more experience with bureaucratic accountability mechanisms",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "media_diet",
+      "context": "State media consumption (often emphasizes efficiency/unity) vs. independent media (emphasizes scrutiny/rights)",
+      "sub_items": [
+        "state_media_consumption",
+        "independent_media_consumption"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q74B",
+      "selected_text": "How often do you get news from television?",
+      "n_candidates": 14,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "political_knowledge",
+      "context": "Factual knowledge about how checks and balances actually function",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "country_context",
+      "context": "This trade-off functions differently in consolidated democracies (where 'getting things done' implies technocratic efficiency) versus hybrid regimes (where it often signals authoritarian temptation)",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q30",
+      "selected_text": "Now let us speak about the political system in this country. In your opinion how much of a democracy is this country today?",
+      "n_candidates": 20,
+      "disambig_raw": "\nP"
+    }
+  ]
+}

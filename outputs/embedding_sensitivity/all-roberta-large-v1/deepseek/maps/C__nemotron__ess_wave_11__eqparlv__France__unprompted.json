@@ -1,0 +1,155 @@
+{
+  "survey": "ess_wave_11",
+  "target": "eqparlv",
+  "country": "France",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 10,
+  "n_piped": 10,
+  "n_mapped": 10,
+  "n_none": 0,
+  "n_bundled": 4,
+  "type_counts": {
+    "respondent_attribute": 10
+  },
+  "mapped_codes": [
+    "icgndra",
+    "lrscale",
+    "eqwrkbg",
+    "chldhhe",
+    "edulvlfb",
+    "medtrnt",
+    "imptrada",
+    "agegroup",
+    "cntry",
+    "hmsacld"
+  ],
+  "features": [
+    {
+      "feature": "gender",
+      "context": "Research often shows differences in attitudes toward parental leave and gender roles between men and women.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "icgndra",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "Support for government-mandated leave policies often correlates with left/liberal vs. right/conservative views.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "attitudes_toward_gender_roles",
+      "context": "Egalitarian vs. traditional views on parenting and work.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "eqwrkbg",
+      "selected_text": "Overall, how good or bad is it for family life in this country if equal numbers of women and men are in paid work?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "personal_family_experience",
+      "context": "Whether they have children, used parental leave, or saw others do so.",
+      "sub_items": [
+        "has_children",
+        "used_parental_leave",
+        "observed_others_use_leave"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "chldhhe",
+      "selected_text": "Have you ever had any children — your own, stepchildren, adopted children, foster children, or a partner's children — living in your household?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    },
+    {
+      "feature": "socioeconomic_status_and_education",
+      "context": "Higher education and income sometimes correlate with support for egalitarian policies, but also with individualism.",
+      "sub_items": [
+        "income",
+        "education_level"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edulvlfb",
+      "selected_text": "What is the highest level of education your father completed?",
+      "n_candidates": 20,
+      "disambig_raw": "\nL"
+    },
+    {
+      "feature": "work_sector_and_benefits",
+      "context": "Those with access to generous leave may view mandates differently than those without.",
+      "sub_items": [
+        "work_sector",
+        "access_to_leave_benefits"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "medtrnt",
+      "selected_text": "Was not being able to take time off work one of the reasons you couldn't get this medical consultation or treatment?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "cultural_religious_background",
+      "context": "Norms about family, motherhood, and fatherhood vary across cultures and religions.",
+      "sub_items": [
+        "cultural_background",
+        "religious_background"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "imptrada",
+      "selected_text": "How well does the statement 'Tradition is important to me; I try to follow customs from my religion or my family' describe you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "age_and_generation",
+      "context": "Younger cohorts often express more support for shared parenting leave.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agegroup",
+      "selected_text": "Which age group do you fall into?",
+      "n_candidates": 19,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "country_region_of_residence",
+      "context": "Context matters; in places with existing gender-neutral leave policies, support may differ.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "cntry",
+      "selected_text": "Which country are you in?",
+      "n_candidates": 12,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "beliefs_about_government_intervention",
+      "context": "Whether they generally favor or oppose state mandates in private family decisions.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hmsacld",
+      "selected_text": "To what extent do you agree or disagree that same-sex couples should have the same rights to adopt children as straight couples?",
+      "n_candidates": 20,
+      "disambig_raw": "\nH"
+    }
+  ]
+}

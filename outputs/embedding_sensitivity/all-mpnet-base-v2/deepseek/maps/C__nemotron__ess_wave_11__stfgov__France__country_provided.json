@@ -1,0 +1,346 @@
+{
+  "survey": "ess_wave_11",
+  "target": "stfgov",
+  "country": "France",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 25,
+  "n_piped": 25,
+  "n_mapped": 16,
+  "n_none": 8,
+  "n_bundled": 9,
+  "type_counts": {
+    "respondent_attribute": 22,
+    "temporal_contextual": 3
+  },
+  "mapped_codes": [
+    "clsprty",
+    "lrscale",
+    "agea",
+    "hinctnta",
+    "uempla",
+    "edlvdis",
+    "region",
+    "tporgwk",
+    "stfeco",
+    "testjc36",
+    "trstprl",
+    "pstplonl",
+    "nwspol",
+    "contplt",
+    "uemp12m",
+    "dscrgrp"
+  ],
+  "features": [
+    {
+      "feature": "party_identification",
+      "context": "supporter of the presidential majority vs. opposition parties",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "clsprty",
+      "selected_text": "Is there any political party you feel closer to than the others?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "political_spectrum",
+      "context": "self-placement on left-right political spectrum",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "policy_views",
+      "context": "views on specific government policies (pensions, education, immigration, etc.)",
+      "sub_items": [
+        "pensions",
+        "education",
+        "immigration"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "age",
+      "context": "youth often more critical",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "income_level",
+      "context": "income level and employment status",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "employment_status",
+      "context": "income level and employment status",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "uempla",
+      "selected_text": "In the past 7 days, were you unemployed and actively looking for a job?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "education_level",
+      "context": "education level",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvdis",
+      "selected_text": "What is the highest level of education you have completed in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "geographic_region",
+      "context": "geographic region (e.g., urban vs. rural, specific regions with distinct political leanings)",
+      "sub_items": [
+        "urban",
+        "rural"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "region",
+      "selected_text": "Which region do you live in?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "profession_sector",
+      "context": "profession (public vs. private sector, blue/white collar)",
+      "sub_items": [
+        "public",
+        "private"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "tporgwk",
+      "selected_text": "What type of organization do you work for, or did you work for?",
+      "n_candidates": 20,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "profession_type",
+      "context": "profession (public vs. private sector, blue/white collar)",
+      "sub_items": [
+        "blue collar",
+        "white collar"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "tporgwk",
+      "selected_text": "What type of organization do you work for, or did you work for?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "economic_perception",
+      "context": "perception of economic conditions (personal and national)",
+      "sub_items": [
+        "personal",
+        "national"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "stfeco",
+      "selected_text": "How satisfied are you with the current state of the economy in this country?",
+      "n_candidates": 16,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "public_service_assessment",
+      "context": "assessment of public services (healthcare, transportation, education)",
+      "sub_items": [
+        "healthcare",
+        "transportation",
+        "education"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "issue_handling_views",
+      "context": "views on government handling of specific issues (inflation, security, environment)",
+      "sub_items": [
+        "inflation",
+        "security",
+        "environment"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "testjc36",
+      "selected_text": "How likely do you think it is that enough governments will take action to reduce climate change?",
+      "n_candidates": 17,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "institutional_trust",
+      "context": "trust in political institutions beyond the current government",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "trstprl",
+      "selected_text": "How much do you personally trust your country's parliament?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "news_sources",
+      "context": "primary news sources (public vs. private media, specific outlets)",
+      "sub_items": [
+        "public media",
+        "private media"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "social_media_usage",
+      "context": "social media usage patterns and political content exposure",
+      "sub_items": [
+        "political content exposure"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "pstplonl",
+      "selected_text": "In the past 12 months, have you posted or shared anything about politics online, for example on blogs, by email, or on social media like Facebook or Twitter?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "timing_events",
+      "context": "timing relative to elections or major political events",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "government_announcements",
+      "context": "recent government announcements or controversies",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "nwspol",
+      "selected_text": "On a typical day, about how much time do you spend watching, reading, or listening to news about politics and current affairs?",
+      "n_candidates": 7,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "national_mood",
+      "context": "broader national mood (optimism/pessimism about France's direction)",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 13,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "government_service_interaction",
+      "context": "direct interactions with government services",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "contplt",
+      "selected_text": "In the past 12 months, have you contacted a politician or any government official (including local officials)?",
+      "n_candidates": 7,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "economic_change",
+      "context": "recent changes in personal economic circumstances",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "uemp12m",
+      "selected_text": "Have you had any periods of unemployment or of actively looking for work that lasted 12 months or more?",
+      "n_candidates": 20,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "policy_impact_experience",
+      "context": "experience with policy impacts (tax changes, social benefits, etc.)",
+      "sub_items": [
+        "tax changes",
+        "social benefits"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "eu_attitude",
+      "context": "attitude toward European Union and France's role in Europe",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "laicite_views",
+      "context": "views on secularism (laïcité) and related policies",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "integration_experience",
+      "context": "for immigrant populations: experience with integration policies",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "dscrgrp",
+      "selected_text": "Are you a member of a group that faces discrimination in this country?",
+      "n_candidates": 16,
+      "disambig_raw": "\nD"
+    }
+  ]
+}

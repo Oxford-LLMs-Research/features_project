@@ -1,0 +1,247 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q67A",
+  "country": "Gabon",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 17,
+  "n_piped": 15,
+  "n_mapped": 11,
+  "n_none": 4,
+  "n_bundled": 7,
+  "type_counts": {
+    "respondent_attribute": 15,
+    "instrument_methodology": 2
+  },
+  "mapped_codes": [
+    "Q1",
+    "Q94",
+    "REGION",
+    "Q93B",
+    "Q74E",
+    "Q90I",
+    "Q89B",
+    "Q95",
+    "Q66B",
+    "Q8",
+    "Q10B"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger generations tend to have higher awareness due to education and media exposure.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education often correlates with greater awareness of scientific and global issues.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "geographic_location",
+      "context": "Urban vs. rural, and country/region (awareness varies by national discourse and policy).",
+      "sub_items": [
+        "urban_rural",
+        "country_region"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REGION",
+      "selected_text": "Which region/province/state do you live in?",
+      "n_candidates": 16,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "socioeconomic_status",
+      "context": "Income and occupation can influence access to information and media.",
+      "sub_items": [
+        "income",
+        "occupation"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q93B",
+      "selected_text": "What is your main occupation? If unemployed, retired, or disabled, what was your last main occupation?",
+      "n_candidates": 13,
+      "disambig_raw": "\nI"
+    },
+    {
+      "feature": "primary_news_sources",
+      "context": "e.g., social media, TV, newspapers, online news.",
+      "sub_items": [
+        "social_media",
+        "tv",
+        "newspapers",
+        "online_news"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q74E",
+      "selected_text": "How often do you get news from social media such as Facebook, Twitter, WhatsApp, or others?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "frequency_news_consumption",
+      "context": "How often the respondent consumes news.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 11,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "digital_access_literacy",
+      "context": "Internet use and social media engagement.",
+      "sub_items": [
+        "internet_use",
+        "social_media_engagement"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q90I",
+      "selected_text": "How often do you use the Internet?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "In some regions, climate change awareness is polarized along political lines.",
+      "sub_items": [
+        "party_affiliation"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q89B",
+      "selected_text": "Which political party do you feel close to?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "cultural_religious_beliefs",
+      "context": "Some worldviews may influence exposure or acceptance of the topic.",
+      "sub_items": [
+        "cultural_beliefs",
+        "religious_beliefs"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q95",
+      "selected_text": "What is your religion, if any?",
+      "n_candidates": 9,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "direct_experience",
+      "context": "With extreme weather events or environmental changes.",
+      "sub_items": [
+        "extreme_weather_events",
+        "environmental_changes"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q66B",
+      "selected_text": "Over the past 10 years, has the severity of flooding in your area increased or decreased?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "social_network_discussion",
+      "context": "Whether family, friends, or community discuss the issue.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q8",
+      "selected_text": "When you get together with your friends or family, how often would you say you discuss political matters?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "involvement_environmental_groups",
+      "context": "Involvement in environmental groups or activities.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q10B",
+      "selected_text": "Have you joined others to raise an issue in the past year? If yes, how often?",
+      "n_candidates": 20,
+      "disambig_raw": "\nN"
+    },
+    {
+      "feature": "science_literacy_interest",
+      "context": "General science literacy or interest.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "trust_in_science_institutions",
+      "context": "Trust in scientists, government, NGOs.",
+      "sub_items": [
+        "scientists",
+        "government",
+        "ngos"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 15,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "cognitive_style",
+      "context": "Openness to new information.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "language_translation",
+      "context": "The term 'climate change' may not be familiar in all languages/cultures.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "prior_questions_survey",
+      "context": "Could prime or influence responses.",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

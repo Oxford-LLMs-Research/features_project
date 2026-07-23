@@ -1,0 +1,232 @@
+{
+  "survey": "ess_wave_11",
+  "target": "bctprd",
+  "country": "France",
+  "condition": "unprompted",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 17,
+  "n_piped": 17,
+  "n_mapped": 12,
+  "n_none": 5,
+  "n_bundled": 3,
+  "type_counts": {
+    "respondent_attribute": 17
+  },
+  "mapped_codes": [
+    "agea",
+    "edlvdis",
+    "hinctnta",
+    "lrscale",
+    "domicil",
+    "psppipla",
+    "iphlppla",
+    "nwspol",
+    "mbtru",
+    "vote",
+    "pbldmna",
+    "hincfel"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger adults (especially millennials/Gen Z) often show higher rates of ethical consumerism.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "agea",
+      "selected_text": "How old are you?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education correlates with greater awareness of social/environmental issues and political engagement.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "edlvdis",
+      "selected_text": "What is the highest level of education you have completed in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "income",
+      "context": "Affluence can enable 'voting with your wallet,' but lower-income groups may boycott due to affordability or labor issues.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hinctnta",
+      "selected_text": "Where does your household's total income (from all sources, after taxes and compulsory deductions) fall in your country's income distribution?",
+      "n_candidates": 20,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "political_ideology",
+      "context": "Liberals/progressives often report higher rates of boycotting for social/environmental reasons, though conservatives also engage in boycotts (e.g., for political or religious reasons).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "lrscale",
+      "selected_text": "Where would you place yourself on the political spectrum, from 'far left' to 'far right'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "urban_rural_residence",
+      "context": "Urban dwellers may have greater exposure to activist networks and alternative products.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "domicil",
+      "selected_text": "What type of area do you live in?",
+      "n_candidates": 12,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "political_efficacy",
+      "context": "Belief that individual actions can effect change.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "psppipla",
+      "selected_text": "How much does the political system in this country allow people like you to influence politics?",
+      "n_candidates": 20,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "moral_identity_strength",
+      "context": "How central ethical concerns are to self-concept.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "iphlppla",
+      "selected_text": "To what extent does this statement describe you: 'I consider it very important to help the people around me and to care for their well-being'?",
+      "n_candidates": 20,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "issue_salience",
+      "context": "Specific concerns (e.g., climate change, labor rights, racial justice) that might trigger a boycott.",
+      "sub_items": [
+        "climate_change_concern",
+        "labor_rights_concern",
+        "racial_justice_concern"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "consumer_activism_orientation",
+      "context": "General willingness to use consumption as a tool for political/social goals.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "social_network_influence",
+      "context": "Whether friends/family engage in boycotting (social norms).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 7,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Exposure to news/social media highlighting corporate practices or boycott campaigns.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "nwspol",
+      "selected_text": "On a typical day, about how much time do you spend watching, reading, or listening to news about politics and current affairs?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "organizational_membership",
+      "context": "Involvement in groups that might organize or promote boycotts.",
+      "sub_items": [
+        "civic_organization_membership",
+        "political_organization_membership"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "mbtru",
+      "selected_text": "Are you currently a member of a trade union or similar organisation, have you been one in the past, or have you never been a member?",
+      "n_candidates": 11,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "past_political_participation",
+      "context": "Voting, protesting, signing petitions, etc.",
+      "sub_items": [
+        "voting_history",
+        "protest_participation",
+        "petition_signing"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "vote",
+      "selected_text": "Did you vote in the last national election in this country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nS"
+    },
+    {
+      "feature": "previous_boycott_experience",
+      "context": "Habit formation—those who have boycotted before are more likely to do so again.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "pbldmna",
+      "selected_text": "In the past 12 months, have you taken part in a public demonstration in this country to try to improve things or to prevent things from going wrong?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "boycott_awareness",
+      "context": "Knowledge of specific campaigns or controversial companies.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "market_availability",
+      "context": "Access to substitute products (e.g., in food deserts, boycotting may be less feasible).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "financial_flexibility",
+      "context": "Ability to absorb potentially higher costs of alternative products.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "hincfel",
+      "selected_text": "Which description best matches how you feel about your household's income nowadays?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    }
+  ]
+}

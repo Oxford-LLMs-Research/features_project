@@ -1,0 +1,340 @@
+{
+  "survey": "latinobarometer",
+  "target": "P8STGBS",
+  "country": "Colombia",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 24,
+  "n_piped": 24,
+  "n_mapped": 13,
+  "n_none": 10,
+  "n_bundled": 10,
+  "type_counts": {
+    "respondent_attribute": 17,
+    "temporal_contextual": 7
+  },
+  "mapped_codes": [
+    "S20.B",
+    "S18.A",
+    "S4",
+    "P5STGBS",
+    "S6",
+    "P41ST.J",
+    "S22.A",
+    "S11",
+    "REG",
+    "P14ST.D",
+    "P13ST.E",
+    "P6STGBS",
+    "S24"
+  ],
+  "features": [
+    {
+      "feature": "household_income",
+      "context": "Household income level and its stability (formal vs. informal employment, multiple income sources).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 18,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "recent_financial_changes",
+      "context": "Recent changes in financial status (e.g., job loss, wage increase, new employment, inflation impact on purchasing power).",
+      "sub_items": [
+        "job_loss",
+        "wage_increase",
+        "new_employment",
+        "inflation_impact_on_purchasing_power"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "debt_and_credit_access",
+      "context": "Debt levels and access to credit – high debt burdens may signal pessimism.",
+      "sub_items": [
+        "debt_levels",
+        "access_to_credit"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "savings_and_assets",
+      "context": "Savings and assets – households with savings or assets may feel more secure.",
+      "sub_items": [
+        "savings",
+        "assets"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S20.B",
+      "selected_text": "Do you or your family own your home?",
+      "n_candidates": 3,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "employment_status",
+      "context": "Employment status (employed, unemployed, underemployed) and sector (e.g., agriculture, services, manufacturing).",
+      "sub_items": [
+        "employed",
+        "unemployed",
+        "underemployed",
+        "employment_sector"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S18.A",
+      "selected_text": "What is your current employment situation?",
+      "n_candidates": 7,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "job_security",
+      "context": "Job security – perceived risk of job loss or contract stability.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S4",
+      "selected_text": "How concerned are you that you will be left without work or become unemployed in the next 12 months, or do you not currently have a job?",
+      "n_candidates": 11,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "regional_labor_trends",
+      "context": "Recent labor market trends in their region/industry (e.g., layoffs in certain sectors, growth in others).",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "perception_of_national_economy",
+      "context": "Perception of national economic trends – inflation rates, GDP growth forecasts, and government economic policies.",
+      "sub_items": [
+        "inflation_perception",
+        "gdp_growth_forecast_awareness",
+        "government_policy_perception"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P5STGBS",
+      "selected_text": "How would you describe the country's current economic situation?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "exchange_rate_stability",
+      "context": "Exchange rate stability (peso volatility affects import prices and purchasing power).",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "social_program_benefits",
+      "context": "Social programs or subsidies the household receives (e.g., Ingreso Solidario, Familias en Acción), and expected changes to these.",
+      "sub_items": [
+        "receipt_of_Ingreso_Solidario",
+        "receipt_of_Familias_en_Acción",
+        "expected_changes_to_benefits"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S6",
+      "selected_text": "Are you or someone in your family receiving support or benefits from the government?",
+      "n_candidates": 3,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "security_situation",
+      "context": "Security situation – in some regions, safety concerns directly affect economic activity and outlook.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "P41ST.J",
+      "selected_text": "To what extent do you think people are protected against crime in your country?",
+      "n_candidates": 20,
+      "disambig_raw": "\nJ"
+    },
+    {
+      "feature": "number_of_dependents",
+      "context": "Number of dependents – more dependents can strain resources, especially if income isn’t rising.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "household_lifecycle_stage",
+      "context": "Lifecycle stage – younger households may anticipate improvement; elderly may be more pessimistic if reliant on pensions.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S22.A",
+      "selected_text": "What is the current employment situation of the head of your household?",
+      "n_candidates": 18,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "education_level",
+      "context": "Education level – often correlates with earning potential and optimism about future prospects.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S11",
+      "selected_text": "What is the highest level of education you have completed?",
+      "n_candidates": 12,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "geographic_location",
+      "context": "Geographic location (urban vs. rural, and specific department) – economic opportunities, conflict presence, and cost of living vary widely.",
+      "sub_items": [
+        "urban_rural",
+        "department"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REG",
+      "selected_text": "Which region do you live in?",
+      "n_candidates": 9,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "personal_economic_expectations",
+      "context": "Personal economic expectations – influenced by recent positive/negative financial experiences.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S4",
+      "selected_text": "How concerned are you that you will be left without work or become unemployed in the next 12 months, or do you not currently have a job?",
+      "n_candidates": 18,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "optimism_pessimism_trait",
+      "context": "General optimism/pessimism trait – some individuals are dispositionally more optimistic.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "media_consumption",
+      "context": "Media consumption – exposure to economic news (positive or negative) can shape expectations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P14ST.D",
+      "selected_text": "How much trust do you have in television as a source of information?",
+      "n_candidates": 16,
+      "disambig_raw": "\nE"
+    },
+    {
+      "feature": "trust_in_government",
+      "context": "Trust in government – confidence in policies affecting the economy.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P13ST.E",
+      "selected_text": "How much trust do you have in the National Government?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "expected_major_expenses",
+      "context": "Expected major expenses (e.g., education, health, housing).",
+      "sub_items": [
+        "education_expenses",
+        "health_expenses",
+        "housing_expenses"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "anticipated_life_changes",
+      "context": "Anticipated changes (e.g., a family member entering/leaving the workforce, retirement, migration).",
+      "sub_items": [
+        "family_member_entering_workforce",
+        "family_member_leaving_workforce",
+        "retirement",
+        "migration"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "recent_or_expected_economic_shocks",
+      "context": "Recent or expected economic shocks – natural disasters, health crises, or policy changes affecting the household.",
+      "sub_items": [
+        "natural_disasters",
+        "health_crises",
+        "policy_changes"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "past_survey_responses",
+      "context": "Past answers to similar surveys – if available, trends in personal economic sentiment.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "P6STGBS",
+      "selected_text": "Compared to 12 months ago, how would you describe the country's current economic situation?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "relative_economic_comparison",
+      "context": "Comparison to others – relative deprivation or satisfaction compared to peers/community.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "S24",
+      "selected_text": "Based on the quality of the dwelling, furniture, and the interviewee's general appearance, how would you rate the interviewee's socioeconomic level?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    }
+  ]
+}

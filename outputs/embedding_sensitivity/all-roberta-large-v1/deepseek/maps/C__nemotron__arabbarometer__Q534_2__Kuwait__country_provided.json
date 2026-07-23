@@ -1,0 +1,276 @@
+{
+  "survey": "arabbarometer",
+  "target": "Q534_2",
+  "country": "Kuwait",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 21,
+  "n_piped": 19,
+  "n_mapped": 9,
+  "n_none": 8,
+  "n_bundled": 4,
+  "type_counts": {
+    "respondent_attribute": 17,
+    "temporal_contextual": 2,
+    "base_rate_prior": 2
+  },
+  "mapped_codes": [
+    "Q1001",
+    "Q1002",
+    "Q1003",
+    "Q1006B_2",
+    "Q412A",
+    "Q201A_1",
+    "Q534_3",
+    "QJOR5",
+    "Q534_5"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Younger respondents might be more tech-savvy but also more aware of digital risks; older respondents might feel less secure due to lower technical familiarity.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1001",
+      "selected_text": "How old are you?",
+      "n_candidates": 17,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender",
+      "context": "In Kuwait’s cultural context, gender could influence privacy concerns or experiences with surveillance.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1002",
+      "selected_text": "What is your gender?",
+      "n_candidates": 20,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Higher education often correlates with greater awareness of digital security threats.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1003",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 9,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "occupation",
+      "context": "Jobs involving sensitive information (e.g., journalism, activism, business) might heighten security concerns.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1006B_2",
+      "selected_text": "Which of the following best describes the industry you work in?",
+      "n_candidates": 20,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "mobile_usage_frequency_and_type",
+      "context": "Heavy users of encrypted apps (e.g., WhatsApp, Signal) may feel more secure than those relying on standard calls/SMS.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q412A",
+      "selected_text": "Which social media and text messaging services do you actively use?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "digital_security_awareness",
+      "context": "Knowledge of encryption, hacking, or surveillance issues.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "past_privacy_violation_experience",
+      "context": "Whether they or someone they know has faced privacy breaches, hacking, or unauthorized interception.",
+      "sub_items": [
+        "personal_experience_with_breach",
+        "knowing_someone_who_experienced_breach"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "trust_in_telecom_providers",
+      "context": "In Kuwait, perceptions of state surveillance or data privacy laws could shape feelings of security.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "trust_in_government",
+      "context": "In Kuwait, perceptions of state surveillance or data privacy laws could shape feelings of security.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q201A_1",
+      "selected_text": "How much trust do you have in the government (council of ministers)?",
+      "n_candidates": 20,
+      "disambig_raw": "\nS"
+    },
+    {
+      "feature": "social_network_trust",
+      "context": "Trust in the 'trusted person' (family, friend, colleague) and that person’s own digital habits.",
+      "sub_items": [
+        "trust_in_recipient",
+        "recipient_digital_habits"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q534_3",
+      "selected_text": "When you have private information to share with a trusted person, how secure do you feel sending text messages on a mobile phone?",
+      "n_candidates": 11,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "cultural_norms_around_privacy",
+      "context": "Some communities may prioritize discretion offline, affecting their comfort with digital sharing.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 11,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "recent_security_incidents",
+      "context": "Recent news about data breaches, surveillance scandals, or cybersecurity incidents in Kuwait.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 20,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "legal_environment_awareness",
+      "context": "Awareness of Kuwait’s cybercrime laws and data protection regulations.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "QJOR5",
+      "selected_text": "Have you heard about the cybercrime law approved by the House of Representatives?",
+      "n_candidates": 14,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "information_sensitivity",
+      "context": "The sensitivity of the 'private information' (e.g., political opinions vs. personal family matters).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q534_5",
+      "selected_text": "When you have private information to share with a trusted person, how secure do you feel sending an email?",
+      "n_candidates": 8,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "risk_tolerance",
+      "context": "Individual disposition toward risk-taking.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "perceived_control_over_communications",
+      "context": "Belief in one’s ability to protect their own communications (e.g., using security features).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "digital_literacy_and_security_practices",
+      "context": "App usage, security settings enabled.",
+      "sub_items": [
+        "app_usage",
+        "security_settings_enabled"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q412A",
+      "selected_text": "Which social media and text messaging services do you actively use?",
+      "n_candidates": 2,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "trust_in_institutions",
+      "context": "Trust measures in institutions, in the recipient of information.",
+      "sub_items": [
+        "trust_in_institutions",
+        "trust_in_recipient"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q201A_1",
+      "selected_text": "How much trust do you have in the government (council of ministers)?",
+      "n_candidates": 18,
+      "disambig_raw": "\nM"
+    },
+    {
+      "feature": "survey_timing",
+      "context": "Timing of survey, recent security incidents.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "base_rate_mobile_penetration_and_app_usage",
+      "context": "Kuwait has high mobile penetration and widespread use of apps like WhatsApp (which offers end-to-end encryption).",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "base_rate_surveillance_and_cyber_laws",
+      "context": "Kuwait has strict cyber laws and reported surveillance concerns.",
+      "sub_items": [],
+      "type": "base_rate_prior",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

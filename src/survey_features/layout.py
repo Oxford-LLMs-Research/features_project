@@ -5,6 +5,8 @@ and the format-pilot / free-text pipeline directory layout.
 Oracle stays at outputs/<target>_<country>/oracle.csv.
 LLM + eval caches live under outputs/<target>_<country>/llm__<output_tag>/.
 Free-text pipeline artifacts live under outputs/format_pilot/<selector>/.
+Embedding-model sensitivity map/score runs live under
+outputs/embedding_sensitivity/<embed_slug>/<selector>/ (gen/extract stay in format_pilot).
 Set GRID_SUMMARY_TAG to select tagged grid_summary CSVs in analysis scripts when multiple exist.
 """
 
@@ -201,6 +203,22 @@ def selector_dirs(selector_key: str, outputs_dir: Path = OUTPUTS_DIR) -> tuple[P
     """(freetext, extracted, maps) subdirs for one selector."""
     base = format_pilot_dir(outputs_dir) / selector_key
     return base / "freetext", base / "extracted", base / "maps"
+
+
+def embedding_sensitivity_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    """Root for embedding-model sensitivity runs (isolated from format_pilot/)."""
+    return outputs_dir / "embedding_sensitivity"
+
+
+def embedding_run_dirs(
+    embedding_model: str,
+    selector_key: str,
+    outputs_dir: Path = OUTPUTS_DIR,
+) -> tuple[Path, Path]:
+    """(maps_dir, scores_csv) under embedding_sensitivity/<slug>/<selector>/."""
+    slug = sanitize_model_slug(embedding_model)
+    base = embedding_sensitivity_dir(outputs_dir) / slug / selector_key
+    return base / "maps", base / f"scores_{selector_key}.csv"
 
 
 def cell_tag(survey: str, target: str, country: str) -> str:

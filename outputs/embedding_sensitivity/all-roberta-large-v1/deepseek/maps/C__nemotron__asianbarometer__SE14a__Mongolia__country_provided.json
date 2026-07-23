@@ -1,0 +1,363 @@
+{
+  "survey": "asianbarometer",
+  "target": "SE14a",
+  "country": "Mongolia",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-roberta-large-v1",
+  "n_features": 27,
+  "n_piped": 26,
+  "n_mapped": 9,
+  "n_none": 15,
+  "n_bundled": 7,
+  "type_counts": {
+    "respondent_attribute": 20,
+    "temporal_contextual": 6,
+    "instrument_methodology": 1
+  },
+  "mapped_codes": [
+    "SE10c",
+    "SE8a",
+    "level",
+    "Q41",
+    "Q56",
+    "Q161",
+    "Q5",
+    "SE15n_1",
+    "Q4"
+  ],
+  "features": [
+    {
+      "feature": "household_income",
+      "context": "Total household income (in Mongolian Tugrik)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 16,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "income_earners_count",
+      "context": "Number of income earners in the household",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 17,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "income_sources",
+      "context": "Sources of income (formal employment, informal work, herding, pensions, remittances, government assistance)",
+      "sub_items": [
+        "formal_employment",
+        "informal_work",
+        "herding",
+        "pensions",
+        "remittances",
+        "government_assistance"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE10c",
+      "selected_text": "Which type of job does the main earner in your household have now?",
+      "n_candidates": 12,
+      "disambig_raw": "\nF"
+    },
+    {
+      "feature": "major_household_expenses",
+      "context": "Major household expenses (rent/mortgage, utilities, food, education, healthcare)",
+      "sub_items": [
+        "rent_mortgage",
+        "utilities",
+        "food",
+        "education",
+        "healthcare"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 11,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "dependents_count",
+      "context": "Number of dependents (children, elderly, non-working adults)",
+      "sub_items": [
+        "children",
+        "elderly",
+        "non_working_adults"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "household_size",
+      "context": "Household size",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE8a",
+      "selected_text": "How many people live in your household?",
+      "n_candidates": 15,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "ages_of_household_members",
+      "context": "Ages of household members",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "location",
+      "context": "Location (urban: Ulaanbaatar vs. rural/provincial areas)",
+      "sub_items": [
+        "Ulaanbaatar",
+        "rural",
+        "provincial_areas"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "level",
+      "selected_text": "Do you live in a rural or urban area?",
+      "n_candidates": 4,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "residence_type",
+      "context": "Type of residence (apartment, ger district, rural dwelling)",
+      "sub_items": [
+        "apartment",
+        "ger_district",
+        "rural_dwelling"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "level",
+      "selected_text": "Do you live in a rural or urban area?",
+      "n_candidates": 4,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "access_to_public_services",
+      "context": "Access to public services and infrastructure",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q41",
+      "selected_text": "How easy or difficult is it to access public transportation?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "perceived_needs_vs_wants",
+      "context": "Perceived needs vs. wants (cultural expectations of 'satisfactory' living)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q56",
+      "selected_text": "Do you agree or disagree with the following statement: 'For the sake of the family, the individual should put his personal interests second'?",
+      "n_candidates": 11,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "relative_deprivation",
+      "context": "Relative deprivation (comparison to neighbors/community)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 6,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "financial_security_perception",
+      "context": "Financial security perception (savings, debt levels, emergency preparedness)",
+      "sub_items": [
+        "savings",
+        "debt_levels",
+        "emergency_preparedness"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q161",
+      "selected_text": "How worried are you that your family might lose its major source of income within the next 12 months?",
+      "n_candidates": 8,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "inflation_impact",
+      "context": "Impact of inflation on purchasing power",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "Q5",
+      "selected_text": "How does your family's current economic condition compare to what it was a few years ago?",
+      "n_candidates": 3,
+      "disambig_raw": "\nC"
+    },
+    {
+      "feature": "seasonality_effects",
+      "context": "Seasonality effects (especially for herding households)",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "SE15n_1",
+      "selected_text": "How many goats and/or sheep do you or your family own?",
+      "n_candidates": 2,
+      "disambig_raw": "\nB"
+    },
+    {
+      "feature": "recent_economic_shocks",
+      "context": "Recent economic shocks (job loss, health emergencies, livestock losses)",
+      "sub_items": [
+        "job_loss",
+        "health_emergencies",
+        "livestock_losses"
+      ],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 10,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "social_welfare_receipt",
+      "context": "Receipt of social welfare benefits",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "access_to_subsidized_services",
+      "context": "Access to subsidized services",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "financial_management_skills",
+      "context": "Personal financial management skills",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "cultural_attitudes_financial_satisfaction",
+      "context": "Cultural attitudes toward financial satisfaction",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q4",
+      "selected_text": "How would you rate your family's current economic situation?",
+      "n_candidates": 13,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "language_interpretation_satisfactorily",
+      "context": "Language/interpretation of 'satisfactorily' in Mongolian context",
+      "sub_items": [],
+      "type": "instrument_methodology",
+      "piped": false,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "livestock_count",
+      "context": "For herding households: livestock count",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "SE15n_1",
+      "selected_text": "How many goats and/or sheep do you or your family own?",
+      "n_candidates": 6,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "pasture_conditions",
+      "context": "For herding households: pasture conditions",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 5,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "market_prices_animal_products",
+      "context": "For herding households: market prices for animal products",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 4,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "heating_costs",
+      "context": "For urban households: heating costs (critical in Mongolia's climate)",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 2,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "ger_district_coal_expenses",
+      "context": "For urban households: ger district coal expenses",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 1,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "seasonal_variations",
+      "context": "Seasonal variations (winter preparedness is particularly crucial)",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    }
+  ]
+}

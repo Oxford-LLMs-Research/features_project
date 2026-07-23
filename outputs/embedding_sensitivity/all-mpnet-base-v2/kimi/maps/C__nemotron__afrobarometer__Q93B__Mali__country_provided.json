@@ -1,0 +1,226 @@
+{
+  "survey": "afrobarometer",
+  "target": "Q93B",
+  "country": "Mali",
+  "condition": "country_provided",
+  "arm": "C",
+  "disambiguator": "nemotron",
+  "disambig_model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "embedding_model": "all-mpnet-base-v2",
+  "n_features": 17,
+  "n_piped": 17,
+  "n_mapped": 7,
+  "n_none": 8,
+  "n_bundled": 2,
+  "type_counts": {
+    "respondent_attribute": 15,
+    "temporal_contextual": 2
+  },
+  "mapped_codes": [
+    "Q1",
+    "Q100",
+    "Q94",
+    "REGION",
+    "Q84A",
+    "Q93C",
+    "Q93BOTHER"
+  ],
+  "features": [
+    {
+      "feature": "age",
+      "context": "Critical in Mali's youth-bulge context (median age ~16). Young respondents are likely students, apprentices, or unemployed; prime-age adults (25-55) are likely farmers/herders; older respondents may transition to trading or 'retired' status (though formal retirement is rare).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q1",
+      "selected_text": "How old are you?",
+      "n_candidates": 1,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "gender",
+      "context": "Strongly predictive. Women dominate in food processing, small-scale trade (southern markets), and household farming; men dominate in herding, cash crop farming, construction, and formal sector employment.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q100",
+      "selected_text": "What is your gender?",
+      "n_candidates": 13,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "education_level",
+      "context": "Literacy and educational attainment strongly predict formal sector employment (civil service, NGOs, private companies) versus subsistence agriculture.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q94",
+      "selected_text": "What is your highest level of education?",
+      "n_candidates": 5,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "region_zone",
+      "context": "Correlates with ecological and economic specialization: Niger Delta/Inland Delta (fishing, rice farming), Sahelian zones (pastoralism), Savanna/Sudanian zone (cotton, millet, sorghum farming), Urban centers (trading, services, artisanal work, transport).",
+      "sub_items": [
+        "Niger Delta/Inland Delta",
+        "Sahelian zones",
+        "Savanna/Sudanian zone",
+        "Urban centers"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REGION",
+      "selected_text": "Which region/province/state do you live in?",
+      "n_candidates": 4,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "urban_rural",
+      "context": "60%+ of Malians live rurally; urban respondents more likely in informal commerce, artisanal work, or wage labor.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "REGION",
+      "selected_text": "Which region/province/state do you live in?",
+      "n_candidates": 8,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "ethnicity_language",
+      "context": "Correlates with traditional occupational specialization (e.g., Fulani/Pulaar with pastoralism, Dogon with agriculture and artisanal crafts, Bozo with fishing).",
+      "sub_items": [
+        "Fulani/Pulaar",
+        "Dogon",
+        "Bozo"
+      ],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q84A",
+      "selected_text": "What is your ethnic community or cultural group?",
+      "n_candidates": 13,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "land_ownership_access",
+      "context": "Primary predictor of 'farmer' status; landlessness predicts agricultural wage labor or migration.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "livestock_ownership",
+      "context": "Predicts 'herder' or agro-pastoralist status.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "household_wealth_quintile",
+      "context": "Asset-poor households more likely in subsistence farming or precarious informal work; wealthier households may report 'trader/merchant' or formal employment.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 8,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "father_husband_occupation",
+      "context": "Intergenerational transmission is strong; women often report occupation through household enterprise (e.g., 'helps with husband's trade').",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 11,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "position_in_household",
+      "context": "Household heads vs. dependents; married women often report secondary agricultural activities or 'housewife' depending on survey interpretation.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q93C",
+      "selected_text": "Who in your household decides how to use any money that you have or earn, for example from a job, a business, selling things, or other activities?",
+      "n_candidates": 11,
+      "disambig_raw": "\nG"
+    },
+    {
+      "feature": "migration_status",
+      "context": "Circular migration to Bamako, Abidjan, or Libya historically predicts construction worker, transport worker, or unemployed (if returned due to conflict).",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "season_of_interview",
+      "context": "During planting/harvesting (rainy season), most rural respondents report farming; during dry season (October-May), many report secondary occupations (trading, construction, migration).",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    },
+    {
+      "feature": "conflict_displacement_status",
+      "context": "Since 2012, displacement from northern/central regions has shifted many pastoralists and farmers into urban informal sectors or 'unemployed' status.",
+      "sub_items": [],
+      "type": "temporal_contextual",
+      "piped": true,
+      "selected_code": "REGION",
+      "selected_text": "Which region/province/state do you live in?",
+      "n_candidates": 6,
+      "disambig_raw": "\nD"
+    },
+    {
+      "feature": "access_to_credit_formal_institutions",
+      "context": "Microfinance membership predicts trading activities; civil service connections predict formal employment.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 0,
+      "disambig_raw": ""
+    },
+    {
+      "feature": "apprenticeship_status",
+      "context": "Many young Malians are in unpaid apprenticeships (tailors, mechanics, carpenters), which they may or may not report as 'occupation' depending on survey framing.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": "Q93BOTHER",
+      "selected_text": "What is your main occupation? If unemployed, retired, or disabled, what was your last main occupation?",
+      "n_candidates": 2,
+      "disambig_raw": "\nA"
+    },
+    {
+      "feature": "multiple_livelihoods",
+      "context": "The 'main occupation' distinction is ambiguous in Mali—many combine farming with trading or seasonal migration, so you would need to know which activity generates the most income or consumes the most time.",
+      "sub_items": [],
+      "type": "respondent_attribute",
+      "piped": true,
+      "selected_code": null,
+      "selected_text": null,
+      "n_candidates": 3,
+      "disambig_raw": "\nnone"
+    }
+  ]
+}
