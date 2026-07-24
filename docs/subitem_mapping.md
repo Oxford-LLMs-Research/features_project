@@ -4,6 +4,7 @@
 > similarity-threshold sweeps into this run (see `docs/similarity_threshold.md`).
 > Artifacts live under `outputs/subitem_mapping/` and never overwrite
 > `outputs/format_pilot/`.
+> **Results appendix:** `docs/subitem_mapping_results.md`.
 
 ## Question
 
@@ -269,7 +270,7 @@ maps, nemotron disambig, serial calls):
 | Phase | Observed / assumed | Note |
 |-------|-------------------|------|
 | Parent map | ~50s / map file; ~80 min / 104 files (52 cells × 2 cond) | ~1 LLM call per piped parent |
-| Parent score | ~1.5–2 h / selector×embedder at `SCORE_N_DRAWS=10` | Serial XGB |
+| Parent score | **~15–25 min** / selector×embedder at `SCORE_N_DRAWS=10` with cell ProcessPool (default `min(8, cpus-2)` workers); was ~1.5–2 h serial | Cell-level XGB workers; see Parallelism |
 
 Kimi extract sample (`outputs/format_pilot/kimi/extracted/`, all 52 cells × 2 cond):
 
@@ -286,19 +287,19 @@ Kimi extract sample (`outputs/format_pilot/kimi/extracted/`, all 52 cells × 2 c
 
 | Scope | Map | Score | Total (order-of-magnitude) |
 |-------|-----|-------|----------------------------|
-| **v1: kimi only**, copy parents + map sub_items, then score parent+expanded (+ fixed k=5/10) | ~1–1.5 h map (sub_items only; ~0.8× parent map) | ~3–5 h if scoring natural parent + natural expanded + four fixed-k rows serially; **~1.5–2.5 h** if reusing `format_pilot` parent natural-k scores and scoring expanded families only, or overlapping fixed-k carefully | **~3–6 h** realistic; budget **≤1 working day** |
-| Both selectors (kimi + deepseek), same protocol | ~2× map | ~2× score | **~6–12 h** — defer; deepseek is an extension |
+| **v1: kimi only**, copy parents + map sub_items, then score parent+expanded (+ fixed k=5/10) | ~1–1.5 h map (sub_items only; ~0.8× parent map) | **~20–30 min** with `--score-workers` / default cell pool (was ~2–3 h serial) | **~1.5–2.5 h** typical after parallel score |
+| Both selectors (kimi + deepseek), same protocol | ~2× map | ~2× score | **~3–5 h** — defer; deepseek is an extension |
 
-Assumes serial disambig + serial XGB as today. Kimi parent maps/scores in
-`format_pilot` already exist — reuse them for the parent baseline row.
+Assumes serial disambig + **parallel cell-level XGB** (`survey_features.score_cell`). Kimi parent
+maps/scores in `format_pilot` already exist — reuse them for the parent baseline row.
 
 ### Cost / integrity knobs (recommended)
 
 | Knob | Recommendation |
 |------|----------------|
 | `SCORE_N_DRAWS` | Keep **10** for v1 integrity (same as main / embedding_sensitivity). Use `5` only for smoke timing, not headline numbers. |
-| Parallelism | Safe: process-level overlap of **map (API)** with unrelated work; optional cell-level map workers if rate limits allow. Avoid parallel XGB draws that share mutable state. Do **not** change CV folds or draw seeds for speed. |
-| Smoke | `--limit 2` map, then one cell score, before full kimi sweep. |
+| Parallelism | **Score:** cell-level `ProcessPool` via `--score-workers` / `SCORE_WORKERS` (default `min(8, cpus-2)`); XGB threads per fit via `--score-xgb-nthread` / `SCORE_XGB_NTHREAD` (`cpus // workers`). Random draws stay serial *within* a cell. **Map:** process-level overlap of map (API) with unrelated work; optional cell-level map workers if rate limits allow. Do **not** change CV folds or draw seeds for speed. |
+| Smoke | `--limit 2` map, then `--limit 4 --score-workers 4` score, before full kimi sweep. |
 
 ## How to run (v1 — kimi)
 
@@ -317,6 +318,7 @@ python analysis/subitem_mapping.py --selector kimi
 
 python scripts/run_subitem_mapping.py --phase score --selector kimi \
   --k-modes parent,expanded
+# optional: --score-workers 8  (default already parallelizes cells)
 # score runner should also emit k_spec=5,10 equal-budget rows (see Scoring table)
 ```
 

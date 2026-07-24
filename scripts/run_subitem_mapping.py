@@ -1,10 +1,9 @@
 """
 Sub-item mapping experiment runner (isolated from format_pilot).
 
-Reuses gen/extract from outputs/format_pilot/<selector>/. Writes maps under
-outputs/subitem_mapping/<selector>/ only. v1 protocol is kimi-only map + score
-(docs/subitem_mapping.md). Score phase is stubbed until XGB wiring lands; do not
-treat that as diagnostics-only design — scoring is in scope for v1.
+Reuses gen/extract from outputs/format_pilot/<selector>/. Writes maps + scores
+under outputs/subitem_mapping/<selector>/ only. v1 protocol is kimi-only map +
+score (docs/subitem_mapping.md): natural-k parent/expanded plus matched k=5/10.
 
 Examples (v1):
   python scripts/run_subitem_mapping.py --phase map --selector kimi --disambiguator nemotron --limit 2
@@ -43,6 +42,14 @@ from survey_features.layout import (  # noqa: E402
 )
 
 OUT = OUTPUTS_DIR
+FIXED_KS = [5, 10]
+# k_mode -> field on expanded map JSON (docs/subitem_mapping.md scoring table)
+K_MODE_CODE_FIELDS = {
+    "parent": "parent_codes",
+    "expanded": "expanded_codes",
+    "subitems_only": "subitem_codes",
+}
+PRIMARY_DISAMBIG = "nemotron"
 _survey_cache: dict = {}
 
 
@@ -161,15 +168,110 @@ def phase_map(selector_key: str, disambig_key: str, arms=("C",), force=False, li
     )
 
 
-def phase_score(selector_key: str, k_modes=("parent", "expanded"), force=False, limit=None):
-    """Score stub — XGB wiring still TODO; v1 design requires map+score (kimi)."""
-    raise SystemExit(
-        "score phase not wired yet (implementation TODO). "
-        "v1 design expects map+score for kimi with k_modes parent,expanded "
-        "plus matched k_spec=5,10 — see docs/subitem_mapping.md.\n"
-        "After maps exist, diagnostics: python analysis/subitem_mapping.py "
-        f"--selector {selector_key}\n"
-        f"Requested selector={selector_key} k_modes={k_modes} force={force} limit={limit}."
+def _load_subitem_map(map_dir: Path, disambig_key: str, survey, target, country, cond):
+    """Arm-C expanded map JSON, or None if missing."""
+    ctag = cell_tag(survey, target, country)
+    p = map_dir / f"C__{disambig_key}__{ctag}__{cond}.json"
+    if not p.is_file():
+        return None
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+def phase_score(
+    selector_key: str,
+    k_modes=("parent", "expanded"),
+    force=False,
+    limit=None,
+    score_workers: int | None = None,
+    score_xgb_nthread: int | None = None,
+):
+    """Score parent vs expanded code sets (natural k + fixed k=5/10).
+
+    Uses survey_features.score_cell (cell ProcessPool, oracle/random cache per k).
+    Writes only under subitem_mapping/ — never format_pilot or embedding_sensitivity.
+    """
+    from survey_features.score_cell import (
+        resolve_score_n_draws,
+        resolve_score_workers,
+        resolve_score_xgb_nthread,
+        run_score_jobs,
+    )
+
+    unknown = [m for m in k_modes if m not in K_MODE_CODE_FIELDS]
+    if unknown:
+        raise SystemExit(
+            f"unknown k_mode(s) {unknown}; choose from {sorted(K_MODE_CODE_FIELDS)}"
+        )
+
+    n_draws = resolve_score_n_draws()
+    workers = resolve_score_workers(score_workers)
+    nthread = resolve_score_xgb_nthread(workers, score_xgb_nthread)
+
+    map_dir, _, out_csv = subitem_run_dirs(selector_key)
+    out_csv.parent.mkdir(parents=True, exist_ok=True)
+    # Always rewrite (same as run_main score); incremental flush keeps partial CSV
+    # on interrupt. --force is accepted for CLI parity with map phase.
+
+    cells = genuine_cells(OUT)
+    if limit:
+        cells = cells[:limit]
+    cols = [
+        "survey", "target", "country", "condition", "arm", "disambiguator",
+        "embedding_model", "k_mode", "k_spec", "k",
+        "captured_importance", "oracle_acc", "model_acc", "random_acc", "majority",
+        "value_over_random", "cost_of_imperfect", "error",
+    ]
+    dk = PRIMARY_DISAMBIG
+
+    specs = []
+    for survey, target, country in cells:
+        evals = []
+        for cond in CONDITIONS:
+            rec = _load_subitem_map(map_dir, dk, survey, target, country, cond)
+            if rec is None:
+                continue
+            emb_label = rec.get("embedding_model") or DEFAULT_EMBEDDING_MODEL
+            for k_mode in k_modes:
+                field = K_MODE_CODE_FIELDS[k_mode]
+                codes = rec.get(field) or []
+                evals.append({
+                    "condition": cond,
+                    "arm": "C",
+                    "disambiguator": dk,
+                    "embedding_model": emb_label,
+                    "k_mode": k_mode,
+                    "codes": codes,
+                })
+        specs.append({
+            "survey": survey, "target": target, "country": country,
+            "evals": evals,
+            "n_draws": n_draws, "nthread": nthread, "fixed_ks": list(FIXED_KS),
+            "outputs_dir": str(OUT),
+        })
+
+    print(
+        f"[subitem-score] selector={selector_key} k_modes={k_modes} "
+        f"cells={len(cells)} workers={workers} nthread={nthread} n_draws={n_draws} "
+        f"-> {out_csv}"
+    )
+    n_written = run_score_jobs(
+        specs, out_csv, cols, workers=workers, log_prefix="[subitem-score]",
+    )
+    try:
+        scores_rel = str(out_csv.relative_to(ROOT))
+    except ValueError:
+        scores_rel = str(out_csv)
+    _upsert_manifest(
+        phase="score",
+        selector=selector_key,
+        k_modes=list(k_modes),
+        n_draws=n_draws,
+        n_rows=n_written,
+        scores_csv=scores_rel,
+        score_workers=workers,
+        score_xgb_nthread=nthread,
+        limit=limit,
+        force=force,
     )
 
 
@@ -194,7 +296,22 @@ def main():
     )
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument(
+        "--score-workers",
+        type=int,
+        default=None,
+        help="cell ProcessPool size for --phase score (default: SCORE_WORKERS or min(8, cpus-2))",
+    )
+    ap.add_argument(
+        "--score-xgb-nthread",
+        type=int,
+        default=None,
+        help="XGBoost nthread per fit (default: SCORE_XGB_NTHREAD or cpus // workers)",
+    )
     args = ap.parse_args()
+
+    if args.phase != "score" and (args.score_workers is not None or args.score_xgb_nthread is not None):
+        ap.error("--score-workers / --score-xgb-nthread only apply to --phase score")
 
     if args.phase == "map":
         if not args.disambiguator:
@@ -208,7 +325,14 @@ def main():
         )
     else:
         modes = tuple(m.strip() for m in args.k_modes.split(",") if m.strip())
-        phase_score(args.selector, k_modes=modes, force=args.force, limit=args.limit)
+        phase_score(
+            args.selector,
+            k_modes=modes,
+            force=args.force,
+            limit=args.limit,
+            score_workers=args.score_workers,
+            score_xgb_nthread=args.score_xgb_nthread,
+        )
 
 
 if __name__ == "__main__":
