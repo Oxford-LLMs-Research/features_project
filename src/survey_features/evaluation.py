@@ -140,11 +140,12 @@ def single_random_draw(
     all_feature_pool: list[str],
     k: int,
     seed: int,
+    nthread: int | None = 1,
 ) -> float | None:
     """One random-k draw evaluated with the same downstream classifier."""
     rng = np.random.RandomState(seed)
     random_vars = list(rng.choice(all_feature_pool, size=min(k, len(all_feature_pool)), replace=False))
-    r = evaluate_feature_set(country_data, target_var, random_vars, nthread=1)
+    r = evaluate_feature_set(country_data, target_var, random_vars, nthread=nthread)
     return r["accuracy_mean"]
 
 

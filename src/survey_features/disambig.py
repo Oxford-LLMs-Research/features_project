@@ -7,7 +7,9 @@ PRE-EXTRACTED typed feature list, retrieves a per-feature top-N pool
 question per feature. Diagnostics showed per-feature retrieval is far sharper than
 whole-response retrieval (targeted query sim ~0.7 vs ~0.38), and pilot-1 "trust -> none"
 failures were mapper weakness, not retrieval. Mapping is ONE-TO-ONE; ``sub_items`` are
-recorded purely for auditing bundling prevalence.
+recorded purely for auditing bundling prevalence. For the separate sub-item expansion
+experiment (parent + each bundled sub_item as a map unit), see
+``survey_features.subitem_map`` and ``docs/subitem_mapping.md``.
 
 LEGACY path (shortlist disambiguation, pilot-1): ``disambiguate_mappings`` picks from the
 batch top-5 shortlist produced by retrieval.map_features_to_variables.

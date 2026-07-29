@@ -352,32 +352,6 @@ def _save_map(path, survey, target, country, cond, arm, disambig_key, cm, embedd
 
 # ── Phase: score (captured importance + value-over-random, all arms) ──────────
 
-def _oracle_table(survey):
-    """Load oracle importances for a survey from per-cell oracle.csv into one DataFrame
-    with columns [target_variable, country, feature_variable, importance_mean]. country is
-    the numeric/code value matching the survey's country column (as run_comparison expects)."""
-    import pandas as pd
-    from survey_features.surveys import SURVEY_COUNTRY_COL, build_country_code_map, load_survey
-    _, meta = load_survey(survey, os.environ["DATA_CONFIG_PATH"])
-    ccol = SURVEY_COUNTRY_COL.get(survey)
-    data, _ = survey_data(survey)
-    cmap = build_country_code_map(meta, ccol, data) if ccol else {}
-    rows = []
-    for s, t, c in genuine_cells(OUT):
-        if s != survey:
-            continue
-        p = OUT / f"{t}_{c}" / "oracle.csv"
-        if not p.is_file():
-            continue
-        df = pd.read_csv(p)
-        code = cmap.get(c, c)
-        for _, r in df.iterrows():
-            rows.append({"target_variable": t, "country": code,
-                         "feature_variable": r["feature_variable"],
-                         "importance_mean": r["importance_mean"]})
-    return pd.DataFrame(rows), ccol, cmap
-
-
 def _arm_A_codes(selector_key, target, country, cond):
     """Legacy (pilot-1) mapped codes (deduped, arrival order) for arm A from the selector's
     cached disambig.json."""
@@ -405,29 +379,34 @@ def _map_codes(map_dir, arm, disambig_key, survey, target, country, cond):
     return json.loads(p.read_text(encoding="utf-8")).get("mapped_codes", [])
 
 
-def phase_score(selector_key, force=False, limit=None, embedding_model: str | None = None):
-    """Score all arms. Key efficiency: oracle top-k and the random-k baseline depend only
-    on (cell, k) — NOT on the arm or disambiguator — so we compute them ONCE per (cell, k)
-    and reuse, evaluating only the cheap per-arm model feature set each time. This avoids
-    the ~10x redundant XGBoost fits the naive arm-loop incurred (the random-draw baseline
-    on the full column matrix is the dominant cost). All XGBoost is single-threaded
-    (nthread=1): torch/sentence-transformers already loaded a conflicting libomp earlier in
-    the process (documented Windows issue) and multi-threaded fits hang.
+def phase_score(
+    selector_key,
+    force=False,
+    limit=None,
+    embedding_model: str | None = None,
+    score_workers: int | None = None,
+    score_xgb_nthread: int | None = None,
+):
+    """Score all arms via cell-level ProcessPool (survey_features.score_cell).
 
-    Random draws are SERIAL: joblib/loky parallelism is unreliable in this environment
-    (TerminatedWorkerError / OOM from re-pickling the full survey frame per call on
-    Windows). Serial is slow but deterministic; SCORE_N_DRAWS (default 10) keeps a full
-    run manageable.
+    Oracle/random baselines are cached per (cell, k) inside each worker. Random
+    draws stay serial within a cell (Windows joblib lesson); parallelism is across
+    cells. Score-only workers do not load torch, so XGB nthread > 1 is safe.
 
-    With --embedding-model, scores only maps under embedding_sensitivity/ (no arm A) and
-    never overwrites format_pilot/scores_*.csv.
+    With --embedding-model, scores only maps under embedding_sensitivity/ (no arm A)
+    and never overwrites format_pilot/scores_*.csv.
     """
-    import csv as _csv
-    import numpy as np
-    from survey_features.evaluation import evaluate_feature_set, single_random_draw
-    from survey_features.metrics import captured_importance_df
+    from survey_features.score_cell import (
+        resolve_score_n_draws,
+        resolve_score_workers,
+        resolve_score_xgb_nthread,
+        run_score_jobs,
+    )
 
-    n_draws = int(os.environ.get("SCORE_N_DRAWS", "10"))
+    n_draws = resolve_score_n_draws()
+    workers = resolve_score_workers(score_workers)
+    nthread = resolve_score_xgb_nthread(workers, score_xgb_nthread)
+
     _, _, default_map_dir = selector_dirs(selector_key)
     if embedding_model:
         map_dir, out_csv = embedding_run_dirs(embedding_model, selector_key)
@@ -440,93 +419,49 @@ def phase_score(selector_key, force=False, limit=None, embedding_model: str | No
         out_csv = PILOT / f"scores_{selector_key}.csv"
         include_arm_a = True
         emb_label = DEFAULT_EMBEDDING_MODEL
+
     cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
-    cols = ["survey","target","country","condition","arm","disambiguator","embedding_model",
-            "k_spec","k",
-            "captured_importance","oracle_acc","model_acc","random_acc","majority",
-            "value_over_random","cost_of_imperfect","error"]
-    # Incremental write: open now, flush after each cell so progress is visible and a
-    # mid-run interruption keeps completed cells.
-    out_f = open(out_csv, "w", newline="", encoding="utf-8")
-    writer = _csv.DictWriter(out_f, fieldnames=cols)
-    writer.writeheader(); out_f.flush()
-    n_written = 0
+    cols = [
+        "survey", "target", "country", "condition", "arm", "disambiguator",
+        "embedding_model", "k_spec", "k",
+        "captured_importance", "oracle_acc", "model_acc", "random_acc", "majority",
+        "value_over_random", "cost_of_imperfect", "error",
+    ]
 
-    print(f"[score] selector={selector_key} embedding={emb_label} cells={len(cells)} -> {out_csv}")
-
-    surveys = sorted({s for s, _, _ in cells})
-    for survey in surveys:
-        oracle_df, ccol, cmap = _oracle_table(survey)
-
-        def oracle_topk(t, code, k):
-            sub = oracle_df[(oracle_df["target_variable"] == t) & (oracle_df["country"] == code)]
-            return sub.sort_values("importance_mean", ascending=False)["feature_variable"].head(k).tolist()
-
-        data, _ = survey_data(survey)
-        scells = [(s, t, c) for s, t, c in cells if s == survey]
-        for s, t, country in scells:
-            code = cmap.get(country, country)
-            country_data = data[data[ccol] == code].copy()
-            pool = [c for c in country_data.columns if c not in {t, ccol}]
-            oracle_cache: dict = {}   # k -> oracle_acc ; random_cache: k -> random_acc
-            random_cache: dict = {}
-            majority = {}
-            rows = []  # per-cell, flushed at end of cell
-            for cond in CONDITIONS:
-                arm_specs = []
-                if include_arm_a:
-                    arm_specs.append(("A", "", _arm_A_codes(selector_key, t, country, cond)))
-                for dk in DISAMBIGUATORS:
-                    arm_specs.append(("B", dk, _map_codes(map_dir, "B", dk, survey, t, country, cond)))
-                    arm_specs.append(("C", dk, _map_codes(map_dir, "C", dk, survey, t, country, cond)))
-                for arm, dk, codes in arm_specs:
+    specs = []
+    for survey, target, country in cells:
+        evals = []
+        for cond in CONDITIONS:
+            if include_arm_a:
+                codes_a = _arm_A_codes(selector_key, target, country, cond)
+                if codes_a is not None:
+                    evals.append({
+                        "condition": cond, "arm": "A", "disambiguator": "",
+                        "embedding_model": emb_label, "codes": codes_a,
+                    })
+            for dk in DISAMBIGUATORS:
+                for arm in ("B", "C"):
+                    codes = _map_codes(map_dir, arm, dk, survey, target, country, cond)
                     if codes is None:
                         continue
-                    for kspec in ["model"] + [f"k{k}" for k in FIXED_KS]:
-                        kk = None if kspec == "model" else int(kspec[1:])
-                        use_codes = [c for c in dict.fromkeys(codes) if c][: (kk or len(codes))]
-                        use_codes = [c for c in use_codes if c in country_data.columns]
-                        k = len(use_codes)
-                        if k == 0:
-                            continue
-                        ci = captured_importance_df(use_codes, t, code, oracle_df, k=None)
-                        try:
-                            mres = evaluate_feature_set(country_data, t, use_codes, nthread=1)
-                            m = mres.get("accuracy_mean"); majority[k] = mres.get("majority_baseline")
-                            if k not in oracle_cache:
-                                ores = evaluate_feature_set(country_data, t, oracle_topk(t, code, k), nthread=1)
-                                oracle_cache[k] = ores.get("accuracy_mean")
-                                draws = [single_random_draw(country_data, t, pool, k, 42 + i)
-                                         for i in range(n_draws)]
-                                draws = [d for d in draws if d is not None]
-                                random_cache[k] = round(float(np.mean(draws)), 4) if draws else None
-                            o = oracle_cache[k]; r = random_cache[k]
-                        except Exception as e:
-                            rows.append({"survey": survey, "target": t, "country": country,
-                                         "condition": cond, "arm": arm, "disambiguator": dk,
-                                         "embedding_model": emb_label, "k_spec": kspec,
-                                         "error": f"{type(e).__name__}: {str(e)[:80]}"})
-                            continue
-                        rows.append({
-                            "survey": survey, "target": t, "country": country, "condition": cond,
-                            "arm": arm, "disambiguator": dk, "embedding_model": emb_label,
-                            "k_spec": kspec, "k": k,
-                            "captured_importance": round(ci, 4) if ci is not None else "",
-                            "oracle_acc": o, "model_acc": m, "random_acc": r,
-                            "majority": majority.get(k),
-                            "value_over_random": round(m - r, 4) if (m is not None and r is not None) else "",
-                            "cost_of_imperfect": round(o - m, 4) if (o is not None and m is not None) else "",
-                            "error": "",
-                        })
-            for r in rows:
-                writer.writerow({c: r.get(c, "") for c in cols})
-            out_f.flush()
-            n_written += len(rows)
-            print(f"  scored {s} {t} {country} (+{len(rows)} rows, {n_written} total)", flush=True)
-    out_f.close()
-    print(f"[score] wrote {n_written} rows -> {out_csv}")
+                    evals.append({
+                        "condition": cond, "arm": arm, "disambiguator": dk,
+                        "embedding_model": emb_label, "codes": codes,
+                    })
+        specs.append({
+            "survey": survey, "target": target, "country": country,
+            "evals": evals,
+            "n_draws": n_draws, "nthread": nthread, "fixed_ks": list(FIXED_KS),
+            "outputs_dir": str(OUT),
+        })
+
+    print(
+        f"[score] selector={selector_key} embedding={emb_label} cells={len(cells)} "
+        f"workers={workers} nthread={nthread} n_draws={n_draws} -> {out_csv}"
+    )
+    run_score_jobs(specs, out_csv, cols, workers=workers, log_prefix="[score]")
     if embedding_model:
         _upsert_embedding_manifest(
             embedding_model=embedding_model,
@@ -555,19 +490,39 @@ def main():
     )
     ap.add_argument("--force", action="store_true", help="recompute cells already on disk")
     ap.add_argument("--limit", type=int, default=None, help="only the first N cells (smoke test)")
+    ap.add_argument(
+        "--score-workers",
+        type=int,
+        default=None,
+        help="cell ProcessPool size for --phase score (default: SCORE_WORKERS or min(8, cpus-2))",
+    )
+    ap.add_argument(
+        "--score-xgb-nthread",
+        type=int,
+        default=None,
+        help="XGBoost nthread per fit (default: SCORE_XGB_NTHREAD or cpus // workers)",
+    )
     args = ap.parse_args()
 
     if args.embedding_model and args.phase in ("gen", "extract"):
         ap.error("--embedding-model only applies to --phase map and --phase score "
                  "(gen/extract are reused from format_pilot/)")
+    if args.phase != "score" and (args.score_workers is not None or args.score_xgb_nthread is not None):
+        ap.error("--score-workers / --score-xgb-nthread only apply to --phase score")
 
     if args.phase == "gen":
         phase_gen(args.selector, force=args.force, limit=args.limit)
     elif args.phase == "extract":
         phase_extract(args.selector, force=args.force, limit=args.limit)
     elif args.phase == "score":
-        phase_score(args.selector, force=args.force, limit=args.limit,
-                    embedding_model=args.embedding_model)
+        phase_score(
+            args.selector,
+            force=args.force,
+            limit=args.limit,
+            embedding_model=args.embedding_model,
+            score_workers=args.score_workers,
+            score_xgb_nthread=args.score_xgb_nthread,
+        )
     elif args.phase == "map":
         if not args.disambiguator:
             ap.error("--disambiguator required for --phase map")

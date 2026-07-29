@@ -7,6 +7,8 @@ LLM + eval caches live under outputs/<target>_<country>/llm__<output_tag>/.
 Free-text pipeline artifacts live under outputs/format_pilot/<selector>/.
 Embedding-model sensitivity map/score runs live under
 outputs/embedding_sensitivity/<embed_slug>/<selector>/ (gen/extract stay in format_pilot).
+Sub-item mapping expansion runs live under
+outputs/subitem_mapping/<selector>/ (gen/extract/parent baseline stay in format_pilot).
 Set GRID_SUMMARY_TAG to select tagged grid_summary CSVs in analysis scripts when multiple exist.
 """
 
@@ -219,6 +221,24 @@ def embedding_run_dirs(
     slug = sanitize_model_slug(embedding_model)
     base = embedding_sensitivity_dir(outputs_dir) / slug / selector_key
     return base / "maps", base / f"scores_{selector_key}.csv"
+
+
+def subitem_mapping_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    """Root for sub-item (subconcept) mapping experiment (isolated from format_pilot/)."""
+    return outputs_dir / "subitem_mapping"
+
+
+def subitem_run_dirs(
+    selector_key: str,
+    outputs_dir: Path = OUTPUTS_DIR,
+) -> tuple[Path, Path, Path]:
+    """(maps_dir, diagnostics_csv, scores_csv) under subitem_mapping/<selector>/."""
+    base = subitem_mapping_dir(outputs_dir) / selector_key
+    return (
+        base / "maps",
+        base / "diagnostics.csv",
+        base / f"scores_{selector_key}.csv",
+    )
 
 
 def cell_tag(survey: str, target: str, country: str) -> str:
