@@ -1,13 +1,13 @@
 """
 Compare free-text (arm C, nemotron) scores and mapped codes across embedding models.
 
-Baseline: outputs/format_pilot/scores_{selector}.csv (or legacy scores.csv / scores_kimi.csv)
-          + format_pilot/<selector>/maps/C__nemotron__*.json
+Baseline: outputs/main/scores_{selector}.csv (or legacy format_pilot/scores.csv / scores_kimi.csv)
+          + main/<selector>/maps/C__nemotron__*.json
           (assumed DEFAULT_EMBEDDING_MODEL = all-MiniLM-L6-v2)
 
-Alternatives: outputs/embedding_sensitivity/<slug>/<selector>/scores_*.csv + maps/
+Alternatives: outputs/experiments/embedding_sensitivity/<slug>/<selector>/scores_*.csv + maps/
 
-Writes: outputs/embedding_sensitivity/comparison.csv
+Writes: outputs/experiments/embedding_sensitivity/comparison.csv
         and prints a short verdict to stdout.
 
 Run:  python analysis/embedding_sensitivity.py
@@ -29,14 +29,15 @@ from survey_features.config import DEFAULT_EMBEDDING_MODEL, OUTPUTS_DIR, SELECTO
 from survey_features.layout import (  # noqa: E402
     embedding_run_dirs,
     embedding_sensitivity_dir,
-    format_pilot_dir,
+    main_dir,
+    resolve_main_scores_path,
     sanitize_model_slug,
     selector_dirs,
 )
 from survey_features.metrics import jaccard  # noqa: E402
 
 OUT = OUTPUTS_DIR
-PILOT = format_pilot_dir(OUT)
+PILOT = main_dir(OUT)
 SENS = embedding_sensitivity_dir(OUT)
 
 PRIMARY_DK = "nemotron"
@@ -53,18 +54,8 @@ TOL = 0.01
 
 
 def _baseline_scores_path(selector_key: str) -> Path | None:
-    """Resolve format_pilot scores CSV; tolerate legacy names from the pilot."""
-    candidates = [
-        PILOT / f"scores_{selector_key}.csv",
-    ]
-    if selector_key == "deepseek":
-        candidates.append(PILOT / "scores.csv")
-    if selector_key == "kimi":
-        candidates.append(PILOT / "scores_kimi.csv")
-    for p in candidates:
-        if p.is_file():
-            return p
-    return None
+    """Resolve main/ scores CSV; tolerate legacy names from the pilot."""
+    return resolve_main_scores_path(selector_key, OUT)
 
 
 def _load_arm_c_scores(path: Path, embedding_model: str) -> pd.DataFrame:

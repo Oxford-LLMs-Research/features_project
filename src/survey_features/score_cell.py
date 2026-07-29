@@ -22,7 +22,7 @@ import pandas as pd
 
 from survey_features.config import OUTPUTS_DIR, ROOT
 from survey_features.evaluation import evaluate_feature_set, single_random_draw
-from survey_features.layout import genuine_cells
+from survey_features.layout import genuine_cells, oracle_csv_path
 from survey_features.metrics import captured_importance_df
 from survey_features.surveys import SURVEY_COUNTRY_COL, build_country_code_map, load_survey
 
@@ -95,7 +95,7 @@ def _oracle_table(survey: str, outputs_dir: Path):
     for s, t, c in genuine_cells(outputs_dir):
         if s != survey:
             continue
-        p = outputs_dir / f"{t}_{c}" / "oracle.csv"
+        p = oracle_csv_path(t, c, outputs_dir)
         if not p.is_file():
             continue
         df = pd.read_csv(p)

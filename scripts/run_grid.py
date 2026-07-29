@@ -9,11 +9,11 @@ Runs any subset of targets × countries end-to-end:
   4. LLM shortlist disambiguation (fixed small model)
   5. Downstream XGBoost prediction comparison
 
-Artifact paths are UNCHANGED from the original run_grid.py:
-  outputs/<target>_<country>/oracle.csv                (shared across models)
-  outputs/<target>_<country>/llm__<run_tag>/           (disambig.json, eval.json)
-  outputs/grid_summary__<survey>__<run_tag>.csv
-  outputs/llm_usage__<survey>__<run_tag>.jsonl
+Artifact paths (via survey_features.layout; dual-resolves legacy locations):
+  outputs/cache/cells/<target>_<country>/oracle.csv   (or legacy outputs/<t>_<c>/)
+  outputs/cache/cells/<target>_<country>/llm__<run_tag>/
+  outputs/grid/grid_summary__<survey>__<run_tag>.csv  (or legacy outputs/ root)
+  outputs/grid/llm_usage__<survey>__<run_tag>.jsonl
 
 Usage:
     python scripts/run_grid.py                                             # full WVS 5×5 grid
@@ -68,10 +68,13 @@ from survey_features.config import (
     OUTPUTS_DIR,
 )
 from survey_features.layout import (
+    cell_dir as layout_cell_dir,
     grid_results_json_path,
     grid_summary_csv_path,
     llm_cache_prefix,
+    llm_usage_path,
     manifest_path,
+    oracle_csv_path,
     sanitize_model_slug,
 )
 from survey_features.oracle import (
@@ -179,8 +182,33 @@ def run_llm_and_map(
 # ── Per-cell cache helpers ────────────────────────────────────────────────────
 
 def cell_dir(prefix: str) -> Path:
-    d = OUTPUTS_DIR / prefix
-    d.mkdir(exist_ok=True)
+    """Resolve a cell or llm__ subdir. ``prefix`` is ``<t>_<c>`` or ``<t>_<c>/llm__<tag>``."""
+    norm = str(prefix).replace("\\", "/")
+    if "/llm__" in norm:
+        base_key, llm_rest = norm.split("/llm__", 1)
+        # Reconstruct target/country from key by preferring existing dirs (same as layout.cell_dir).
+        # We only have the joined key here; use cache/legacy dual-resolve on the key.
+        from survey_features.layout import cache_cells_dir
+        new_base = cache_cells_dir(OUTPUTS_DIR) / base_key
+        old_base = OUTPUTS_DIR / base_key
+        if new_base.is_dir():
+            base = new_base
+        elif old_base.is_dir():
+            base = old_base
+        else:
+            base = new_base
+        d = base / f"llm__{llm_rest}"
+    else:
+        from survey_features.layout import cache_cells_dir
+        new = cache_cells_dir(OUTPUTS_DIR) / prefix
+        old = OUTPUTS_DIR / prefix
+        if new.is_dir():
+            d = new
+        elif old.is_dir():
+            d = old
+        else:
+            d = new
+    d.mkdir(parents=True, exist_ok=True)
     return d
 
 
@@ -196,10 +224,10 @@ def get_or_compute_oracle(
     metadata_flat: dict | None = None,
     similarity_model: object | None = None,
 ) -> tuple[pd.DataFrame, list[str]]:
-    oracle_path = cell_dir(prefix) / "oracle.csv"
-    if oracle_path.exists():
-        print(f"  [oracle] Loading cached {prefix}/oracle.csv")
-        oracle_df = pd.read_csv(oracle_path)
+    existing = oracle_csv_path(target, country_name)
+    if existing.is_file():
+        print(f"  [oracle] Loading cached {existing}")
+        oracle_df = pd.read_csv(existing)
         feature_pool = oracle_df[oracle_df["target_variable"] == target]["feature_variable"].tolist()
         return oracle_df, feature_pool
 
@@ -214,8 +242,11 @@ def get_or_compute_oracle(
         metadata_flat=metadata_flat,
         similarity_model=similarity_model,
     )
+    d = layout_cell_dir(target, country_name)
+    d.mkdir(parents=True, exist_ok=True)
+    oracle_path = d / "oracle.csv"
     oracle_df.to_csv(oracle_path, index=False)
-    print(f"  [oracle] Saved {prefix}/oracle.csv")
+    print(f"  [oracle] Saved {oracle_path}")
     return oracle_df, feature_pool
 
 
@@ -737,7 +768,7 @@ def main():
         print(f"  Model: {model_name}")
         output_tag = sanitize_model_slug(args.run_tag) if args.run_tag else sanitize_model_slug(model_name)
         llm_usage_log = TokenUsageLog(
-            OUTPUTS_DIR / f"llm_usage__{survey_id}__{output_tag}.jsonl"
+            llm_usage_path(OUTPUTS_DIR, survey_id, output_tag)
         )
         usage_log_ref[0] = llm_usage_log
         print(f"  Experiment ID / output tag: {output_tag}")

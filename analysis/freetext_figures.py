@@ -34,15 +34,19 @@ from build_paper_figures import (  # noqa: E402
     save, survey_colors, survey_label,
 )
 
-PILOT = ROOT / "outputs" / "format_pilot"
-SELECTORS = {"deepseek": (PILOT / "scores.csv", "DeepSeek-V3.2"),
-             "kimi": (PILOT / "scores_kimi.csv", "Kimi-K2.5")}
+from survey_features.layout import main_dir, resolve_main_scores_path  # noqa: E402
+
+PILOT = main_dir(ROOT / "outputs")
+SELECTORS = {"deepseek": "DeepSeek-V3.2", "kimi": "Kimi-K2.5"}
 PRIMARY_DK = "nemotron"
 
 
 def load_arm_c() -> pd.DataFrame:
     frames = []
-    for key, (path, label) in SELECTORS.items():
+    for key, label in SELECTORS.items():
+        path = resolve_main_scores_path(key, ROOT / "outputs")
+        if path is None:
+            continue
         d = pd.read_csv(path)
         d["model_label"] = label
         frames.append(d)

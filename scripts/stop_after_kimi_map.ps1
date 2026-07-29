@@ -4,7 +4,10 @@ $ErrorActionPreference = "Continue"
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $root
 
-$logRoot = Join-Path $root "outputs\embedding_sensitivity"
+$logRoot = Join-Path $root "outputs\experiments\embedding_sensitivity"
+if (-not (Test-Path $logRoot)) {
+  $logRoot = Join-Path $root "outputs\embedding_sensitivity"
+}
 $master = Join-Path $logRoot "run_all.log"
 $kimiMaps = Join-Path $logRoot "all-mpnet-base-v2\kimi\maps"
 $orchPid = 42640

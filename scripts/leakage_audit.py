@@ -37,8 +37,9 @@ Each cell is classified:
   - genuine          : real, distributed predictive structure
 
 Outputs:
-  outputs/leakage_audit.csv         one row per unique (survey, target, country)
-  outputs/leakage_audit_summary.json rollups by survey / bucket / class
+  outputs/cache/audits/leakage_audit.csv         one row per unique (survey, target, country)
+  outputs/cache/audits/leakage_audit_summary.json rollups by survey / bucket / class
+  (legacy: outputs/leakage_audit.csv at root — still read via dual-resolve)
   paper/generated_current_state/leakage_audit_longtable.tex (if --write-tex)
 
 Run (offline, concentration only):
@@ -62,7 +63,12 @@ if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 OUT = ROOT / "outputs"
 
-# Map target code -> survey id, and carry bucket/section, from the frozen manifest detail.
+from survey_features.layout import (  # noqa: E402
+    cache_cells_dir,
+    leakage_audit_write_paths,
+)
+
+
 def load_target_detail() -> dict[str, dict]:
     import yaml
 
@@ -91,13 +97,26 @@ def iter_oracle_cells() -> list[tuple[str, str, Path]]:
     detail = load_target_detail()
     known = sorted(detail.keys(), key=len, reverse=True)
     cells = []
-    for p in sorted(OUT.glob("*/oracle.csv")):
-        cell = p.parent.name
-        target = next((t for t in known if cell.startswith(t + "_")), None)
-        if target is None:
+    seen: set[tuple[str, str]] = set()
+    search_roots = [
+        cache_cells_dir(OUT),
+        OUT,
+        OUT / "grid" / "cells",
+    ]
+    for root in search_roots:
+        if not root.is_dir():
             continue
-        country = cell[len(target) + 1 :]
-        cells.append((target, country, p))
+        for p in sorted(root.glob("*/oracle.csv")):
+            cell = p.parent.name
+            target = next((t for t in known if cell.startswith(t + "_")), None)
+            if target is None:
+                continue
+            country = cell[len(target) + 1 :]
+            key = (target, country)
+            if key in seen:
+                continue
+            seen.add(key)
+            cells.append((target, country, p))
     return cells
 
 
@@ -261,7 +280,7 @@ def main() -> None:
     rows["oracle_lift"] = rows["oracle_acc"] - rows["majority_baseline"]
     rows = rows.sort_values(["leakage_class", "oracle_lift"], ascending=[True, False])
 
-    out_csv = OUT / "leakage_audit.csv"
+    out_csv, out_summary = leakage_audit_write_paths(OUT)
     cols = ["survey", "target", "country", "bucket", "section", "majority_baseline",
             "oracle_acc", "oracle_lift", "top_feature", "top_importance_share",
             "importance_hhi", "single_feature_acc", "single_feature_recovery",
@@ -286,9 +305,9 @@ def main() -> None:
                                    "oracle_lift", "top_importance_share",
                                    "single_feature_recovery"]].round(4).to_dict("records"),
     }
-    (OUT / "leakage_audit_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    out_summary.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
-    print(f"Wrote {out_csv} ({len(rows)} cells) and leakage_audit_summary.json")
+    print(f"Wrote {out_csv} ({len(rows)} cells) and {out_summary.name}")
     print(f"Mode: {summary['mode']}")
     print("Class counts:", summary["class_counts"])
     lk = rows[rows["leakage_class"].isin(["leakage", "leakage_suspect"])]

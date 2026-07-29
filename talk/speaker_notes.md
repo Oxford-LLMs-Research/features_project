@@ -162,7 +162,7 @@ After "Thank you" there are 12 appendix slides with a hyperlinked index (click t
 - **"Why not just use the oracle / XGBoost if you have the data?"** — Exactly the
   point: the oracle is the *answer key*. The LLM's value is at the *design stage*,
   before data exists, and for constructs the survey never measured / cross-national
-  transfer the oracle can't attempt. (See `framing_and_comparisons.md`.)
+  transfer the oracle can't attempt. (See `docs/framing_and_comparisons.md`.)
 - **"Is the weak result just your mapping pipeline?"** — Possibly attenuated, hence
   *lower bound*; the format experiment + leakage screen are exactly the audit that
   bounds this. Free-text arm doubles recovered features.

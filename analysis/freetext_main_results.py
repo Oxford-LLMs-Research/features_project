@@ -6,11 +6,11 @@ better instrument (JSON suppresses breadth) and the main experiment will use it,
 paper's headline results move to the free-text arm. This script produces every number and
 tex table the rewritten Results section needs, from:
 
-  - outputs/format_pilot/scores.csv        (DeepSeek-V3.2 selector; arm C rows)
-  - outputs/format_pilot/scores_kimi.csv   (Kimi-K2.5 selector)
-  - outputs/format_pilot/<sel>/maps/C__<disambig>__<survey>__<target>__<country>__<cond>.json
-  - outputs/<target>_<country>/oracle.csv  (oracle importances, per cell)
-  - outputs/leakage_audit.csv              (the 52 genuine cells = the arm-C grid)
+  - outputs/main/scores_deepseek.csv   (or legacy scores.csv / format_pilot/)
+  - outputs/main/scores_kimi.csv
+  - outputs/main/<sel>/maps/C__<disambig>__….json
+  - outputs/cache/cells/<target>_<country>/oracle.csv
+  - outputs/cache/audits/leakage_audit.csv
 
 Primary disambiguator = nemotron (the main-experiment choice; mapper strength was ~null).
 qwen235b is computed alongside as robustness and stored in the JSON summary.
@@ -24,7 +24,7 @@ in survey_features.metrics):
   - matched-k random captured-importance baseline: 200 draws from the cell's oracle pool
 
 Outputs:
-  outputs/format_pilot/freetext_main_summary.json
+  outputs/main/freetext_main_summary.json
   paper/generated_current_state/ft_global_metrics.tex
   paper/generated_current_state/ft_fixedk.tex
   paper/generated_current_state/ft_survey_metrics.tex
@@ -47,10 +47,15 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 OUT = ROOT / "outputs"
-PILOT = OUT / "format_pilot"
+from survey_features.layout import (  # noqa: E402
+    genuine_cells as _genuine_cells,
+    main_dir,
+    resolve_main_scores_path,
+    selector_dirs,
+)
+PILOT = main_dir(OUT)
 GEN = ROOT / "paper" / "generated_current_state"
 
-from survey_features.layout import genuine_cells as _genuine_cells  # noqa: E402
 from survey_features.metrics import (  # noqa: E402
     captured_importance,
     cluster_bootstrap_ci as _cluster_bootstrap_ci,
@@ -67,9 +72,9 @@ RAND_DRAWS = 200
 SEED = 42
 CONDITIONS = ["unprompted", "country_provided"]
 
-SELECTORS = {  # selector key -> (scores csv, display label)
-    "deepseek": (PILOT / "scores.csv", "DeepSeek-V3.2"),
-    "kimi": (PILOT / "scores_kimi.csv", "Kimi-K2.5"),
+SELECTORS = {  # selector key -> display label
+    "deepseek": "DeepSeek-V3.2",
+    "kimi": "Kimi-K2.5",
 }
 PRIMARY_DK = "nemotron"
 ROBUST_DK = "qwen235b"
@@ -83,7 +88,10 @@ def genuine_cells() -> list[tuple[str, str, str]]:
 
 def load_scores() -> pd.DataFrame:
     frames = []
-    for key, (path, label) in SELECTORS.items():
+    for key, label in SELECTORS.items():
+        path = resolve_main_scores_path(key, OUT)
+        if path is None:
+            raise FileNotFoundError(f"No scores CSV for selector {key} under {PILOT}")
         d = pd.read_csv(path)
         d["selector"] = key
         d["model_label"] = label
@@ -108,7 +116,9 @@ def oracle_importance(target: str, country: str) -> dict[str, float]:
 
 def map_codes(selector: str, dk: str, survey: str, target: str, country: str,
               cond: str) -> list[str] | None:
-    p = PILOT / selector / "maps" / f"C__{dk}__{survey}__{target}__{country}__{cond}.json"
+    _, _, maps = selector_dirs(selector, OUT)
+    from survey_features.layout import cell_tag
+    p = maps / f"C__{dk}__{cell_tag(survey, target, country)}__{cond}.json"
     if not p.is_file():
         return None
     codes = json.loads(p.read_text(encoding="utf-8")).get("mapped_codes", [])
@@ -164,7 +174,7 @@ def t2_metrics(dk: str) -> tuple[pd.DataFrame, dict]:
     cells = genuine_cells()
     rows = []
     summ: dict = {}
-    for selector, (_, label) in SELECTORS.items():
+    for selector, label in SELECTORS.items():
         sets: dict[tuple[str, str, str], set[str]] = {}  # (target,country,cond) -> codes
         survey_of: dict[str, str] = {}
         for survey, target, country in cells:
@@ -252,12 +262,12 @@ def main() -> None:
     # ---------- T1 primary (nemotron) ----------
     c = t1_frames(scores, PRIMARY_DK)
     ck = {ks: c[c["k_spec"] == ks] for ks in ("model", "k10", "k5")}
-    labels = [SELECTORS[s][1] for s in SELECTORS]
+    labels = [SELECTORS[s] for s in SELECTORS]
 
     # global table (model-k)
     g_rows = []
     glob: dict = {}
-    for sel, (_, label) in SELECTORS.items():
+    for sel, label in SELECTORS.items():
         d = ck["model"][ck["model"]["selector"] == sel]
         glob[sel] = {
             "n_rows": int(len(d)),
@@ -343,7 +353,7 @@ def main() -> None:
     # ---------- alignment extras + uncertainty (model-k, nemotron) ----------
     cm = add_alignment_cols(ck["model"], PRIMARY_DK)
     unc: dict = {}
-    for sel, (_, label) in SELECTORS.items():
+    for sel, label in SELECTORS.items():
         d = cm[cm["selector"] == sel]
         unc[sel] = {
             "value_over_random": cluster_bootstrap_ci(d, "value_over_random"),
@@ -358,7 +368,7 @@ def main() -> None:
     # ---------- T2 ----------
     t2, t2_summ = t2_metrics(PRIMARY_DK)
     t2_unc: dict = {}
-    for sel, (_, label) in SELECTORS.items():
+    for sel, label in SELECTORS.items():
         d = t2[t2["selector"] == sel]
         t2_unc[sel] = {
             "jaccard_up_cp": cluster_bootstrap_ci(d, "jaccard_up_cp"),

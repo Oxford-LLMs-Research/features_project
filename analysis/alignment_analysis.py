@@ -1,7 +1,7 @@
 """
 Phase B2 — Selection alignment + cross-national adaptation (Test 1 deepened, Test 2).
 
-Motivation (see framing_and_comparisons.md): the matched-k accuracy horse-race understates
+Motivation (see docs/framing_and_comparisons.md): the matched-k accuracy horse-race understates
 what the LLM is for. The design doc's primary selection metric is *captured importance* —
 how much of the oracle's predictive-importance mass the model's chosen features recover —
 and the signature test is *cross-national adaptation*: does the model request different
@@ -60,6 +60,10 @@ from survey_features.metrics import (  # noqa: E402
     load_oracle_importance as _load_oracle_importance,
     oracle_percentile_mean,
 )
+from survey_features.layout import (  # noqa: E402
+    analysis_write_dir,
+    leakage_audit_csv_path,
+)
 
 SURVEY_ORDER = ["wvs", "afrobarometer", "arabbarometer", "asianbarometer",
                 "latinobarometer", "ess_wave_11"]
@@ -101,7 +105,7 @@ def mapped_codes(disambig_items: list[dict], condition: str) -> list[str]:
 
 
 def load_leakage_classes() -> dict[tuple[str, str], str]:
-    p = OUT / "leakage_audit.csv"
+    p = leakage_audit_csv_path(OUT)
     if not p.is_file():
         return {}
     df = pd.read_csv(p)
@@ -113,14 +117,24 @@ def iter_cells() -> list[tuple[str, str, str, Path]]:
     detail = load_target_detail()
     known = sorted(detail.keys(), key=len, reverse=True)
     out = []
-    for p in sorted(OUT.glob("*/llm__*/disambig.json")):
-        cell = p.parent.parent.name
-        tag = p.parent.name[len("llm__"):]
-        target = next((t for t in known if cell.startswith(t + "_")), None)
-        if target is None:
+    from survey_features.layout import cache_cells_dir
+    search_roots = [cache_cells_dir(OUT), OUT, OUT / "grid" / "cells"]
+    seen: set[tuple[str, str]] = set()
+    for root in search_roots:
+        if not root.is_dir():
             continue
-        country = cell[len(target) + 1:]
-        out.append((target, country, tag, p))
+        for p in sorted(root.glob("*/llm__*/disambig.json")):
+            cell = p.parent.parent.name
+            tag = p.parent.name[len("llm__"):]
+            key = (cell, tag)
+            if key in seen:
+                continue
+            seen.add(key)
+            target = next((t for t in known if cell.startswith(t + "_")), None)
+            if target is None:
+                continue
+            country = cell[len(target) + 1 :]
+            out.append((target, country, tag, p))
     return out
 
 
@@ -349,10 +363,11 @@ def main() -> None:
     if df.empty:
         print("No disambig.json cells found under outputs/.", file=sys.stderr)
         sys.exit(1)
-    df.to_csv(OUT / "alignment_by_cell.csv", index=False)
+    write_dir = analysis_write_dir(OUT)
+    df.to_csv(write_dir / "alignment_by_cell.csv", index=False)
     summ = summarize(df)
-    (OUT / "alignment_summary.json").write_text(json.dumps(summ, indent=2), encoding="utf-8")
-    print(f"Wrote outputs/alignment_by_cell.csv ({len(df)} rows) and alignment_summary.json")
+    (write_dir / "alignment_summary.json").write_text(json.dumps(summ, indent=2), encoding="utf-8")
+    print(f"Wrote {write_dir / 'alignment_by_cell.csv'} ({len(df)} rows) and alignment_summary.json")
     if args.write_tex:
         write_tex(df, summ)
 

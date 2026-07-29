@@ -1,6 +1,0 @@
-C:\Users\murrn\miniconda3\lib\site-packages\synthetic_sampling\loaders\survey_loader.py:101: UserWarning: wvs: Duplicate respondent IDs: 999 duplicates
-  warnings.warn(f"{survey_id}: {issue}")
-C:\Users\murrn\miniconda3\lib\site-packages\synthetic_sampling\loaders\survey_loader.py:101: UserWarning: ess_wave_11: Duplicate respondent IDs: 1 duplicates
-  warnings.warn(f"{survey_id}: {issue}")
-C:\Users\murrn\miniconda3\lib\site-packages\synthetic_sampling\loaders\survey_loader.py:101: UserWarning: arabbarometer: Duplicate respondent IDs: 2,399 duplicates
-  warnings.warn(f"{survey_id}: {issue}")

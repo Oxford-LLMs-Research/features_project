@@ -46,6 +46,12 @@ if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 OUT = ROOT / "outputs"
 
+from survey_features.layout import (  # noqa: E402
+    alignment_by_cell_path,
+    analysis_write_dir,
+    leakage_audit_csv_path,
+    oracle_csv_path,
+)
 from survey_features.metrics import cluster_bootstrap_ci as _cluster_bootstrap_ci  # noqa: E402
 
 N_BOOT = 2000
@@ -54,7 +60,7 @@ SEED = 42
 
 
 def load_leakage_classes() -> dict[tuple[str, str], str]:
-    p = OUT / "leakage_audit.csv"
+    p = leakage_audit_csv_path(OUT)
     if not p.is_file():
         return {}
     df = pd.read_csv(p)
@@ -91,7 +97,7 @@ def load_grid() -> pd.DataFrame:
 
 
 def load_alignment() -> pd.DataFrame:
-    df = pd.read_csv(OUT / "alignment_by_cell.csv")
+    df = pd.read_csv(alignment_by_cell_path(OUT))
     if "model_label" not in df.columns:
         df["model_label"] = df["model"].map(lambda t: str(t).split("_", 1)[1] if "_" in str(t) else str(t))
     for c in ("captured_importance", "oracle_pctile_mean", "adaptation_score"):
@@ -116,7 +122,7 @@ def subsets(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
 # ---- matched-k random captured-importance baseline ---------------------------
 
 def load_oracle_importance(target: str, country: str) -> np.ndarray:
-    p = OUT / f"{target}_{country}" / "oracle.csv"
+    p = oracle_csv_path(target, country, OUT)
     if not p.is_file():
         return np.array([])
     d = pd.read_csv(p)
@@ -200,8 +206,9 @@ def main() -> None:
                 for sname, sdf in subsets(msrc).items()
             }
 
-    (OUT / "uncertainty_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    print(f"Wrote outputs/uncertainty_summary.json (n_boot={args.n_boot})")
+    out_path = analysis_write_dir(OUT) / "uncertainty_summary.json"
+    out_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    print(f"Wrote {out_path} (n_boot={args.n_boot})")
 
     if args.write_tex:
         write_tex(summary)

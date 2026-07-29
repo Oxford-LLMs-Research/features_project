@@ -16,7 +16,7 @@ compute_oracle() returns:
 Cache contract
 --------------
 When run as a script (python -m survey_features.oracle), results are saved to:
-  outputs/<target>_<country>/oracle.csv
+  outputs/cache/cells/<target>_<country>/oracle.csv
 and are picked up by scripts/run_grid.py (which skips oracle computation if the
 file already exists).
 """
@@ -36,6 +36,7 @@ from autogluon.tabular import TabularPredictor
 from sklearn.model_selection import train_test_split
 
 from .config import OUTPUTS_DIR
+from .layout import cell_dir as layout_cell_dir, oracle_csv_path, tmp_dir
 from .surveys import (
     SURVEY_COUNTRY_COL,
     build_admin_cols,
@@ -550,7 +551,7 @@ def compute_oracle(
 
     # Use a temp directory to avoid file-lock issues on Dropbox-backed folders.
     if tmp_root is None:
-        tmp_root = OUTPUTS_DIR / ".tmp"
+        tmp_root = tmp_dir(OUTPUTS_DIR)
     tmp_root = _set_local_tmp_dir(tmp_root)
     temp_dir = tempfile.mkdtemp(prefix="autogluon_oracle_", dir=str(tmp_root))
     run_output_dir = Path(temp_dir)
@@ -709,7 +710,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--force",
         action="store_true",
-        help="Recompute even if outputs/<target>_<country>/oracle.csv exists.",
+        help="Recompute even if cache/cells/<target>_<country>/oracle.csv exists.",
     )
     parser.add_argument(
         "--ag-verbosity",
@@ -762,7 +763,7 @@ def main() -> None:
 
     output_root = Path(args.output_dir).expanduser().resolve() if args.output_dir else OUTPUTS_DIR
     output_root.mkdir(parents=True, exist_ok=True)
-    tmp_root = _set_local_tmp_dir(output_root / ".tmp")
+    tmp_root = _set_local_tmp_dir(tmp_dir(output_root))
 
     num_gpus = 1 if (args.auto_detect_gpu and _detect_gpu_available()) else 0
     num_gpus = _resolve_num_gpus(num_gpus)
@@ -809,13 +810,15 @@ def main() -> None:
         for country_name in countries:
             country_code = country_codes[country_name]
             prefix = f"{target_var}_{country_name}"
-            cell_dir = output_root / prefix
-            cell_dir.mkdir(parents=True, exist_ok=True)
-            oracle_path = cell_dir / "oracle.csv"
-
-            if oracle_path.exists() and not args.force:
-                print(f"[skip] {prefix}: oracle.csv already exists")
+            # Prefer dual-resolved existing oracle; write under cache/cells/ for new runs.
+            existing = oracle_csv_path(target_var, country_name, output_root)
+            if existing.is_file() and not args.force:
+                print(f"[skip] {prefix}: oracle.csv already exists ({existing})")
                 continue
+
+            cell_path = layout_cell_dir(target_var, country_name, output_root)
+            cell_path.mkdir(parents=True, exist_ok=True)
+            oracle_path = cell_path / "oracle.csv"
 
             print(f"\n[oracle] {target_var} x {country_name}")
             try:
@@ -846,7 +849,7 @@ def main() -> None:
 
                 oracle_df.to_csv(oracle_path, index=False)
                 pd.DataFrame({"feature_variable": feature_pool}).to_csv(
-                    cell_dir / "feature_pool.csv", index=False
+                    cell_path / "feature_pool.csv", index=False
                 )
                 print(f"  Saved {oracle_path}")
                 processed += 1

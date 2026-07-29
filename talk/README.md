@@ -49,7 +49,7 @@ needed) — compiles clean, 0 errors, 0 overfull boxes.
 - **Paper 2** numbers: `../paper/generated_current_state/ft_*.tex`
   (`ft_global_metrics`, `ft_uncertainty`, `ft_fixedk`, `ft_test2_adaptation`,
   `format_pilot_effect`). Every figure on a slide was read back from these.
-- Conceptual framing (oracle = answer key, etc.): `../framing_and_comparisons.md`.
+- Conceptual framing (oracle = answer key, etc.): `../docs/framing_and_comparisons.md`.
 
 ## To regenerate / swap a figure
 Re-run the Paper 2 figure scripts (`analysis/build_paper_figures.py`,

@@ -23,6 +23,11 @@ from survey_features.prompts import (
     SYSTEM_PROMPT,
 )
 from survey_features.surveys import MISSING_LABEL_PATTERNS as _MISSING_LABEL_PATTERNS
+from survey_features.layout import (  # noqa: E402
+    cell_dir,
+    oracle_csv_path,
+    prelim_stats_path,
+)
 
 SURVEY_ORDER = [
     "wvs",
@@ -287,7 +292,7 @@ def write_metrics_tables(df: pd.DataFrame) -> None:
 
 
 def write_bucket_and_extremes_tables() -> None:
-    stats_path = OUT / "_prelim_stats.json"
+    stats_path = prelim_stats_path(OUT)
     if not stats_path.is_file():
         return
     doc = read_json(stats_path)
@@ -417,8 +422,6 @@ def read_json(path: Path) -> Any:
 
 
 def write_mapping_and_oracle_appendix(df: pd.DataFrame) -> None:
-    from survey_features.layout import llm_cache_prefix
-
     map_rows: list[str] = []
     oracle_rows: list[str] = []
 
@@ -427,7 +430,7 @@ def write_mapping_and_oracle_appendix(df: pd.DataFrame) -> None:
         ["survey", "target", "country"], kind="stable"
     )
     for _, r in cells.iterrows():
-        ora_path = OUT / f"{r['target']}_{r['country']}" / "oracle.csv"
+        ora_path = oracle_csv_path(r["target"], r["country"], OUT)
         if not ora_path.is_file():
             continue
         od = pd.read_csv(ora_path)
@@ -444,7 +447,7 @@ def write_mapping_and_oracle_appendix(df: pd.DataFrame) -> None:
     )
     for _, r in cell_models.iterrows():
         tag = r["model"]
-        dis_path = OUT / llm_cache_prefix(f"{r['target']}_{r['country']}", str(tag)) / "disambig.json"
+        dis_path = cell_dir(str(r["target"]), str(r["country"]), OUT) / f"llm__{tag}" / "disambig.json"
         if not dis_path.is_file():
             continue
         try:

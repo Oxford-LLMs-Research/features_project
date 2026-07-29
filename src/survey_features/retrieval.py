@@ -22,7 +22,7 @@ from pathlib import Path
 import numpy as np
 
 from .config import DEFAULT_EMBEDDING_MODEL, OUTPUTS_DIR
-from .layout import sanitize_model_slug
+from .layout import survey_emb_cache_path as _survey_emb_cache_path
 
 # SentenceTransformer is not thread-safe to construct concurrently (multiple grid
 # workers can hit meta-tensor / device race). Load once per model name under lock.
@@ -62,8 +62,8 @@ def survey_emb_cache_path(
     embedding_model: str = DEFAULT_EMBEDDING_MODEL,
     outputs_dir: Path = OUTPUTS_DIR,
 ) -> Path:
-    slug = sanitize_model_slug(embedding_model)
-    return outputs_dir / f"survey_embeddings__{survey_id}__{slug}.npz"
+    """Dual-resolve cache/embeddings/ then legacy outputs/ root (via layout)."""
+    return _survey_emb_cache_path(survey_id, embedding_model, outputs_dir)
 
 
 def load_or_build_survey_embeddings(

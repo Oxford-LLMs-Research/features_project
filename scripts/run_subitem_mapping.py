@@ -1,14 +1,16 @@
 """
-Sub-item mapping experiment runner (isolated from format_pilot).
+Sub-item mapping experiment runner (isolated from main/).
 
-Reuses gen/extract from outputs/format_pilot/<selector>/. Writes maps + scores
-under outputs/subitem_mapping/<selector>/ only. v1 protocol is kimi-only map +
-score (docs/subitem_mapping.md): natural-k parent/expanded plus matched k=5/10.
+Reuses gen/extract from outputs/main/<selector>/ (legacy format_pilot/ dual-resolved).
+Writes maps + scores under outputs/experiments/subitem_mapping/<selector>/
+(or …/runs/<run_tag>/ with --run-tag). v1 protocol is kimi-only map + score
+(docs/subitem_mapping.md): natural-k parent/expanded plus matched k=5/10.
 
 Examples (v1):
   python scripts/run_subitem_mapping.py --phase map --selector kimi --disambiguator nemotron --limit 2
   python scripts/run_subitem_mapping.py --phase map --selector kimi --disambiguator nemotron --arms C
   python scripts/run_subitem_mapping.py --phase score --selector kimi --k-modes parent,expanded
+  python scripts/run_subitem_mapping.py --phase map --selector kimi --disambiguator nemotron --run-tag alice_v2
 """
 
 from __future__ import annotations
@@ -84,7 +86,7 @@ def _upsert_manifest(**fields) -> None:
     data = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {
         "experiment": "subitem_mapping",
         "baseline": {
-            "scores_root": "outputs/format_pilot",
+            "scores_root": "outputs/main",
             "note": "Parent-only MiniLM arm-C maps/scores; never overwritten by this runner.",
         },
         "runs": [],
@@ -93,7 +95,8 @@ def _upsert_manifest(**fields) -> None:
     path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
 
-def phase_map(selector_key: str, disambig_key: str, arms=("C",), force=False, limit=None):
+def phase_map(selector_key: str, disambig_key: str, arms=("C",), force=False, limit=None,
+              run_tag: str | None = None):
     """Expand parent + bundled sub_item mapping units; write under subitem_mapping/."""
     from survey_features.retrieval import make_embed_fn
     from survey_features.subitem_map import expanded_cell_to_record, map_features_with_subitems
@@ -103,7 +106,7 @@ def phase_map(selector_key: str, disambig_key: str, arms=("C",), force=False, li
     dgen = mapper_generate_fn(dmodel)
     embed = make_embed_fn(emb_model)
     _, extract_dir, _ = selector_dirs(selector_key)
-    map_dir, _, _ = subitem_run_dirs(selector_key)
+    map_dir, _, _ = subitem_run_dirs(selector_key, run_tag=run_tag)
     map_dir.mkdir(parents=True, exist_ok=True)
 
     cells = genuine_cells(OUT)
@@ -184,11 +187,12 @@ def phase_score(
     limit=None,
     score_workers: int | None = None,
     score_xgb_nthread: int | None = None,
+    run_tag: str | None = None,
 ):
     """Score parent vs expanded code sets (natural k + fixed k=5/10).
 
     Uses survey_features.score_cell (cell ProcessPool, oracle/random cache per k).
-    Writes only under subitem_mapping/ — never format_pilot or embedding_sensitivity.
+    Writes only under subitem_mapping/ — never main/ or embedding_sensitivity.
     """
     from survey_features.score_cell import (
         resolve_score_n_draws,
@@ -207,7 +211,7 @@ def phase_score(
     workers = resolve_score_workers(score_workers)
     nthread = resolve_score_xgb_nthread(workers, score_xgb_nthread)
 
-    map_dir, _, out_csv = subitem_run_dirs(selector_key)
+    map_dir, _, out_csv = subitem_run_dirs(selector_key, run_tag=run_tag)
     out_csv.parent.mkdir(parents=True, exist_ok=True)
     # Always rewrite (same as run_main score); incremental flush keeps partial CSV
     # on interrupt. --force is accepted for CLI parity with map phase.
@@ -297,6 +301,12 @@ def main():
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument(
+        "--run-tag",
+        default=None,
+        metavar="TAG",
+        help="Write under experiments/subitem_mapping/runs/<TAG>/ (avoids clobbering canonical)",
+    )
+    ap.add_argument(
         "--score-workers",
         type=int,
         default=None,
@@ -322,6 +332,7 @@ def main():
             arms=tuple(a.strip() for a in args.arms.split(",") if a.strip()),
             force=args.force,
             limit=args.limit,
+            run_tag=args.run_tag,
         )
     else:
         modes = tuple(m.strip() for m in args.k_modes.split(",") if m.strip())
@@ -332,6 +343,7 @@ def main():
             limit=args.limit,
             score_workers=args.score_workers,
             score_xgb_nthread=args.score_xgb_nthread,
+            run_tag=args.run_tag,
         )
 
 

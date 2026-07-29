@@ -156,6 +156,33 @@ features mechanically easier for the evaluator to exploit, slightly understating
 non-tree-friendly model picks. Minor, but worth one robustness check with a different
 evaluator family (e.g. logistic / MI-based) on a subset.
 
+**4d. The oracle's selection saw the evaluation rows; the model's did not.** This is not a
+claim about the oracle's internal validity (Stage 0 framing stands) — it is about the
+*coupling* between the two stages. `compute_oracle` derives importances by permuting on a
+20% holdout of the country data (`oracle.py:521-526`, `:581`), but `evaluate_feature_set`
+then runs 5-fold CV over **all** of that country's rows. So oracle top-k was chosen with
+access to rows that later appear in the evaluation folds, while the LLM arm's selection has
+zero data exposure and the random arm's is exposure-free by construction. The three arms are
+therefore not selected under the same information regime.
+- *Consequence:* "cost of imperfect selection" (oracle − model) is inflated by an
+  unquantified selection-on-eval-data margin. Under matched-k this propagates to every
+  headline that uses the oracle as the ceiling.
+- *Why it is defensible anyway:* the oracle is *intended* as a full-information upper bound,
+  not a fair competitor — a selector that had to generalise out-of-sample would be a
+  different (weaker) ceiling. The problem is that the writeups do not say which of the two
+  the number is.
+- *Fix (cheap, reporting-only):* name it explicitly as an in-sample ceiling wherever the
+  oracle row appears. *Fix (if a defensible gap estimate is wanted):* refit the oracle on
+  each CV training fold and take top-k per fold, so selection and evaluation share a split
+  discipline; report the fold-honest oracle alongside the full-information one and treat the
+  difference as the size of this bias. Costly (one AutoGluon fit per fold per cell), so a
+  subset is enough.
+- *Note:* this is orthogonal to the learner choice. Scoring with the AutoGluon ensemble
+  instead of XGBoost would not fix it, and would add a circularity problem on top (oracle
+  top-k is by construction the set that ensemble most relies on, so the ensemble would be
+  grading features chosen to maximise its own permutation sensitivity). Fixed-hyperparameter
+  XGBoost as a neutral third learner is the right call and should stay.
+
 ---
 
 ## Stage 0 — Target selection (feeds everything)
@@ -182,7 +209,10 @@ Test 2 (adaptation) is run only where structure actually varies across countries
    for scaling to more models, and an absolute-capability estimate.
 5. **Sensitivity sweeps (2b embedding/threshold; 4c evaluator family; 1d sampling).** Show
    conclusions are not knife-edge on arbitrary knobs.
-6. **Reconcile leakage definitions (2c).**
+6. **Label the oracle as an in-sample ceiling (4d).** Reporting-only, near-zero cost, and it
+   stops the oracle−model gap being read as a like-for-like comparison. Fold-honest oracle
+   on a subset if a size estimate for the bias is wanted.
+7. **Reconcile leakage definitions (2c).**
 
 ## One-line bottom line
 

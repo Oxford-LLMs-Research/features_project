@@ -25,6 +25,7 @@ if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
 from survey_features.surveys import flatten_metadata
+from survey_features.layout import oracle_csv_path
 
 OUTPUTS_DIR = ROOT / "outputs"
 DEFAULT_MANIFEST = ROOT / "prelim" / "trial_manifest.yaml"
@@ -89,7 +90,7 @@ def build_report(manifest_path: Path, top_n: int, config_path: str) -> pd.DataFr
             tgt_sec  = tgt.get("section", "")
 
             for country in countries:
-                oracle_path = OUTPUTS_DIR / f"{target}_{country}" / "oracle.csv"
+                oracle_path = oracle_csv_path(target, country, OUTPUTS_DIR)
                 base_row = dict(
                     survey=survey_id,
                     target=target,

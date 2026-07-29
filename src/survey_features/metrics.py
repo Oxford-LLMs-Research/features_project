@@ -26,6 +26,7 @@ import numpy as np
 import pandas as pd
 
 from .config import OUTPUTS_DIR
+from .layout import oracle_csv_path
 
 N_BOOT = 2000
 RAND_DRAWS = 200
@@ -34,7 +35,7 @@ SEED = 42
 
 def load_oracle_importance(target: str, country: str, outputs_dir: Path = OUTPUTS_DIR) -> dict[str, float]:
     """{feature_variable: importance_mean} from a cell's cached oracle.csv ({} if absent)."""
-    p = outputs_dir / f"{target}_{country}" / "oracle.csv"
+    p = oracle_csv_path(target, country, outputs_dir)
     if not p.is_file():
         return {}
     df = pd.read_csv(p)

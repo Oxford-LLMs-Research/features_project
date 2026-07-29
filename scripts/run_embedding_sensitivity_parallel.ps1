@@ -28,7 +28,10 @@ $ErrorActionPreference = "Stop"
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $root
 
-$logRoot = Join-Path $root "outputs\embedding_sensitivity"
+$logRoot = Join-Path $root "outputs\experiments\embedding_sensitivity"
+if (-not (Test-Path $logRoot)) {
+  $logRoot = Join-Path $root "outputs\embedding_sensitivity"
+}
 New-Item -ItemType Directory -Force -Path $logRoot | Out-Null
 $master = Join-Path $logRoot "run_parallel.log"
 

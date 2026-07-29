@@ -22,14 +22,15 @@ src/survey_features/          — the shared library (all pipeline logic lives h
     oracle.py                 —   AutoGluon permutation-importance oracle (needs the [oracle] extra)
     evaluation.py             —   matched-k XGBoost CV: oracle vs model vs random
     metrics.py                —   captured importance, jaccard, oracle percentile, bootstrap CIs
-    layout.py                 —   outputs/ path contracts (grid summaries, LLM caches, pilot dirs)
+    layout.py                 —   outputs/ path contracts (cache/main/experiments; dual-resolve)
 scripts/
     run_main.py               — CANONICAL entry point: phased free-text pipeline (gen/extract/map/score)
     run_grid.py               — legacy JSON-prompt grid (appendix reproducibility; thin wrapper)
     leakage_audit.py          — empirical leakage audit of the oracle ground truth
+    migrate_outputs_layout.py — one-shot local outputs/ reorg (dry-run; --apply to move)
 analysis/                     — one-off analysis + paper-build scripts (import the package)
 prelim/                       — manifest build, target selection, metadata introspection
-docs/                         — findings and design notes (markdown)
+docs/                         — findings, design notes, experiments_index.md
 archive/                      — dead scripts kept for reference (do not run)
 data/                         — per-survey metadata JSONs
 outputs/                      — cached artifacts (gitignored)
@@ -71,28 +72,29 @@ Test models ("selectors") are registered in `src/survey_features/config.py::SELE
 
 ## Running the main (free-text) pipeline
 
-`scripts/run_main.py` is the canonical entry point. It runs over the *genuine* cells from the leakage audit (`outputs/leakage_audit.csv`), both prompt conditions (`unprompted`, `country_provided`), in four resumable phases:
+`scripts/run_main.py` is the canonical entry point. It runs over the *genuine* cells from the leakage audit (`outputs/cache/audits/leakage_audit.csv` or legacy root path), both prompt conditions (`unprompted`, `country_provided`), in four resumable phases:
 
 ```bash
 python scripts/run_main.py --phase gen     --selector deepseek   # free-text selection essays
 python scripts/run_main.py --phase extract --selector deepseek   # essay -> typed feature list (fixed extractor)
 python scripts/run_main.py --phase map     --selector deepseek --disambiguator nemotron
-python scripts/run_main.py --phase score   --selector deepseek   # -> outputs/format_pilot/scores_deepseek.csv
+python scripts/run_main.py --phase score   --selector deepseek   # -> outputs/main/scores_deepseek.csv
 ```
 
 - Every phase checkpoints per cell; rerunning skips cells already on disk (`--force` recomputes, `--limit N` smoke-tests on the first N cells).
+- Use `--run-tag <who_slug>` so map/score write under `main/runs/<tag>/` and do not clobber the shared baseline.
 - `--phase map` arms: `C` = free-text (extracted) features, `B` = the model's legacy JSON selections re-mapped through the same retrieval+disambiguation (for the format comparison). Default `--arms B,C`.
 - `--phase score` computes captured importance and oracle/model/random XGBoost accuracy at model-chosen k and fixed k=5,10, for every arm × disambiguator.
 
-Prerequisites on disk: per-cell `outputs/<target>_<country>/oracle.csv` (from the legacy grid or `survey_features.oracle`) and `outputs/leakage_audit.csv` (from `python scripts/leakage_audit.py`).
+Prerequisites on disk: per-cell oracle under `outputs/cache/cells/<target>_<country>/oracle.csv` (or legacy `outputs/<t>_<c>/`) and `outputs/cache/audits/leakage_audit.csv` (from `python scripts/leakage_audit.py`).
 
 ### Embedding-model sensitivity
 
-To test whether map → disambiguation → score results move with the sentence-transformer, pass `--embedding-model`. Gen/extract stay in `outputs/format_pilot/`; only map and score are re-run into an isolated tree (existing MiniLM `format_pilot` artifacts are the baseline and are never overwritten):
+To test whether map → disambiguation → score results move with the sentence-transformer, pass `--embedding-model`. Gen/extract stay in `outputs/main/`; only map and score are re-run into an isolated tree (existing MiniLM `main/` artifacts are the baseline and are never overwritten):
 
 | Role | Model | Approx. size |
 |------|--------|--------------|
-| Baseline (already in `format_pilot/`) | `all-MiniLM-L6-v2` | ~22M |
+| Baseline (already in `main/`) | `all-MiniLM-L6-v2` | ~22M |
 | Mid | `all-mpnet-base-v2` | ~110M |
 | Large | `all-roberta-large-v1` | ~355M |
 
@@ -109,14 +111,14 @@ python scripts/run_main.py --phase score --selector deepseek --embedding-model a
 python scripts/run_main.py --phase map   --selector kimi     --disambiguator nemotron --arms C --embedding-model all-roberta-large-v1
 python scripts/run_main.py --phase score --selector kimi     --embedding-model all-roberta-large-v1
 
-python analysis/embedding_sensitivity.py   # -> outputs/embedding_sensitivity/comparison.csv
+python analysis/embedding_sensitivity.py   # -> experiments/embedding_sensitivity/comparison.csv
 ```
 
-Artifacts: `outputs/embedding_sensitivity/<model_slug>/<selector>/maps/` and `scores_<selector>.csv`, plus `manifest.json`. See `docs/embedding_sensitivity.md`.
+Artifacts: `outputs/experiments/embedding_sensitivity/<model_slug>/<selector>/maps/` and `scores_<selector>.csv`, plus `manifest.json`. See `docs/embedding_sensitivity.md`.
 
 ### Sub-item (subconcept) mapping
 
-Parent features are still one-to-one in the main pipeline; bundled `sub_items` are audit-only there. A separate experiment maps each sub_item as its own unit under `outputs/subitem_mapping/` (gen/extract reused; `format_pilot` untouched). **v1 is kimi-only** map + score (performance + counts + diagnostics). Design: `docs/subitem_mapping.md`. Similarity-threshold effects are a **different** experiment (`docs/similarity_threshold.md`).
+Parent features are still one-to-one in the main pipeline; bundled `sub_items` are audit-only there. A separate experiment maps each sub_item as its own unit under `outputs/experiments/subitem_mapping/` (gen/extract reused; `main/` untouched). **v1 is kimi-only** map + score. Design: `docs/subitem_mapping.md`. Similarity-threshold effects are a **different** experiment (`docs/similarity_threshold.md`).
 
 ```bash
 python scripts/run_subitem_mapping.py --phase map --selector kimi --disambiguator nemotron --limit 2
@@ -147,10 +149,10 @@ Key metrics per cell:
 python analysis/freetext_main_results.py   # headline T1/T2 numbers + tex tables
 python analysis/freetext_figures.py        # free-text figures
 python analysis/embedding_sensitivity.py   # MiniLM vs mid/large embedders (after sensitivity runs)
-python scripts/leakage_audit.py            # oracle leakage audit -> outputs/leakage_audit.csv
+python scripts/leakage_audit.py            # oracle leakage audit -> cache/audits/leakage_audit.csv
 ```
 
-Findings and design notes live in `docs/` (`main_experiment_design.md`, `format_findings.md`, `embedding_sensitivity.md`, `subitem_mapping.md`, `similarity_threshold.md`, `leakage_findings.md`, …).
+Findings and design notes live in `docs/` — start from [`docs/experiments_index.md`](docs/experiments_index.md).
 
 ---
 
@@ -229,30 +231,33 @@ python scripts/run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.y
 
 ### Output layout
 
+Named shared caches + named experiment dirs. Readers dual-resolve new paths then
+legacy flat paths (`format_pilot/`, top-level cells, etc.). See
+[`docs/experiments_index.md`](docs/experiments_index.md). Migrate an existing
+local tree with `python scripts/migrate_outputs_layout.py` (dry-run by default).
+
 ```
 outputs/
-  <target>_<country>/
-    oracle.csv                          # permutation importances — shared across all models
-    llm__<exp_id>/
-      disambig.json                     # legacy-grid LLM selection + mapping results
-      eval.json                         # XGBoost comparison results
-  grid_summary__<survey>__<exp_id>.csv  # one row per (target, country, condition)
-  grid_results__<survey>__<exp_id>.json # full nested eval payload
-  llm_usage__<survey>__<exp_id>.jsonl   # per-request token usage
-  run_manifest__<survey>__<exp_id>.json # experiment provenance
-  survey_embeddings__<survey>__<embedding_model>.npz  # embedding cache
-  leakage_audit.csv                     # genuine/leaky cell classification
-  format_pilot/                         # free-text pipeline artifacts (run_main.py)
-    <selector>/gen|extract|maps/        # per-cell checkpoints per phase
-    scores_<selector>.csv               # per-cell scores, all arms x disambiguators
-  embedding_sensitivity/                # --embedding-model map/score runs (isolated)
-    manifest.json
-    <embed_slug>/<selector>/maps|scores_*.csv
-    comparison.csv                      # analysis/embedding_sensitivity.py
-  subitem_mapping/                      # parent+sub_item map expansion (isolated)
-    manifest.json
-    <selector>/maps|diagnostics.csv|scores_*.csv
+  cache/
+    cells/<target>_<country>/
+      oracle.csv                        # shared across experiments
+      llm__<exp_id>/{disambig,eval}.json
+    embeddings/survey_embeddings__*.npz
+    audits/leakage_audit.csv
+  main/                                 # canonical free-text pipeline (was format_pilot/)
+    <selector>/{freetext,extracted,maps}/
+    scores_<selector>.csv               # prefer scores_deepseek.csv (legacy scores.csv still read)
+    runs/<run_tag>/…                    # optional tagged map/score writes
+  experiments/
+    embedding_sensitivity/
+    subitem_mapping/
+    similarity_threshold/               # planned
+  grid/                                 # legacy JSON prelim summaries + manifests
+    grid_summary__<survey>__<exp_id>.csv
+    …
+  analysis/                             # alignment_*, uncertainty_*, _prelim_stats.json
   logs/
+  .tmp/                                 # AutoGluon scratch — safe to delete
 ```
 
 ---

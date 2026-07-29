@@ -1,8 +1,8 @@
 """
 MAIN experiment orchestrator — free-text elicitation pipeline (the paper's current design).
 
-Generalised from the second-pilot orchestrator (analysis/format_pilot.py); artifact
-paths are unchanged (outputs/format_pilot/) so all existing pilot-2 results stay valid.
+Generalised from the second-pilot orchestrator (analysis/format_pilot.py); artifacts
+live under outputs/main/ (legacy outputs/format_pilot/ still dual-resolved).
 
 Pipeline per selector (the test model whose capability we measure):
   --phase gen     : free-text selection responses, both prompt conditions, cached per cell.
@@ -12,8 +12,12 @@ Pipeline per selector (the test model whose capability we measure):
   --phase score   : captured importance + oracle/model/random accuracy at model-chosen k
                     and fixed k=5,10, per arm x disambiguator -> scores_<selector>.csv.
 
-Grid = the GENUINE cells from the leakage audit (scripts/leakage_audit.py ->
-outputs/leakage_audit.csv), both prompt conditions.
+Grid = the GENUINE cells from the leakage audit (scripts/leakage_audit.py),
+both prompt conditions.
+
+Use --run-tag to write map/score under main/runs/<tag>/ (or experiments/…/runs/<tag>/
+with --embedding-model) so multi-person runs do not clobber the canonical baseline.
+Gen/extract always stay under main/<selector>/ (shared cache).
 
 Phased + resumable: per-cell JSON checkpoints make every phase resumable; rerunning
 skips cells already on disk unless --force. Selectors are registered in
@@ -26,7 +30,7 @@ Examples:
   python scripts/run_main.py --phase map     --selector deepseek --disambiguator nemotron
   python scripts/run_main.py --phase score   --selector deepseek
 
-Embedding-model sensitivity (reuses gen/extract; writes under outputs/embedding_sensitivity/):
+Embedding-model sensitivity (reuses gen/extract; writes under experiments/embedding_sensitivity/):
   python scripts/run_main.py --phase map   --selector deepseek --disambiguator nemotron \\
       --arms C --embedding-model all-mpnet-base-v2
   python scripts/run_main.py --phase score --selector deepseek --embedding-model all-mpnet-base-v2
@@ -56,16 +60,18 @@ from survey_features.config import (  # noqa: E402
     SELECTORS,
 )
 from survey_features.layout import (  # noqa: E402
+    cell_dir,
     cell_tag,
     embedding_run_dirs,
     embedding_sensitivity_dir,
-    format_pilot_dir,
     genuine_cells,
+    main_dir,
+    main_scores_path,
     selector_dirs,
 )
 
 OUT = OUTPUTS_DIR
-PILOT = format_pilot_dir(OUT)
+PILOT = main_dir(OUT)
 
 FIXED_KS = [5, 10]
 
@@ -128,7 +134,7 @@ def _upsert_embedding_manifest(
             "experiment": "embedding_sensitivity",
             "baseline": {
                 "embedding_model": DEFAULT_EMBEDDING_MODEL,
-                "scores_root": "outputs/format_pilot",
+                "scores_root": "outputs/main",
                 "note": "Main-experiment MiniLM maps/scores; not re-run unless --embedding-model points at it.",
             },
             "disambiguator": "nemotron",
@@ -240,7 +246,7 @@ def _json_arm_features(selector_key, target, country, cond):
     """Arm B: the selector's legacy JSON selection as a feature list (parsed directly, no
     extraction). Uses cached disambig.json feature_label/reasoning as feature/context."""
     tag = SELECTORS[selector_key]["pilot1_tag"]
-    p = OUT / f"{target}_{country}" / f"llm__{tag}" / "disambig.json"
+    p = cell_dir(target, country, OUT) / f"llm__{tag}" / "disambig.json"
     if not p.is_file():
         return None
     items = json.loads(p.read_text(encoding="utf-8"))
@@ -262,6 +268,7 @@ def phase_map(
     force=False,
     limit=None,
     embedding_model: str | None = None,
+    run_tag: str | None = None,
 ):
     from survey_features.disambig import map_features
     from survey_features.retrieval import make_embed_fn
@@ -270,11 +277,13 @@ def phase_map(
     dmodel = DISAMBIGUATORS[disambig_key]
     dgen = mapper_generate_fn(dmodel)
     embed = make_embed_fn(emb_model)
-    _, extract_dir, default_map_dir = selector_dirs(selector_key)
+    _, extract_dir, default_map_dir = selector_dirs(selector_key, run_tag=None)
     if embedding_model:
-        map_dir, _ = embedding_run_dirs(embedding_model, selector_key)
+        map_dir, _ = embedding_run_dirs(embedding_model, selector_key, run_tag=run_tag)
     else:
-        map_dir = default_map_dir
+        _, _, map_dir = selector_dirs(selector_key, run_tag=run_tag)
+        if map_dir == default_map_dir and run_tag is None:
+            map_dir = default_map_dir
     cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
@@ -356,7 +365,7 @@ def _arm_A_codes(selector_key, target, country, cond):
     """Legacy (pilot-1) mapped codes (deduped, arrival order) for arm A from the selector's
     cached disambig.json."""
     tag = SELECTORS[selector_key]["pilot1_tag"]
-    p = OUT / f"{target}_{country}" / f"llm__{tag}" / "disambig.json"
+    p = cell_dir(target, country, OUT) / f"llm__{tag}" / "disambig.json"
     if not p.is_file():
         return None
     items = json.loads(p.read_text(encoding="utf-8"))
@@ -386,6 +395,7 @@ def phase_score(
     embedding_model: str | None = None,
     score_workers: int | None = None,
     score_xgb_nthread: int | None = None,
+    run_tag: str | None = None,
 ):
     """Score all arms via cell-level ProcessPool (survey_features.score_cell).
 
@@ -394,7 +404,7 @@ def phase_score(
     cells. Score-only workers do not load torch, so XGB nthread > 1 is safe.
 
     With --embedding-model, scores only maps under embedding_sensitivity/ (no arm A)
-    and never overwrites format_pilot/scores_*.csv.
+    and never overwrites main/scores_*.csv. With --run-tag, writes under …/runs/<tag>/.
     """
     from survey_features.score_cell import (
         resolve_score_n_draws,
@@ -407,16 +417,20 @@ def phase_score(
     workers = resolve_score_workers(score_workers)
     nthread = resolve_score_xgb_nthread(workers, score_xgb_nthread)
 
-    _, _, default_map_dir = selector_dirs(selector_key)
     if embedding_model:
-        map_dir, out_csv = embedding_run_dirs(embedding_model, selector_key)
+        map_dir, out_csv = embedding_run_dirs(
+            embedding_model, selector_key, run_tag=run_tag,
+        )
         out_csv.parent.mkdir(parents=True, exist_ok=True)
         include_arm_a = False
         emb_label = embedding_model
     else:
-        map_dir = default_map_dir
-        PILOT.mkdir(parents=True, exist_ok=True)
-        out_csv = PILOT / f"scores_{selector_key}.csv"
+        _, _, map_dir = selector_dirs(selector_key, run_tag=run_tag)
+        out_csv = main_scores_path(selector_key, OUT, run_tag=run_tag)
+        # Prefer canonical scores_<sel>.csv write (not legacy scores.csv)
+        if run_tag is None:
+            out_csv = PILOT / f"scores_{selector_key}.csv"
+        out_csv.parent.mkdir(parents=True, exist_ok=True)
         include_arm_a = True
         emb_label = DEFAULT_EMBEDDING_MODEL
 
@@ -484,8 +498,18 @@ def main():
         metavar="MODEL",
         help=(
             "Sentence-transformer for map/score. When set, writes under "
-            f"outputs/embedding_sensitivity/<slug>/ (default encode model: {DEFAULT_EMBEDDING_MODEL}; "
-            "omit this flag to keep writing under format_pilot/)."
+            "outputs/experiments/embedding_sensitivity/<slug>/ "
+            f"(default encode model: {DEFAULT_EMBEDDING_MODEL}; "
+            "omit this flag to keep writing under outputs/main/)."
+        ),
+    )
+    ap.add_argument(
+        "--run-tag",
+        default=None,
+        metavar="TAG",
+        help=(
+            "Write map/score under …/runs/<TAG>/ instead of the canonical baseline "
+            "(use for multi-person / exploratory runs; gen/extract stay shared)."
         ),
     )
     ap.add_argument("--force", action="store_true", help="recompute cells already on disk")
@@ -506,7 +530,10 @@ def main():
 
     if args.embedding_model and args.phase in ("gen", "extract"):
         ap.error("--embedding-model only applies to --phase map and --phase score "
-                 "(gen/extract are reused from format_pilot/)")
+                 "(gen/extract are reused from main/)")
+    if args.run_tag and args.phase in ("gen", "extract"):
+        ap.error("--run-tag only applies to --phase map and --phase score "
+                 "(gen/extract are shared under main/<selector>/)")
     if args.phase != "score" and (args.score_workers is not None or args.score_xgb_nthread is not None):
         ap.error("--score-workers / --score-xgb-nthread only apply to --phase score")
 
@@ -522,12 +549,14 @@ def main():
             embedding_model=args.embedding_model,
             score_workers=args.score_workers,
             score_xgb_nthread=args.score_xgb_nthread,
+            run_tag=args.run_tag,
         )
     elif args.phase == "map":
         if not args.disambiguator:
             ap.error("--disambiguator required for --phase map")
         phase_map(args.selector, args.disambiguator, arms=tuple(args.arms.split(",")),
-                  force=args.force, limit=args.limit, embedding_model=args.embedding_model)
+                  force=args.force, limit=args.limit, embedding_model=args.embedding_model,
+                  run_tag=args.run_tag)
 
 
 if __name__ == "__main__":

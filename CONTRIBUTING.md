@@ -26,27 +26,35 @@ Python ≥ 3.9. Survey data access goes through `synthetic_sampling` (pinned in
 - **`analysis/`** — one-off analysis and paper-build scripts. They must import the
   package (add `src/` to `sys.path` at the top if not installed) and must not
   redefine metrics that exist in `survey_features.metrics`.
-- **`docs/`** — findings and design notes (markdown).
+- **`docs/`** — findings, design notes, and [`docs/experiments_index.md`](docs/experiments_index.md).
+- **`paper/`** — LaTeX writeup + generated tables/figures (gitignored; not required to run the pipeline).
 - **`archive/`** — dead scripts kept for reference. Never import from here.
 
 ## Ground rules
 
-1. **Do not break cached-artifact contracts.** Paths and file names under
-   `outputs/` are load-bearing (`survey_features/layout.py` is the single source
-   of truth). Existing runs must keep resolving after your change — reruns are
-   expensive (LLM calls, AutoGluon fits).
-2. **No result drift.** If you refactor analysis code, re-run the affected script
+1. **Do not break cached-artifact contracts.** Paths under `outputs/` are
+   load-bearing (`survey_features/layout.py` is the single source of truth).
+   Readers dual-resolve new layout then legacy; writers prefer the new tree.
+   Existing runs must keep resolving after your change — reruns are expensive.
+2. **Isolate exploratory runs.** Use `--run-tag` for map/score (and experiment
+   runners) so you write under `…/runs/<tag>/` instead of clobbering the
+   canonical `main/` or another person's experiment output.
+3. **Register new experiments.** Add `docs/<name>.md`, a row in
+   `docs/experiments_index.md`, and a helper in `layout.py` before first write.
+4. **No result drift.** If you refactor analysis code, re-run the affected script
    against the existing `outputs/` artifacts and confirm the numbers are
    identical before and after.
-3. **Keep model roles fixed.** The extractor and disambiguator models are held
+5. **Keep model roles fixed.** The extractor and disambiguator models are held
    constant across selectors so comparisons stay clean. To evaluate a new test
    model, register it in `survey_features.config.SELECTORS` — don't change the
    fixed roles.
-4. **Python 3.9 compatibility.** Use `from __future__ import annotations` in every
+6. **Python 3.9 compatibility.** Use `from __future__ import annotations` in every
    module; don't use syntax newer than 3.9 outside annotations.
-5. **Legacy pipeline stays runnable.** `scripts/run_grid.py` (JSON prompts) backs
+7. **Legacy pipeline stays runnable.** `scripts/run_grid.py` (JSON prompts) backs
    the paper's appendix; changes to shared modules must not alter its behaviour
-   or artifact paths.
+   for dual-resolved artifact paths.
+8. **`.tmp/` is disposable.** `outputs/.tmp/` holds AutoGluon scratch; delete
+   freely between runs.
 
 ## Workflow
 

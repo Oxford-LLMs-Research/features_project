@@ -32,7 +32,7 @@ if str(ROOT / "src") not in sys.path:
 
 from survey_features.config import OUTPUTS_DIR, SELECTORS  # noqa: E402
 from survey_features.layout import (  # noqa: E402
-    format_pilot_dir,
+    main_dir,
     selector_dirs,
     subitem_mapping_dir,
     subitem_run_dirs,
@@ -254,7 +254,7 @@ def main():
     selectors = list(SELECTORS) if args.all_selectors else [args.selector]
     root = subitem_mapping_dir(OUT)
     print(f"subitem_mapping root: {root}")
-    print(f"format_pilot root:    {format_pilot_dir(OUT)}")
+    print(f"main root:            {main_dir(OUT)}")
     for sel in selectors:
         run_selector(sel)
 
