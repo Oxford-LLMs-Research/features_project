@@ -3,6 +3,8 @@ Cell-level free-text scoring helpers (shared by run_main / run_subitem_mapping).
 
 Oracle top-k and random-k baselines depend only on (cell, k), so score_one_cell
 caches them once per k while evaluating each arm/k_mode model feature set.
+Model (and oracle) XGB CV results are also cached by ordered code tuple so
+identical feature lists across k_spec / arms share one fit.
 
 Parallelism: ProcessPoolExecutor over cells (not joblib over draws). Score-only
 workers do not load torch/sentence-transformers, so XGB nthread > 1 is safe.
@@ -152,7 +154,20 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
     oracle_acc_cache: dict[int, Any] = {}
     random_acc_cache: dict[int, Any] = {}
     majority: dict[int, Any] = {}
+    # Cache XGB CV by ordered code tuple so model-k / k5 / k10 (and duplicate
+    # arm code-sets) share one fit when the feature list is identical.
+    eval_cache: dict[tuple[str, ...], dict] = {}
     rows: list[dict] = []
+
+    def cached_eval(feature_codes: list[str]) -> dict:
+        key = tuple(feature_codes)
+        hit = eval_cache.get(key)
+        if hit is None:
+            hit = evaluate_feature_set(
+                country_data, target, feature_codes, nthread=nthread,
+            )
+            eval_cache[key] = hit
+        return hit
 
     for ev in evals:
         codes = ev.get("codes") or []
@@ -183,16 +198,12 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
             if k_mode is not None:
                 base["k_mode"] = k_mode
             try:
-                mres = evaluate_feature_set(
-                    country_data, target, use_codes, nthread=nthread,
-                )
+                mres = cached_eval(use_codes)
                 m = mres.get("accuracy_mean")
                 majority[k] = mres.get("majority_baseline")
                 if k not in oracle_acc_cache:
-                    ores = evaluate_feature_set(
-                        country_data, target, oracle_topk(target, code, k),
-                        nthread=nthread,
-                    )
+                    o_codes = oracle_topk(target, code, k)
+                    ores = cached_eval(o_codes)
                     oracle_acc_cache[k] = ores.get("accuracy_mean")
                     draws = [
                         single_random_draw(

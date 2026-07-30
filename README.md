@@ -23,8 +23,10 @@ src/survey_features/          — the shared library (all pipeline logic lives h
     evaluation.py             —   matched-k XGBoost CV: oracle vs model vs random
     metrics.py                —   captured importance, jaccard, oracle percentile, bootstrap CIs
     layout.py                 —   outputs/ path contracts (cache/main/experiments; dual-resolve)
+    timing.py                 —   wall-clock spans + JSONL timing logs for pipeline phases
+    score_cell.py             —   cell-level XGB scoring (ProcessPool; code-set cache)
 scripts/
-    run_main.py               — CANONICAL entry point: phased free-text pipeline (gen/extract/map/score)
+    run_main.py               — CANONICAL entry point: free-text pipeline (gen/extract/map/score/pipeline)
     run_grid.py               — legacy JSON-prompt grid (appendix reproducibility; thin wrapper)
     leakage_audit.py          — empirical leakage audit of the oracle ground truth
     migrate_outputs_layout.py — one-shot local outputs/ reorg (dry-run; --apply to move)
@@ -72,19 +74,35 @@ Test models ("selectors") are registered in `src/survey_features/config.py::SELE
 
 ## Running the main (free-text) pipeline
 
-`scripts/run_main.py` is the canonical entry point. It runs over the *genuine* cells from the leakage audit (`outputs/cache/audits/leakage_audit.csv` or legacy root path), both prompt conditions (`unprompted`, `country_provided`), in four resumable phases:
+`scripts/run_main.py` is the canonical entry point. It runs over the *genuine* cells from the leakage audit (`outputs/cache/audits/leakage_audit.csv` or legacy root path), both prompt conditions (`unprompted`, `country_provided`), in resumable phases:
 
 ```bash
 python scripts/run_main.py --phase gen     --selector deepseek   # free-text selection essays
 python scripts/run_main.py --phase extract --selector deepseek   # essay -> typed feature list (fixed extractor)
 python scripts/run_main.py --phase map     --selector deepseek --disambiguator nemotron
 python scripts/run_main.py --phase score   --selector deepseek   # -> outputs/main/scores_deepseek.csv
+
+# Or overlap gen→extract→map across cells (same checkpoints; score optional):
+python scripts/run_main.py --phase pipeline --selector deepseek --disambiguator nemotron \
+    --pipeline-workers 4 --map-workers 8 --with-score
 ```
 
 - Every phase checkpoints per cell; rerunning skips cells already on disk (`--force` recomputes, `--limit N` smoke-tests on the first N cells).
 - Use `--run-tag <who_slug>` so map/score write under `main/runs/<tag>/` and do not clobber the shared baseline.
 - `--phase map` arms: `C` = free-text (extracted) features, `B` = the model's legacy JSON selections re-mapped through the same retrieval+disambiguation (for the format comparison). Default `--arms B,C`.
 - `--phase score` computes captured importance and oracle/model/random XGBoost accuracy at model-chosen k and fixed k=5,10, for every arm × disambiguator.
+- `--phase pipeline` runs gen → extract → map per cell with up to `--pipeline-workers` cells in flight (extract of cell N can overlap map of cell N−1). Add `--with-score` to score after maps finish.
+
+**Concurrency** (defaults are serial / conservative — existing scripts stay unchanged):
+
+| Knob | Env | Applies to | Default |
+|------|-----|------------|---------|
+| `--api-workers` | `API_WORKERS` | `gen`, `extract` | 1 |
+| `--map-workers` | `MAP_WORKERS` | `map`, `pipeline` (per-feature disambig ThreadPool) | 1 |
+| `--pipeline-workers` | `PIPELINE_WORKERS` | `pipeline` (cells in flight) | 1 |
+| `--score-workers` | `SCORE_WORKERS` | `score` (cell ProcessPool) | `min(8, cpus-2)` |
+
+Each phase writes `outputs/logs/timing_<phase>_*.jsonl` and prints a span summary. LLM token logs also record per-call `latency_ms` when usage logging is enabled.
 
 Prerequisites on disk: per-cell oracle under `outputs/cache/cells/<target>_<country>/oracle.csv` (or legacy `outputs/<t>_<c>/`) and `outputs/cache/audits/leakage_audit.csv` (from `python scripts/leakage_audit.py`).
 
@@ -122,6 +140,7 @@ Parent features are still one-to-one in the main pipeline; bundled `sub_items` a
 
 ```bash
 python scripts/run_subitem_mapping.py --phase map --selector kimi --disambiguator nemotron --limit 2
+# optional: --map-workers 8  (same MAP_WORKERS env as run_main)
 python analysis/subitem_mapping.py --selector kimi
 # full kimi map, then score (natural-k + matched k=5/10) — see docs/subitem_mapping.md
 ```

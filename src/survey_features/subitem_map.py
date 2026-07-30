@@ -13,11 +13,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from .disambig import FeatureMap, parse_letter
-from .prompts import DISAMBIG_PROMPT
-from .retrieval import retrieve_candidates
-
-_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+from .disambig import FeatureMap, _disambiguate_pool
+from .retrieval import retrieve_candidates_batch
 
 # Aligned with CellMap.n_bundled: only expand when extractor listed 2+ sub-measures.
 MIN_SUBITEMS_TO_EXPAND = 2
@@ -98,47 +95,6 @@ def subitem_context(parent_label: str, parent_context: str) -> str:
     return base
 
 
-def _disambiguate_pool(
-    label: str,
-    context: str,
-    pool: list[dict],
-    disambig_fn,
-) -> tuple[str | None, str | None, str]:
-    if not pool:
-        return None, None, ""
-    block = "\n".join(
-        f"{_LETTERS[i]}. [{c['var_code']}] {c['question_text']}"
-        for i, c in enumerate(pool)
-    )
-    raw = disambig_fn(
-        [{"role": "user", "content": DISAMBIG_PROMPT.format(
-            feature_label=label, feature_context=context or label, candidates_block=block)}],
-        max_tokens=2048, temperature=0.0, usage_phase="disambig",
-    ) or ""
-    idx = parse_letter(raw, len(pool))
-    if idx is None:
-        return None, None, raw
-    return pool[idx]["var_code"], pool[idx]["question_text"], raw
-
-
-def _retrieve_pool(
-    label: str,
-    context: str,
-    embed_fn,
-    survey_embeddings: np.ndarray,
-    var_codes: list[str],
-    survey_variables: dict[str, str],
-    excluded: set[str],
-    top_n: int,
-    min_similarity: float,
-) -> list[dict]:
-    pool = retrieve_candidates(
-        label, context, embed_fn, survey_embeddings, var_codes,
-        survey_variables, excluded, top_n,
-    )
-    return [c for c in pool if c["similarity"] >= min_similarity]
-
-
 def _append_unique(code: str | None, seen: set[str], out: list[str]) -> None:
     if code and code not in seen:
         seen.add(code)
@@ -161,18 +117,27 @@ def map_features_with_subitems(
     extract_raw: str = "",
     pipe_types: set[str] | None = None,
     expand_subitems: bool = True,
+    workers: int = 1,
 ) -> ExpandedCellMap:
     """Retrieve + disambiguate parents, and optionally each bundled sub_item.
 
     Parent path mirrors ``disambig.map_features``. Sub_item units use the sub_item
     string as the query label and a parent-anchored context (see ``subitem_context``).
+
+    ``workers`` > 1 parallelizes disambiguation LLM calls after serial retrieval.
     """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     excluded = set(excluded_codes or set())
     pipe = pipe_types or {"respondent_attribute"}
     cm = ExpandedCellMap(cell=cell, arm=arm, mapper_model=mapper_model, extract_raw=extract_raw)
-    seen_parent: set[str] = set()
-    seen_sub: set[str] = set()
-    seen_exp: set[str] = set()
+    n_workers = max(1, int(workers))
+
+    # Collect query units, batch-retrieve, then disambig (optionally threaded).
+    # Parent job: (kind, parent_label, unit_label, unit_context, feature_context, ftype, sub, pool)
+    # Sub job:    (kind, parent_label, unit_label, unit_context, "", ftype, [], pool)
+    pending: list[tuple] = []  # job without pool
+    queries: list[tuple[str, str]] = []
 
     for f in features:
         label = f.get("feature", "")
@@ -194,24 +159,8 @@ def map_features_with_subitems(
             ))
             continue
 
-        pool = _retrieve_pool(
-            label, context, embed_fn, survey_embeddings, var_codes,
-            survey_variables, excluded, top_n, min_similarity,
-        )
-        sel_code, sel_text, raw = _disambiguate_pool(label, context or label, pool, disambig_fn)
-        cm.features.append(FeatureMap(
-            feature_label=label, feature_context=context, sub_items=sub, ftype=ftype,
-            piped=True, selected_code=sel_code, selected_text=sel_text,
-            candidates=pool, disambig_raw=raw,
-        ))
-        cm.units.append(MapUnit(
-            unit_kind="parent", parent_feature=label, unit_label=label,
-            unit_context=context, ftype=ftype, piped=True,
-            selected_code=sel_code, selected_text=sel_text,
-            candidates=pool, disambig_raw=raw,
-        ))
-        _append_unique(sel_code, seen_parent, cm.parent_codes)
-        _append_unique(sel_code, seen_exp, cm.expanded_codes)
+        pending.append(("parent", label, label, context or label, context, ftype, sub))
+        queries.append((label, context))
 
         if not expand_subitems or len(sub) < MIN_SUBITEMS_TO_EXPAND:
             continue
@@ -221,19 +170,62 @@ def map_features_with_subitems(
             s_label = (s or "").strip()
             if not s_label:
                 continue
-            s_pool = _retrieve_pool(
-                s_label, ctx_sub, embed_fn, survey_embeddings, var_codes,
-                survey_variables, excluded, top_n, min_similarity,
-            )
-            s_code, s_text, s_raw = _disambiguate_pool(s_label, ctx_sub, s_pool, disambig_fn)
-            cm.units.append(MapUnit(
-                unit_kind="sub_item", parent_feature=label, unit_label=s_label,
-                unit_context=ctx_sub, ftype=ftype, piped=True,
-                selected_code=s_code, selected_text=s_text,
-                candidates=s_pool, disambig_raw=s_raw,
+            pending.append(("sub_item", label, s_label, ctx_sub, "", ftype, []))
+            queries.append((s_label, ctx_sub))
+
+    pools = retrieve_candidates_batch(
+        queries, embed_fn, survey_embeddings, var_codes, survey_variables, excluded, top_n,
+    )
+    jobs: list[tuple] = []
+    for meta, pool in zip(pending, pools):
+        pool = [c for c in pool if c["similarity"] >= min_similarity]
+        kind, parent_label, unit_label, unit_context, feat_ctx, ftype, sub = meta
+        jobs.append((kind, parent_label, unit_label, unit_context, feat_ctx, ftype, sub, pool))
+
+    def _run_job(job: tuple) -> tuple[str | None, str | None, str]:
+        _kind, _parent, unit_label, unit_context, _feat_ctx, _ftype, _sub, pool = job
+        return _disambiguate_pool(unit_label, unit_context, pool, disambig_fn)
+
+    results: list[tuple[str | None, str | None, str]] = [(None, None, "")] * len(jobs)
+    if n_workers <= 1 or len(jobs) <= 1:
+        for i, job in enumerate(jobs):
+            results[i] = _run_job(job)
+    else:
+        with ThreadPoolExecutor(max_workers=min(n_workers, len(jobs))) as ex:
+            futs = {ex.submit(_run_job, job): i for i, job in enumerate(jobs)}
+            for fut in as_completed(futs):
+                results[futs[fut]] = fut.result()
+
+    seen_parent: set[str] = set()
+    seen_sub: set[str] = set()
+    seen_exp: set[str] = set()
+
+    for i, job in enumerate(jobs):
+        kind, parent_label, unit_label, unit_context, feat_ctx, ftype, sub, pool = job
+        sel_code, sel_text, raw = results[i]
+        if kind == "parent":
+            cm.features.append(FeatureMap(
+                feature_label=parent_label, feature_context=feat_ctx, sub_items=sub,
+                ftype=ftype, piped=True, selected_code=sel_code, selected_text=sel_text,
+                candidates=pool, disambig_raw=raw,
             ))
-            _append_unique(s_code, seen_sub, cm.subitem_codes)
-            _append_unique(s_code, seen_exp, cm.expanded_codes)
+            cm.units.append(MapUnit(
+                unit_kind="parent", parent_feature=parent_label, unit_label=unit_label,
+                unit_context=feat_ctx, ftype=ftype, piped=True,
+                selected_code=sel_code, selected_text=sel_text,
+                candidates=pool, disambig_raw=raw,
+            ))
+            _append_unique(sel_code, seen_parent, cm.parent_codes)
+            _append_unique(sel_code, seen_exp, cm.expanded_codes)
+        else:
+            cm.units.append(MapUnit(
+                unit_kind="sub_item", parent_feature=parent_label, unit_label=unit_label,
+                unit_context=unit_context, ftype=ftype, piped=True,
+                selected_code=sel_code, selected_text=sel_text,
+                candidates=pool, disambig_raw=raw,
+            ))
+            _append_unique(sel_code, seen_sub, cm.subitem_codes)
+            _append_unique(sel_code, seen_exp, cm.expanded_codes)
 
     return cm
 

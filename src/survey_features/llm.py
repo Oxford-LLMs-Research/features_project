@@ -78,6 +78,7 @@ class TokenUsageLog:
         usage: Any,
         finish_reason: str | None,
         max_tokens_requested: int,
+        latency_ms: float | None = None,
     ) -> None:
         row: dict[str, Any] = {
             "ts": datetime.now(timezone.utc).isoformat(),
@@ -87,19 +88,31 @@ class TokenUsageLog:
             "max_tokens_requested": max_tokens_requested,
             **_usage_to_dict(usage),
         }
+        if latency_ms is not None:
+            row["latency_ms"] = round(float(latency_ms), 1)
         ud = _usage_to_dict(usage)
         with self._lock:
             with open(self.path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
             g = self._agg.setdefault(
                 phase,
-                {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+                {
+                    "calls": 0,
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0,
+                    "latency_ms_sum": 0.0,
+                    "latency_ms_n": 0,
+                },
             )
             g["calls"] += 1
             for k in ("prompt_tokens", "completion_tokens", "total_tokens"):
                 v = ud.get(k)
                 if v is not None:
                     g[k] = g.get(k, 0) + int(v)
+            if latency_ms is not None:
+                g["latency_ms_sum"] += float(latency_ms)
+                g["latency_ms_n"] += 1
 
     def print_summary(self) -> None:
         """Print per-phase and pooled totals (stdout)."""
@@ -116,9 +129,13 @@ class TokenUsageLog:
             tot_p += p
             tot_c += c
             tot_t += t
+            lat_n = int(g.get("latency_ms_n", 0) or 0)
+            lat_mean = (
+                f"  mean_lat={g['latency_ms_sum'] / lat_n:.0f}ms" if lat_n else ""
+            )
             print(
                 f"  {phase:16s}  calls={n:5d}  "
-                f"prompt~{p:,}  completion~{c:,}  total~{t:,}"
+                f"prompt~{p:,}  completion~{c:,}  total~{t:,}{lat_mean}"
             )
         print(
             f"  {'ALL':16s}  calls={tot_n:5d}  "
@@ -179,6 +196,7 @@ def make_generate_fn(
         *,
         usage_phase: str | None = None,
     ) -> str:
+        t0 = time.perf_counter()
         effective_model = model
         response = None
         last_exc: Exception | None = None
@@ -197,6 +215,7 @@ def make_generate_fn(
                 last_exc = e
                 if attempt < max_retries - 1:
                     time.sleep(2 * (attempt + 1))
+        latency_ms = (time.perf_counter() - t0) * 1000.0
         if response is None:
             if on_error == "raise" and last_exc is not None:
                 raise last_exc
@@ -217,6 +236,7 @@ def make_generate_fn(
                 usage=getattr(response, "usage", None),
                 finish_reason=fr,
                 max_tokens_requested=max_tokens,
+                latency_ms=latency_ms,
             )
 
         if content is None:

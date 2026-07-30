@@ -28,7 +28,16 @@ Examples:
   python scripts/run_main.py --phase gen     --selector deepseek
   python scripts/run_main.py --phase extract --selector deepseek
   python scripts/run_main.py --phase map     --selector deepseek --disambiguator nemotron
+  python scripts/run_main.py --phase map     --selector deepseek --disambiguator nemotron --map-workers 8
   python scripts/run_main.py --phase score   --selector deepseek
+  python scripts/run_main.py --phase pipeline --selector deepseek --disambiguator nemotron \\
+      --pipeline-workers 4 --map-workers 8 --with-score
+
+Concurrency (defaults preserve serial behavior):
+  --api-workers / API_WORKERS           cell ThreadPool for gen/extract (default 1)
+  --map-workers / MAP_WORKERS           per-feature disambig ThreadPool inside map (default 1)
+  --pipeline-workers / PIPELINE_WORKERS cells in flight for --phase pipeline (default 1)
+  Each phase writes outputs/logs/timing_<phase>_*.jsonl and prints a span summary.
 
 Embedding-model sensitivity (reuses gen/extract; writes under experiments/embedding_sensitivity/):
   python scripts/run_main.py --phase map   --selector deepseek --disambiguator nemotron \\
@@ -41,6 +50,8 @@ import argparse
 import json
 import os
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -98,19 +109,21 @@ def mapper_generate_fn(mapper_model: str):
 
 
 _survey_cache: dict = {}
+_survey_cache_lock = threading.Lock()
 
 
 def survey_assets(survey_id, embedding_model: str = DEFAULT_EMBEDDING_MODEL):
     """(survey_variables, embeddings, var_codes) — cached per (survey, embedding model)."""
     key = (survey_id, embedding_model)
-    if key not in _survey_cache:
-        from survey_features.retrieval import load_or_build_survey_embeddings
-        from survey_features.surveys import extract_survey_variables, load_survey
-        _, meta = load_survey(survey_id, os.environ["DATA_CONFIG_PATH"])
-        svars = extract_survey_variables(meta)
-        emb, vcodes = load_or_build_survey_embeddings(svars, survey_id, embedding_model)
-        _survey_cache[key] = (svars, emb, vcodes)
-    return _survey_cache[key]
+    with _survey_cache_lock:
+        if key not in _survey_cache:
+            from survey_features.retrieval import load_or_build_survey_embeddings
+            from survey_features.surveys import extract_survey_variables, load_survey
+            _, meta = load_survey(survey_id, os.environ["DATA_CONFIG_PATH"])
+            svars = extract_survey_variables(meta)
+            emb, vcodes = load_or_build_survey_embeddings(svars, survey_id, embedding_model)
+            _survey_cache[key] = (svars, emb, vcodes)
+        return _survey_cache[key]
 
 
 def _upsert_embedding_manifest(
@@ -168,8 +181,10 @@ def survey_data(survey):
 
 # ── Phase: gen (free-text selection; cheap, irreversible) ─────────────────────
 
-def phase_gen(selector_key, force=False, limit=None):
+def phase_gen(selector_key, force=False, limit=None, api_workers: int = 1):
     from survey_features.elicitation import freetext_messages
+    from survey_features.timing import TimingLog, default_timing_path
+
     sel_model = SELECTORS[selector_key]["model"]
     gen_dir, _, _ = selector_dirs(selector_key)
     gen_dir.mkdir(parents=True, exist_ok=True)
@@ -177,67 +192,138 @@ def phase_gen(selector_key, force=False, limit=None):
     cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
-    print(f"[gen] selector={selector_key} ({sel_model}) {len(cells)} cells x {len(CONDITIONS)} conds -> free-text")
+    n_workers = max(1, int(api_workers))
+    timing = TimingLog(default_timing_path("gen", selector_key))
+    print(
+        f"[gen] selector={selector_key} ({sel_model}) {len(cells)} cells x "
+        f"{len(CONDITIONS)} conds -> free-text  api_workers={n_workers}"
+    )
     done = skipped = 0
-    for i, (survey, target, country) in enumerate(cells):
+    done_lock = threading.Lock()
+
+    def _one(cell_tuple):
+        nonlocal done, skipped
+        survey, target, country = cell_tuple
         svars, _, _ = survey_assets(survey)
         qtext = svars.get(target, target)
         out_path = gen_dir / f"{cell_tag(survey, target, country)}.json"
         if out_path.is_file() and not force:
-            skipped += 1
-            continue
-        rec = {"survey": survey, "target": target, "country": country,
-               "question_text": qtext, "selector_model": sel_model, "responses": {}}
-        for cond in CONDITIONS:
-            messages = freetext_messages(qtext, country if cond == "country_provided" else None)
-            resp = gen(messages, max_tokens=4096, usage_phase="feature_list")
-            if not resp:
-                rec.setdefault("errors", {})[cond] = "empty response after retries"
-            rec["responses"][cond] = resp
-        out_path.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
-        done += 1
-        print(f"  [{i+1}/{len(cells)}] {survey} {target} {country}: "
-              f"up={len(rec['responses'].get('unprompted',''))}c cp={len(rec['responses'].get('country_provided',''))}c")
+            with done_lock:
+                skipped += 1
+            return None
+        with timing.span("cell_gen", survey=survey, target=target, country=country):
+            rec = {"survey": survey, "target": target, "country": country,
+                   "question_text": qtext, "selector_model": sel_model, "responses": {}}
+            for cond in CONDITIONS:
+                messages = freetext_messages(qtext, country if cond == "country_provided" else None)
+                resp = gen(messages, max_tokens=4096, usage_phase="feature_list")
+                if not resp:
+                    rec.setdefault("errors", {})[cond] = "empty response after retries"
+                rec["responses"][cond] = resp
+            out_path.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
+        with done_lock:
+            done += 1
+        return (
+            survey, target, country,
+            len(rec["responses"].get("unprompted", "")),
+            len(rec["responses"].get("country_provided", "")),
+        )
+
+    with timing.span("phase_gen", selector=selector_key, n_cells=len(cells), api_workers=n_workers):
+        if n_workers <= 1:
+            for i, cell in enumerate(cells):
+                r = _one(cell)
+                if r:
+                    survey, target, country, up, cp = r
+                    print(f"  [{i+1}/{len(cells)}] {survey} {target} {country}: "
+                          f"up={up}c cp={cp}c")
+        else:
+            for survey, _, _ in cells:
+                survey_assets(survey)
+            with ThreadPoolExecutor(max_workers=min(n_workers, len(cells) or 1)) as ex:
+                futs = {ex.submit(_one, c): i for i, c in enumerate(cells)}
+                for fut in as_completed(futs):
+                    i = futs[fut]
+                    r = fut.result()
+                    if r:
+                        survey, target, country, up, cp = r
+                        print(f"  [{i+1}/{len(cells)}] {survey} {target} {country}: "
+                              f"up={up}c cp={cp}c")
+
     print(f"[gen] done. wrote={done} skipped(existing)={skipped} -> {gen_dir}")
+    timing.print_summary()
 
 
 # ── Phase: extract (free-text -> feature list, FIXED extractor) ───────────────
 
-def phase_extract(selector_key, force=False, limit=None):
+def phase_extract(selector_key, force=False, limit=None, api_workers: int = 1):
     """Arm C only: turn each cached free-text essay into a typed feature list via the FIXED
     extractor (Qwen). Held constant across disambiguators so the request set does not vary
     by mapper. Arm B needs no extraction (JSON is already a feature list)."""
     from survey_features.extraction import extract_features
+    from survey_features.timing import TimingLog, default_timing_path
+
     egen = mapper_generate_fn(EXTRACTOR_MODEL)
     gen_dir, extract_dir, _ = selector_dirs(selector_key)
     cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
     extract_dir.mkdir(parents=True, exist_ok=True)
-    print(f"[extract] selector={selector_key} {len(cells)} cells x {len(CONDITIONS)} conds via {EXTRACTOR_MODEL}")
+    n_workers = max(1, int(api_workers))
+    timing = TimingLog(default_timing_path("extract", selector_key))
+    print(
+        f"[extract] selector={selector_key} {len(cells)} cells x {len(CONDITIONS)} conds "
+        f"via {EXTRACTOR_MODEL}  api_workers={n_workers}"
+    )
     done = skipped = 0
-    for i, (survey, target, country) in enumerate(cells):
+    done_lock = threading.Lock()
+
+    def _one(cell_tuple):
+        nonlocal done, skipped
+        survey, target, country = cell_tuple
         ctag = cell_tag(survey, target, country)
         op = extract_dir / f"{ctag}.json"
         if op.is_file() and not force:
-            skipped += 1
-            continue
+            with done_lock:
+                skipped += 1
+            return None
         gp = gen_dir / f"{ctag}.json"
         if not gp.is_file():
             print(f"  ! missing free-text for {ctag}; run --phase gen first")
-            continue
-        responses = json.loads(gp.read_text(encoding="utf-8"))["responses"]
-        rec = {"survey": survey, "target": target, "country": country,
-               "extractor_model": EXTRACTOR_MODEL, "features": {}}
-        for cond in CONDITIONS:
-            feats, raw = extract_features(responses.get(cond, ""), egen)
-            rec["features"][cond] = feats
-        op.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
-        done += 1
+            return None
+        with timing.span("cell_extract", survey=survey, target=target, country=country):
+            responses = json.loads(gp.read_text(encoding="utf-8"))["responses"]
+            rec = {"survey": survey, "target": target, "country": country,
+                   "extractor_model": EXTRACTOR_MODEL, "features": {}}
+            for cond in CONDITIONS:
+                feats, raw = extract_features(responses.get(cond, ""), egen)
+                rec["features"][cond] = feats
+            op.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
+        with done_lock:
+            done += 1
         nfu = len(rec["features"].get("unprompted", []))
         nfc = len(rec["features"].get("country_provided", []))
-        print(f"  [{i+1}/{len(cells)}] {survey} {target} {country}: up={nfu} cp={nfc} features")
+        return survey, target, country, nfu, nfc
+
+    with timing.span("phase_extract", selector=selector_key, n_cells=len(cells), api_workers=n_workers):
+        if n_workers <= 1:
+            for i, cell in enumerate(cells):
+                r = _one(cell)
+                if r:
+                    survey, target, country, nfu, nfc = r
+                    print(f"  [{i+1}/{len(cells)}] {survey} {target} {country}: up={nfu} cp={nfc} features")
+        else:
+            with ThreadPoolExecutor(max_workers=min(n_workers, len(cells) or 1)) as ex:
+                futs = {ex.submit(_one, c): i for i, c in enumerate(cells)}
+                for fut in as_completed(futs):
+                    i = futs[fut]
+                    r = fut.result()
+                    if r:
+                        survey, target, country, nfu, nfc = r
+                        print(f"  [{i+1}/{len(cells)}] {survey} {target} {country}: up={nfu} cp={nfc} features")
+
     print(f"[extract] done. wrote={done} skipped={skipped} -> {extract_dir}")
+    timing.print_summary()
 
 
 # ── Phase: map (per-feature disambiguation; disambiguator varies) ─────────────
@@ -269,9 +355,11 @@ def phase_map(
     limit=None,
     embedding_model: str | None = None,
     run_tag: str | None = None,
+    map_workers: int = 1,
 ):
     from survey_features.disambig import map_features
     from survey_features.retrieval import make_embed_fn
+    from survey_features.timing import TimingLog, default_timing_path
 
     emb_model = embedding_model or DEFAULT_EMBEDDING_MODEL
     dmodel = DISAMBIGUATORS[disambig_key]
@@ -288,47 +376,79 @@ def phase_map(
     if limit:
         cells = cells[:limit]
     map_dir.mkdir(parents=True, exist_ok=True)
+    n_workers = max(1, int(map_workers))
+    timing = TimingLog(default_timing_path("map", f"{selector_key}_{disambig_key}"))
     print(
         f"[map] selector={selector_key} disambiguator={disambig_key} arms={arms} "
-        f"cells={len(cells)} embedding={emb_model}"
+        f"cells={len(cells)} embedding={emb_model} map_workers={n_workers}"
         + (f" -> {map_dir}" if embedding_model else "")
     )
 
-    for i, (survey, target, country) in enumerate(cells):
-        svars, emb, vcodes = survey_assets(survey, emb_model)
-        excluded = {target}
-        ctag = cell_tag(survey, target, country)
+    with timing.span(
+        "phase_map",
+        selector=selector_key,
+        disambiguator=disambig_key,
+        n_cells=len(cells),
+        map_workers=n_workers,
+    ):
+        for i, (survey, target, country) in enumerate(cells):
+            svars, emb, vcodes = survey_assets(survey, emb_model)
+            excluded = {target}
+            ctag = cell_tag(survey, target, country)
 
-        if "C" in arms:
-            ep = extract_dir / f"{ctag}.json"
-            feat_by_cond = json.loads(ep.read_text(encoding="utf-8"))["features"] if ep.is_file() else None
-            for cond in CONDITIONS:
-                op = map_dir / f"C__{disambig_key}__{ctag}__{cond}.json"
-                if op.is_file() and not force:
-                    continue
-                if feat_by_cond is None:
-                    print(f"  ! missing extraction for {ctag}; run --phase extract first")
-                    continue
-                cm = map_features(f"{target}_{country}", "C_free", feat_by_cond.get(cond, []),
-                                  emb, vcodes, svars, embed, dgen, mapper_model=dmodel,
-                                  excluded_codes=excluded, pipe_types=PIPE_TYPES)
-                _save_map(op, survey, target, country, cond, "C", disambig_key, cm, emb_model)
+            if "C" in arms:
+                ep = extract_dir / f"{ctag}.json"
+                feat_by_cond = json.loads(ep.read_text(encoding="utf-8"))["features"] if ep.is_file() else None
+                for cond in CONDITIONS:
+                    op = map_dir / f"C__{disambig_key}__{ctag}__{cond}.json"
+                    if op.is_file() and not force:
+                        continue
+                    if feat_by_cond is None:
+                        print(f"  ! missing extraction for {ctag}; run --phase extract first")
+                        continue
+                    with timing.span(
+                        "cell_map",
+                        arm="C",
+                        survey=survey,
+                        target=target,
+                        country=country,
+                        condition=cond,
+                    ):
+                        cm = map_features(
+                            f"{target}_{country}", "C_free", feat_by_cond.get(cond, []),
+                            emb, vcodes, svars, embed, dgen, mapper_model=dmodel,
+                            excluded_codes=excluded, pipe_types=PIPE_TYPES,
+                            workers=n_workers,
+                        )
+                        _save_map(op, survey, target, country, cond, "C", disambig_key, cm, emb_model)
 
-        if "B" in arms:
-            for cond in CONDITIONS:
-                op = map_dir / f"B__{disambig_key}__{ctag}__{cond}.json"
-                if op.is_file() and not force:
-                    continue
-                feats = _json_arm_features(selector_key, target, country, cond)
-                if feats is None:
-                    continue
-                cm = map_features(f"{target}_{country}", "B_json", feats,
-                                  emb, vcodes, svars, embed, dgen, mapper_model=dmodel,
-                                  excluded_codes=excluded, pipe_types=PIPE_TYPES)
-                _save_map(op, survey, target, country, cond, "B", disambig_key, cm, emb_model)
+            if "B" in arms:
+                for cond in CONDITIONS:
+                    op = map_dir / f"B__{disambig_key}__{ctag}__{cond}.json"
+                    if op.is_file() and not force:
+                        continue
+                    feats = _json_arm_features(selector_key, target, country, cond)
+                    if feats is None:
+                        continue
+                    with timing.span(
+                        "cell_map",
+                        arm="B",
+                        survey=survey,
+                        target=target,
+                        country=country,
+                        condition=cond,
+                    ):
+                        cm = map_features(
+                            f"{target}_{country}", "B_json", feats,
+                            emb, vcodes, svars, embed, dgen, mapper_model=dmodel,
+                            excluded_codes=excluded, pipe_types=PIPE_TYPES,
+                            workers=n_workers,
+                        )
+                        _save_map(op, survey, target, country, cond, "B", disambig_key, cm, emb_model)
 
-        print(f"  [{i+1}/{len(cells)}] {survey} {target} {country} mapped ({disambig_key})")
+            print(f"  [{i+1}/{len(cells)}] {survey} {target} {country} mapped ({disambig_key})")
     print(f"[map] done -> {map_dir}")
+    timing.print_summary()
     if embedding_model:
         _upsert_embedding_manifest(
             embedding_model=embedding_model,
@@ -357,6 +477,273 @@ def _save_map(path, survey, target, country, cond, arm, disambig_key, cm, embedd
         ],
     }
     path.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+# ── Phase: pipeline (DAG — overlap gen→extract→map across cells) ──────────────
+
+def phase_pipeline(
+    selector_key,
+    disambig_key,
+    arms=("B", "C"),
+    force=False,
+    limit=None,
+    embedding_model: str | None = None,
+    run_tag: str | None = None,
+    pipeline_workers: int = 1,
+    map_workers: int = 1,
+    with_score: bool = False,
+    score_workers: int | None = None,
+    score_xgb_nthread: int | None = None,
+):
+    """Run gen → extract → map per cell with multiple cells in flight.
+
+    Within a cell the dependency order is strict. Across cells, up to
+    ``pipeline_workers`` chains run concurrently so extract(N) can overlap
+    map(N−1). Same checkpoints / --force semantics as the single-phase commands.
+    Score (CPU ProcessPool) runs after all maps if ``with_score``.
+    """
+    from survey_features.disambig import map_features
+    from survey_features.elicitation import freetext_messages
+    from survey_features.extraction import extract_features
+    from survey_features.retrieval import make_embed_fn
+    from survey_features.timing import TimingLog, default_timing_path
+
+    sel_model = SELECTORS[selector_key]["model"]
+    emb_model = embedding_model or DEFAULT_EMBEDDING_MODEL
+    dmodel = DISAMBIGUATORS[disambig_key]
+    gen_dir, extract_dir, default_map_dir = selector_dirs(selector_key, run_tag=None)
+    if embedding_model:
+        map_dir, _ = embedding_run_dirs(embedding_model, selector_key, run_tag=run_tag)
+    else:
+        _, _, map_dir = selector_dirs(selector_key, run_tag=run_tag)
+        if map_dir == default_map_dir and run_tag is None:
+            map_dir = default_map_dir
+
+    gen_dir.mkdir(parents=True, exist_ok=True)
+    extract_dir.mkdir(parents=True, exist_ok=True)
+    map_dir.mkdir(parents=True, exist_ok=True)
+
+    cells = genuine_cells(OUT)
+    if limit:
+        cells = cells[:limit]
+    n_pipe = max(1, int(pipeline_workers))
+    n_map = max(1, int(map_workers))
+    timing = TimingLog(default_timing_path("pipeline", f"{selector_key}_{disambig_key}"))
+
+    gen_fn = selector_generate_fn(sel_model)
+    extract_fn = mapper_generate_fn(EXTRACTOR_MODEL)
+    disambig_fn = mapper_generate_fn(dmodel)
+    # Serialize ST encode across concurrent cell maps (model load is locked; encode
+    # is safer single-flight when several cells map at once).
+    _raw_embed = make_embed_fn(emb_model)
+    _embed_lock = threading.Lock()
+
+    def embed(texts):
+        with _embed_lock:
+            return _raw_embed(texts)
+
+    print(
+        f"[pipeline] selector={selector_key} disambiguator={disambig_key} arms={arms} "
+        f"cells={len(cells)} embedding={emb_model} "
+        f"pipeline_workers={n_pipe} map_workers={n_map} with_score={with_score}"
+        + (f" -> {map_dir}" if embedding_model or run_tag else "")
+    )
+
+    counts = {"gen_wrote": 0, "gen_skip": 0, "ext_wrote": 0, "ext_skip": 0,
+              "map_wrote": 0, "map_skip": 0, "errors": 0}
+    counts_lock = threading.Lock()
+    print_lock = threading.Lock()
+
+    def _bump(key, n=1):
+        with counts_lock:
+            counts[key] += n
+
+    def _gen_one(survey, target, country) -> str:
+        ctag = cell_tag(survey, target, country)
+        out_path = gen_dir / f"{ctag}.json"
+        if out_path.is_file() and not force:
+            _bump("gen_skip")
+            return "skipped"
+        svars, _, _ = survey_assets(survey)
+        qtext = svars.get(target, target)
+        with timing.span("cell_gen", survey=survey, target=target, country=country):
+            rec = {
+                "survey": survey, "target": target, "country": country,
+                "question_text": qtext, "selector_model": sel_model, "responses": {},
+            }
+            for cond in CONDITIONS:
+                messages = freetext_messages(
+                    qtext, country if cond == "country_provided" else None,
+                )
+                resp = gen_fn(messages, max_tokens=4096, usage_phase="feature_list")
+                if not resp:
+                    rec.setdefault("errors", {})[cond] = "empty response after retries"
+                rec["responses"][cond] = resp
+            out_path.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
+        _bump("gen_wrote")
+        return "wrote"
+
+    def _extract_one(survey, target, country) -> str:
+        ctag = cell_tag(survey, target, country)
+        op = extract_dir / f"{ctag}.json"
+        if op.is_file() and not force:
+            _bump("ext_skip")
+            return "skipped"
+        gp = gen_dir / f"{ctag}.json"
+        if not gp.is_file():
+            return "missing_gen"
+        with timing.span("cell_extract", survey=survey, target=target, country=country):
+            responses = json.loads(gp.read_text(encoding="utf-8"))["responses"]
+            rec = {
+                "survey": survey, "target": target, "country": country,
+                "extractor_model": EXTRACTOR_MODEL, "features": {},
+            }
+            for cond in CONDITIONS:
+                feats, _raw = extract_features(responses.get(cond, ""), extract_fn)
+                rec["features"][cond] = feats
+            op.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
+        _bump("ext_wrote")
+        return "wrote"
+
+    def _map_one(survey, target, country) -> str:
+        svars, emb, vcodes = survey_assets(survey, emb_model)
+        excluded = {target}
+        ctag = cell_tag(survey, target, country)
+        wrote = skipped = 0
+
+        if "C" in arms:
+            ep = extract_dir / f"{ctag}.json"
+            feat_by_cond = (
+                json.loads(ep.read_text(encoding="utf-8"))["features"] if ep.is_file() else None
+            )
+            for cond in CONDITIONS:
+                op = map_dir / f"C__{disambig_key}__{ctag}__{cond}.json"
+                if op.is_file() and not force:
+                    skipped += 1
+                    continue
+                if feat_by_cond is None:
+                    return "missing_extract"
+                with timing.span(
+                    "cell_map", arm="C", survey=survey, target=target,
+                    country=country, condition=cond,
+                ):
+                    cm = map_features(
+                        f"{target}_{country}", "C_free", feat_by_cond.get(cond, []),
+                        emb, vcodes, svars, embed, disambig_fn, mapper_model=dmodel,
+                        excluded_codes=excluded, pipe_types=PIPE_TYPES, workers=n_map,
+                    )
+                    _save_map(op, survey, target, country, cond, "C", disambig_key, cm, emb_model)
+                wrote += 1
+
+        if "B" in arms:
+            for cond in CONDITIONS:
+                op = map_dir / f"B__{disambig_key}__{ctag}__{cond}.json"
+                if op.is_file() and not force:
+                    skipped += 1
+                    continue
+                feats = _json_arm_features(selector_key, target, country, cond)
+                if feats is None:
+                    continue
+                with timing.span(
+                    "cell_map", arm="B", survey=survey, target=target,
+                    country=country, condition=cond,
+                ):
+                    cm = map_features(
+                        f"{target}_{country}", "B_json", feats,
+                        emb, vcodes, svars, embed, disambig_fn, mapper_model=dmodel,
+                        excluded_codes=excluded, pipe_types=PIPE_TYPES, workers=n_map,
+                    )
+                    _save_map(op, survey, target, country, cond, "B", disambig_key, cm, emb_model)
+                wrote += 1
+
+        if wrote:
+            _bump("map_wrote", wrote)
+        if skipped:
+            _bump("map_skip", skipped)
+        return "wrote" if wrote else "skipped"
+
+    def _cell_chain(idx_cell):
+        i, (survey, target, country) = idx_cell
+        ctag = cell_tag(survey, target, country)
+        try:
+            with timing.span(
+                "cell_pipeline", survey=survey, target=target, country=country,
+            ):
+                g = _gen_one(survey, target, country)
+                e = _extract_one(survey, target, country)
+                if e == "missing_gen":
+                    with print_lock:
+                        print(f"  ! [{i+1}/{len(cells)}] {ctag}: missing gen after gen step")
+                    _bump("errors")
+                    return
+                m = _map_one(survey, target, country)
+                if m == "missing_extract":
+                    with print_lock:
+                        print(f"  ! [{i+1}/{len(cells)}] {ctag}: missing extract after extract step")
+                    _bump("errors")
+                    return
+            with print_lock:
+                print(
+                    f"  [{i+1}/{len(cells)}] {survey} {target} {country}: "
+                    f"gen={g} extract={e} map={m}"
+                )
+        except Exception as exc:
+            _bump("errors")
+            with print_lock:
+                print(
+                    f"  ! [{i+1}/{len(cells)}] {ctag}: "
+                    f"{type(exc).__name__}: {str(exc)[:120]}"
+                )
+
+    with timing.span(
+        "phase_pipeline",
+        selector=selector_key,
+        disambiguator=disambig_key,
+        n_cells=len(cells),
+        pipeline_workers=n_pipe,
+        map_workers=n_map,
+    ):
+        # Warm survey / embedding caches before fan-out
+        for survey, _, _ in cells:
+            survey_assets(survey, emb_model)
+        indexed = list(enumerate(cells))
+        if n_pipe <= 1 or len(cells) <= 1:
+            for item in indexed:
+                _cell_chain(item)
+        else:
+            with ThreadPoolExecutor(max_workers=min(n_pipe, len(cells))) as ex:
+                futs = [ex.submit(_cell_chain, item) for item in indexed]
+                for fut in as_completed(futs):
+                    fut.result()
+
+    print(
+        f"[pipeline] done. gen wrote/skip={counts['gen_wrote']}/{counts['gen_skip']} "
+        f"extract={counts['ext_wrote']}/{counts['ext_skip']} "
+        f"map_files={counts['map_wrote']}/{counts['map_skip']} "
+        f"errors={counts['errors']} -> {map_dir}"
+    )
+    timing.print_summary()
+
+    if embedding_model:
+        _upsert_embedding_manifest(
+            embedding_model=embedding_model,
+            selector_key=selector_key,
+            phase="pipeline",
+            disambiguator=disambig_key,
+            arms=arms,
+            limit=limit,
+        )
+
+    if with_score:
+        phase_score(
+            selector_key,
+            force=force,
+            limit=limit,
+            embedding_model=embedding_model,
+            score_workers=score_workers,
+            score_xgb_nthread=score_xgb_nthread,
+            run_tag=run_tag,
+        )
 
 
 # ── Phase: score (captured importance + value-over-random, all arms) ──────────
@@ -412,10 +799,12 @@ def phase_score(
         resolve_score_xgb_nthread,
         run_score_jobs,
     )
+    from survey_features.timing import TimingLog, default_timing_path
 
     n_draws = resolve_score_n_draws()
     workers = resolve_score_workers(score_workers)
     nthread = resolve_score_xgb_nthread(workers, score_xgb_nthread)
+    timing = TimingLog(default_timing_path("score", selector_key))
 
     if embedding_model:
         map_dir, out_csv = embedding_run_dirs(
@@ -475,7 +864,15 @@ def phase_score(
         f"[score] selector={selector_key} embedding={emb_label} cells={len(cells)} "
         f"workers={workers} nthread={nthread} n_draws={n_draws} -> {out_csv}"
     )
-    run_score_jobs(specs, out_csv, cols, workers=workers, log_prefix="[score]")
+    with timing.span(
+        "phase_score",
+        selector=selector_key,
+        n_cells=len(cells),
+        score_workers=workers,
+        n_draws=n_draws,
+    ):
+        run_score_jobs(specs, out_csv, cols, workers=workers, log_prefix="[score]")
+    timing.print_summary()
     if embedding_model:
         _upsert_embedding_manifest(
             embedding_model=embedding_model,
@@ -487,17 +884,29 @@ def phase_score(
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--phase", choices=["gen", "extract", "map", "score"], required=True)
+    ap.add_argument(
+        "--phase",
+        choices=["gen", "extract", "map", "score", "pipeline"],
+        required=True,
+    )
     ap.add_argument("--selector", choices=list(SELECTORS), default=DEFAULT_SELECTOR,
                     help=f"test model whose capability is measured (default: {DEFAULT_SELECTOR})")
-    ap.add_argument("--disambiguator", choices=list(DISAMBIGUATORS), help="required for --phase map")
-    ap.add_argument("--arms", default="B,C", help="comma-separated arms for --phase map (default: B,C)")
+    ap.add_argument(
+        "--disambiguator",
+        choices=list(DISAMBIGUATORS),
+        help="required for --phase map and --phase pipeline",
+    )
+    ap.add_argument(
+        "--arms",
+        default="B,C",
+        help="comma-separated arms for --phase map/pipeline (default: B,C)",
+    )
     ap.add_argument(
         "--embedding-model",
         default=None,
         metavar="MODEL",
         help=(
-            "Sentence-transformer for map/score. When set, writes under "
+            "Sentence-transformer for map/score/pipeline. When set, writes under "
             "outputs/experiments/embedding_sensitivity/<slug>/ "
             f"(default encode model: {DEFAULT_EMBEDDING_MODEL}; "
             "omit this flag to keep writing under outputs/main/)."
@@ -515,6 +924,35 @@ def main():
     ap.add_argument("--force", action="store_true", help="recompute cells already on disk")
     ap.add_argument("--limit", type=int, default=None, help="only the first N cells (smoke test)")
     ap.add_argument(
+        "--api-workers",
+        type=int,
+        default=None,
+        help="cell ThreadPool size for --phase gen/extract (default: API_WORKERS or 1)",
+    )
+    ap.add_argument(
+        "--map-workers",
+        type=int,
+        default=None,
+        help=(
+            "per-feature disambig ThreadPool for --phase map/pipeline "
+            "(default: MAP_WORKERS or 1)"
+        ),
+    )
+    ap.add_argument(
+        "--pipeline-workers",
+        type=int,
+        default=None,
+        help=(
+            "cells in flight for --phase pipeline "
+            "(default: PIPELINE_WORKERS or 1)"
+        ),
+    )
+    ap.add_argument(
+        "--with-score",
+        action="store_true",
+        help="after --phase pipeline maps finish, run score",
+    )
+    ap.add_argument(
         "--score-workers",
         type=int,
         default=None,
@@ -528,19 +966,41 @@ def main():
     )
     args = ap.parse_args()
 
+    from survey_features.timing import resolve_workers
+
     if args.embedding_model and args.phase in ("gen", "extract"):
-        ap.error("--embedding-model only applies to --phase map and --phase score "
+        ap.error("--embedding-model only applies to --phase map, score, and pipeline "
                  "(gen/extract are reused from main/)")
     if args.run_tag and args.phase in ("gen", "extract"):
-        ap.error("--run-tag only applies to --phase map and --phase score "
+        ap.error("--run-tag only applies to --phase map, score, and pipeline "
                  "(gen/extract are shared under main/<selector>/)")
-    if args.phase != "score" and (args.score_workers is not None or args.score_xgb_nthread is not None):
-        ap.error("--score-workers / --score-xgb-nthread only apply to --phase score")
+    if args.phase not in ("score", "pipeline") and (
+        args.score_workers is not None or args.score_xgb_nthread is not None
+    ):
+        ap.error("--score-workers / --score-xgb-nthread only apply to --phase score "
+                 "(or pipeline with --with-score)")
+    if args.phase == "pipeline" and (
+        args.score_workers is not None or args.score_xgb_nthread is not None
+    ) and not args.with_score:
+        ap.error("--score-workers / --score-xgb-nthread require --with-score")
+    if args.phase not in ("gen", "extract") and args.api_workers is not None:
+        ap.error("--api-workers only applies to --phase gen and --phase extract")
+    if args.phase not in ("map", "pipeline") and args.map_workers is not None:
+        ap.error("--map-workers only applies to --phase map and --phase pipeline")
+    if args.phase != "pipeline" and args.pipeline_workers is not None:
+        ap.error("--pipeline-workers only applies to --phase pipeline")
+    if args.with_score and args.phase != "pipeline":
+        ap.error("--with-score only applies to --phase pipeline")
+
+    api_workers = resolve_workers(args.api_workers, "API_WORKERS", default=1)
+    map_workers = resolve_workers(args.map_workers, "MAP_WORKERS", default=1)
+    pipeline_workers = resolve_workers(args.pipeline_workers, "PIPELINE_WORKERS", default=1)
+    arms = tuple(a.strip() for a in args.arms.split(",") if a.strip())
 
     if args.phase == "gen":
-        phase_gen(args.selector, force=args.force, limit=args.limit)
+        phase_gen(args.selector, force=args.force, limit=args.limit, api_workers=api_workers)
     elif args.phase == "extract":
-        phase_extract(args.selector, force=args.force, limit=args.limit)
+        phase_extract(args.selector, force=args.force, limit=args.limit, api_workers=api_workers)
     elif args.phase == "score":
         phase_score(
             args.selector,
@@ -554,9 +1014,28 @@ def main():
     elif args.phase == "map":
         if not args.disambiguator:
             ap.error("--disambiguator required for --phase map")
-        phase_map(args.selector, args.disambiguator, arms=tuple(args.arms.split(",")),
-                  force=args.force, limit=args.limit, embedding_model=args.embedding_model,
-                  run_tag=args.run_tag)
+        phase_map(
+            args.selector, args.disambiguator, arms=arms,
+            force=args.force, limit=args.limit, embedding_model=args.embedding_model,
+            run_tag=args.run_tag, map_workers=map_workers,
+        )
+    elif args.phase == "pipeline":
+        if not args.disambiguator:
+            ap.error("--disambiguator required for --phase pipeline")
+        phase_pipeline(
+            args.selector,
+            args.disambiguator,
+            arms=arms,
+            force=args.force,
+            limit=args.limit,
+            embedding_model=args.embedding_model,
+            run_tag=args.run_tag,
+            pipeline_workers=pipeline_workers,
+            map_workers=map_workers,
+            with_score=args.with_score,
+            score_workers=args.score_workers,
+            score_xgb_nthread=args.score_xgb_nthread,
+        )
 
 
 if __name__ == "__main__":

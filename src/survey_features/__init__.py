@@ -5,6 +5,7 @@ Module map (pipeline order):
     config      paths, .env loading, model registry
     surveys     survey loading, country maps, metadata handling (single copy)
     llm         OpenAI-compatible client with retries + token-usage logging
+    timing      wall-clock spans + JSONL timing logs for pipeline phases
     prompts     ALL prompt templates (current free-text + legacy JSON + extract/disambig)
     elicitation selection-prompt calls (free-text current; JSON legacy)
     extraction  free-text response -> typed feature list (fixed extractor model)

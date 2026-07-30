@@ -93,24 +93,71 @@ def load_or_build_survey_embeddings(
 
 # ── CURRENT: per-feature retrieval (top-N pool for per-feature disambiguation) ─
 
-def retrieve_candidates(label: str, context: str, embed_fn, survey_embeddings, var_codes,
-                        survey_variables, excluded: set[str], top_n: int) -> list[dict]:
-    """Top-N candidates by max(sim(label), sim(label+context)) — dual embed."""
-    qlabel = embed_fn([label])[0]
-    combined = f"{label}: {context}" if context else label
-    qcomb = embed_fn([combined])[0]
-    sims = np.maximum(qlabel @ survey_embeddings.T, qcomb @ survey_embeddings.T)
+def _pool_from_sims(
+    sims: np.ndarray,
+    var_codes: list[str],
+    survey_variables: dict[str, str],
+    excluded: set[str],
+    top_n: int,
+) -> list[dict]:
     order = np.argsort(sims)[::-1]
-    pool = []
+    pool: list[dict] = []
     for idx in order:
         vc = var_codes[idx]
         if vc in excluded:
             continue
-        pool.append({"var_code": vc, "question_text": survey_variables[vc],
-                     "similarity": float(sims[idx])})
+        pool.append({
+            "var_code": vc,
+            "question_text": survey_variables[vc],
+            "similarity": float(sims[idx]),
+        })
         if len(pool) >= top_n:
             break
     return pool
+
+
+def retrieve_candidates(label: str, context: str, embed_fn, survey_embeddings, var_codes,
+                        survey_variables, excluded: set[str], top_n: int) -> list[dict]:
+    """Top-N candidates by max(sim(label), sim(label+context)) — dual embed."""
+    pools = retrieve_candidates_batch(
+        [(label, context)],
+        embed_fn,
+        survey_embeddings,
+        var_codes,
+        survey_variables,
+        excluded,
+        top_n,
+    )
+    return pools[0] if pools else []
+
+
+def retrieve_candidates_batch(
+    queries: list[tuple[str, str]],
+    embed_fn,
+    survey_embeddings: np.ndarray,
+    var_codes: list[str],
+    survey_variables: dict[str, str],
+    excluded: set[str],
+    top_n: int,
+) -> list[list[dict]]:
+    """Dual-embed many (label, context) queries in one encode call pair.
+
+    Embeds all labels then all ``label: context`` strings in two batched
+    ``embed_fn`` calls (or one concatenated call), then ranks each query.
+    """
+    if not queries:
+        return []
+    labels = [lab for lab, _ in queries]
+    combined = [f"{lab}: {ctx}" if ctx else lab for lab, ctx in queries]
+    # One encode for all query texts (label block + combined block).
+    emb = np.asarray(embed_fn(labels + combined))
+    n = len(queries)
+    qlabels, qcombs = emb[:n], emb[n:]
+    out: list[list[dict]] = []
+    for i in range(n):
+        sims = np.maximum(qlabels[i] @ survey_embeddings.T, qcombs[i] @ survey_embeddings.T)
+        out.append(_pool_from_sims(sims, var_codes, survey_variables, excluded, top_n))
+    return out
 
 
 # ── LEGACY: batch retrieval (pilot-1 top-5 shortlist) ─────────────────────────

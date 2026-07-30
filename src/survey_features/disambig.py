@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from .prompts import DISAMBIG_PROMPT, DISAMBIG_PROMPT_LEGACY
-from .retrieval import retrieve_candidates
+from .retrieval import retrieve_candidates_batch
 
 _LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -99,6 +99,31 @@ def parse_letter(raw: str, n: int) -> int | None:
     return None
 
 
+def _disambiguate_pool(
+    label: str,
+    context: str,
+    pool: list[dict],
+    disambig_fn,
+) -> tuple[str | None, str | None, str]:
+    """Ask disambiguator for one letter/none; returns (code, text, raw)."""
+    if not pool:
+        return None, None, ""
+    block = "\n".join(
+        f"{_LETTERS[i]}. [{c['var_code']}] {c['question_text']}"
+        for i, c in enumerate(pool)
+    )
+    # Reasoning models (e.g. Nemotron) need CoT headroom; do not shrink below 2048.
+    raw = disambig_fn(
+        [{"role": "user", "content": DISAMBIG_PROMPT.format(
+            feature_label=label, feature_context=context or label, candidates_block=block)}],
+        max_tokens=2048, temperature=0.0, usage_phase="disambig",
+    ) or ""
+    idx = parse_letter(raw, len(pool))
+    if idx is None:
+        return None, None, raw
+    return pool[idx]["var_code"], pool[idx]["question_text"], raw
+
+
 def map_features(
     cell: str,
     arm: str,
@@ -114,6 +139,7 @@ def map_features(
     min_similarity: float = 0.30,
     extract_raw: str = "",
     pipe_types: set[str] | None = None,
+    workers: int = 1,
 ) -> CellMap:
     """Retrieve + per-feature disambiguate a PRE-EXTRACTED feature list.
 
@@ -125,11 +151,22 @@ def map_features(
     respondent_attribute only). Other features (methodology, base-rate, temporal) are still
     recorded with piped=False for the behavioral-metadata analysis, but never mapped — so
     they don't inflate k or the none-rate of the capability metric.
+
+    ``workers`` > 1 parallelizes *disambiguation LLM calls* via ThreadPool after
+    batched retrieval (one dual-embed encode for all piped features). Feature order
+    and mapped_codes arrival order are unchanged vs workers=1.
     """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     excluded = set(excluded_codes or set())
     pipe = pipe_types or {"respondent_attribute"}
     cm = CellMap(cell=cell, arm=arm, mapper_model=mapper_model, extract_raw=extract_raw)
-    seen: set[str] = set()
+    n_workers = max(1, int(workers))
+
+    # Slot list preserves input order; piped meta collected then batched retrieve.
+    slots: list[FeatureMap | None] = []
+    # (slot_idx, label, context, sub, ftype)
+    piped_meta: list[tuple[int, str, str, list, str]] = []
 
     for f in features:
         label = f.get("feature", "")
@@ -139,35 +176,51 @@ def map_features(
         if not label:
             continue
         if ftype not in pipe:
-            cm.features.append(FeatureMap(
+            slots.append(FeatureMap(
                 feature_label=label, feature_context=context, sub_items=sub, ftype=ftype,
                 piped=False, selected_code=None, selected_text=None, candidates=[], disambig_raw=""))
             continue
-        pool = retrieve_candidates(label, context, embed_fn, survey_embeddings, var_codes,
-                                   survey_variables, excluded, top_n)
+        slot_idx = len(slots)
+        slots.append(None)  # filled after disambig
+        piped_meta.append((slot_idx, label, context, sub, ftype))
+
+    pools = retrieve_candidates_batch(
+        [(label, context) for _, label, context, _, _ in piped_meta],
+        embed_fn, survey_embeddings, var_codes, survey_variables, excluded, top_n,
+    )
+    # (slot_idx, label, context, sub, ftype, pool)
+    piped_jobs: list[tuple[int, str, str, list, str, list[dict]]] = []
+    for (slot_idx, label, context, sub, ftype), pool in zip(piped_meta, pools):
         pool = [c for c in pool if c["similarity"] >= min_similarity]
-        sel_code = sel_text = None
-        raw = ""
-        if pool:
-            block = "\n".join(f"{_LETTERS[i]}. [{c['var_code']}] {c['question_text']}"
-                              for i, c in enumerate(pool))
-            raw = disambig_fn(
-                [{"role": "user", "content": DISAMBIG_PROMPT.format(
-                    feature_label=label, feature_context=context or label, candidates_block=block)}],
-                max_tokens=2048, temperature=0.0, usage_phase="disambig",
-            ) or ""
-            idx = parse_letter(raw, len(pool))
-            if idx is not None:
-                sel_code = pool[idx]["var_code"]
-                sel_text = pool[idx]["question_text"]
-        cm.features.append(FeatureMap(
+        piped_jobs.append((slot_idx, label, context, sub, ftype, pool))
+
+    def _fill(slot_idx: int, label: str, context: str, sub: list, ftype: str, pool: list[dict]) -> FeatureMap:
+        sel_code, sel_text, raw = _disambiguate_pool(label, context or label, pool, disambig_fn)
+        return FeatureMap(
             feature_label=label, feature_context=context, sub_items=sub, ftype=ftype,
             piped=True, selected_code=sel_code, selected_text=sel_text,
             candidates=pool, disambig_raw=raw,
-        ))
-        if sel_code and sel_code not in seen:
-            seen.add(sel_code)
-            cm.mapped_codes.append(sel_code)
+        )
+
+    if n_workers <= 1 or len(piped_jobs) <= 1:
+        for slot_idx, label, context, sub, ftype, pool in piped_jobs:
+            slots[slot_idx] = _fill(slot_idx, label, context, sub, ftype, pool)
+    else:
+        with ThreadPoolExecutor(max_workers=min(n_workers, len(piped_jobs))) as ex:
+            futs = {
+                ex.submit(_fill, slot_idx, label, context, sub, ftype, pool): slot_idx
+                for slot_idx, label, context, sub, ftype, pool in piped_jobs
+            }
+            for fut in as_completed(futs):
+                slots[futs[fut]] = fut.result()
+
+    seen: set[str] = set()
+    for fm in slots:
+        assert fm is not None
+        cm.features.append(fm)
+        if fm.selected_code and fm.selected_code not in seen:
+            seen.add(fm.selected_code)
+            cm.mapped_codes.append(fm.selected_code)
 
     return cm
 

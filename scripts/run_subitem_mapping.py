@@ -96,10 +96,11 @@ def _upsert_manifest(**fields) -> None:
 
 
 def phase_map(selector_key: str, disambig_key: str, arms=("C",), force=False, limit=None,
-              run_tag: str | None = None):
+              run_tag: str | None = None, map_workers: int = 1):
     """Expand parent + bundled sub_item mapping units; write under subitem_mapping/."""
     from survey_features.retrieval import make_embed_fn
     from survey_features.subitem_map import expanded_cell_to_record, map_features_with_subitems
+    from survey_features.timing import TimingLog, default_timing_path
 
     emb_model = DEFAULT_EMBEDDING_MODEL
     dmodel = DISAMBIGUATORS[disambig_key]
@@ -108,59 +109,78 @@ def phase_map(selector_key: str, disambig_key: str, arms=("C",), force=False, li
     _, extract_dir, _ = selector_dirs(selector_key)
     map_dir, _, _ = subitem_run_dirs(selector_key, run_tag=run_tag)
     map_dir.mkdir(parents=True, exist_ok=True)
+    n_workers = max(1, int(map_workers))
+    timing = TimingLog(default_timing_path("subitem_map", f"{selector_key}_{disambig_key}"))
 
     cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
     print(
         f"[subitem-map] selector={selector_key} disambiguator={disambig_key} "
-        f"arms={arms} cells={len(cells)} embedding={emb_model} -> {map_dir}"
+        f"arms={arms} cells={len(cells)} embedding={emb_model} map_workers={n_workers} "
+        f"-> {map_dir}"
     )
 
-    for i, (survey, target, country) in enumerate(cells):
-        svars, emb, vcodes = survey_assets(survey, emb_model)
-        excluded = {target}
-        ctag = cell_tag(survey, target, country)
+    with timing.span(
+        "phase_subitem_map",
+        selector=selector_key,
+        disambiguator=disambig_key,
+        n_cells=len(cells),
+        map_workers=n_workers,
+    ):
+        for i, (survey, target, country) in enumerate(cells):
+            svars, emb, vcodes = survey_assets(survey, emb_model)
+            excluded = {target}
+            ctag = cell_tag(survey, target, country)
 
-        if "C" not in arms:
-            print("  ! only arm C is supported for subitem mapping in v1")
-            continue
-
-        ep = extract_dir / f"{ctag}.json"
-        feat_by_cond = (
-            json.loads(ep.read_text(encoding="utf-8"))["features"] if ep.is_file() else None
-        )
-        for cond in CONDITIONS:
-            op = map_dir / f"C__{disambig_key}__{ctag}__{cond}.json"
-            if op.is_file() and not force:
+            if "C" not in arms:
+                print("  ! only arm C is supported for subitem mapping in v1")
                 continue
-            if feat_by_cond is None:
-                print(
-                    f"  ! missing extraction for {ctag}; "
-                    "run scripts/run_main.py --phase extract first"
-                )
-                continue
-            cm = map_features_with_subitems(
-                f"{target}_{country}",
-                "C_free",
-                feat_by_cond.get(cond, []),
-                emb,
-                vcodes,
-                svars,
-                embed,
-                dgen,
-                mapper_model=dmodel,
-                excluded_codes=excluded,
-                pipe_types=PIPE_TYPES,
-            )
-            rec = expanded_cell_to_record(
-                survey, target, country, cond, "C", disambig_key, cm, emb_model,
-            )
-            op.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
 
-        print(f"  [{i+1}/{len(cells)}] {survey} {target} {country} mapped ({disambig_key})")
+            ep = extract_dir / f"{ctag}.json"
+            feat_by_cond = (
+                json.loads(ep.read_text(encoding="utf-8"))["features"] if ep.is_file() else None
+            )
+            for cond in CONDITIONS:
+                op = map_dir / f"C__{disambig_key}__{ctag}__{cond}.json"
+                if op.is_file() and not force:
+                    continue
+                if feat_by_cond is None:
+                    print(
+                        f"  ! missing extraction for {ctag}; "
+                        "run scripts/run_main.py --phase extract first"
+                    )
+                    continue
+                with timing.span(
+                    "cell_map",
+                    survey=survey,
+                    target=target,
+                    country=country,
+                    condition=cond,
+                ):
+                    cm = map_features_with_subitems(
+                        f"{target}_{country}",
+                        "C_free",
+                        feat_by_cond.get(cond, []),
+                        emb,
+                        vcodes,
+                        svars,
+                        embed,
+                        dgen,
+                        mapper_model=dmodel,
+                        excluded_codes=excluded,
+                        pipe_types=PIPE_TYPES,
+                        workers=n_workers,
+                    )
+                    rec = expanded_cell_to_record(
+                        survey, target, country, cond, "C", disambig_key, cm, emb_model,
+                    )
+                    op.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
+
+            print(f"  [{i+1}/{len(cells)}] {survey} {target} {country} mapped ({disambig_key})")
 
     print(f"[subitem-map] done -> {map_dir}")
+    timing.print_summary()
     _upsert_manifest(
         phase="map",
         selector=selector_key,
@@ -307,6 +327,12 @@ def main():
         help="Write under experiments/subitem_mapping/runs/<TAG>/ (avoids clobbering canonical)",
     )
     ap.add_argument(
+        "--map-workers",
+        type=int,
+        default=None,
+        help="per-feature disambig ThreadPool for --phase map (default: MAP_WORKERS or 1)",
+    )
+    ap.add_argument(
         "--score-workers",
         type=int,
         default=None,
@@ -320,8 +346,14 @@ def main():
     )
     args = ap.parse_args()
 
+    from survey_features.timing import resolve_workers
+
     if args.phase != "score" and (args.score_workers is not None or args.score_xgb_nthread is not None):
         ap.error("--score-workers / --score-xgb-nthread only apply to --phase score")
+    if args.phase != "map" and args.map_workers is not None:
+        ap.error("--map-workers only applies to --phase map")
+
+    map_workers = resolve_workers(args.map_workers, "MAP_WORKERS", default=1)
 
     if args.phase == "map":
         if not args.disambiguator:
@@ -333,6 +365,7 @@ def main():
             force=args.force,
             limit=args.limit,
             run_tag=args.run_tag,
+            map_workers=map_workers,
         )
     else:
         modes = tuple(m.strip() for m in args.k_modes.split(",") if m.strip())
