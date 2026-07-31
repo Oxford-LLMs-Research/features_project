@@ -51,6 +51,14 @@ OUT = OUTPUTS_DIR
 PILOT = main_dir(OUT)
 ENS = ensemble_mapping_dir(OUT)
 
+
+def _report_dir(run_tag: str | None) -> Path:
+    """Canonical comparison tables under ensemble_mapping/; tagged under runs/<tag>/."""
+    root = ensemble_mapping_dir(OUT)
+    if run_tag:
+        return root / "runs" / sanitize_model_slug(run_tag)
+    return root
+
 PRIMARY_DK = "nemotron"
 ARM = "C"
 JOIN_KEYS = ["survey", "target", "country", "condition", "arm", "disambiguator", "k_spec"]
@@ -243,12 +251,20 @@ def main() -> None:
         default=",".join(DEFAULT_ENSEMBLE_MODELS),
         help="ensemble members (must match the map run)",
     )
+    ap.add_argument(
+        "--run-tag",
+        default=None,
+        help="read ensemble maps/scores under runs/<tag>/ (smoke / non-canonical)",
+    )
     args = ap.parse_args()
     models = [m.strip() for m in args.embedding_models.split(",") if m.strip()]
     slug = fusion_slug(models)
-    ENS.mkdir(parents=True, exist_ok=True)
+    report = _report_dir(args.run_tag)
+    report.mkdir(parents=True, exist_ok=True)
 
-    ens_maps, ens_scores_path = ensemble_run_dirs(slug, args.selector)
+    ens_maps, ens_scores_path = ensemble_run_dirs(
+        slug, args.selector, run_tag=args.run_tag,
+    )
     if not ens_scores_path.is_file():
         print(
             f"No ensemble scores at {ens_scores_path}. "
@@ -257,16 +273,16 @@ def main() -> None:
         # Still emit latency if maps exist
         lat = collect_ensemble_latency(ens_maps)
         if not lat.empty:
-            lat_path = ENS / "latency_cells.csv"
+            lat_path = report / "latency_cells.csv"
             lat.to_csv(lat_path, index=False)
             summary = latency_summary(lat, args.selector, slug)
             pd.DataFrame([summary] if summary else []).to_csv(
-                ENS / "latency_comparison.csv", index=False,
+                report / "latency_comparison.csv", index=False,
             )
-            print(f"Wrote latency tables (no performance comparison yet) under {ENS}")
+            print(f"Wrote latency tables (no performance comparison yet) under {report}")
         else:
-            pd.DataFrame().to_csv(ENS / "comparison.csv", index=False)
-            pd.DataFrame().to_csv(ENS / "latency_comparison.csv", index=False)
+            pd.DataFrame().to_csv(report / "comparison.csv", index=False)
+            pd.DataFrame().to_csv(report / "latency_comparison.csv", index=False)
         return
 
     ens = _load_arm_c_scores(ens_scores_path, f"ensemble_{FUSION_RULE}")
@@ -283,23 +299,23 @@ def main() -> None:
             j_s = f"{j:.3f}" if j is not None else "n/a"
             print(
                 f"  -> n={r['n_paired_rows']}; "
-                f"mean Δ VoR={r.get('mean_delta_value_over_random', float('nan')):.4f}; "
+                f"mean dVoR={r.get('mean_delta_value_over_random', float('nan')):.4f}; "
                 f"map Jaccard={j_s}; "
                 f"{'MOVE' if r['conclusions_move'] else 'stable'}"
             )
 
-    out = ENS / "comparison.csv"
+    out = report / "comparison.csv"
     pd.DataFrame(rows).to_csv(out, index=False)
     print(f"\nWrote {len(rows)} comparison rows -> {out}")
 
     lat = collect_ensemble_latency(ens_maps)
     if not lat.empty:
-        lat.to_csv(ENS / "latency_cells.csv", index=False)
+        lat.to_csv(report / "latency_cells.csv", index=False)
         summary = latency_summary(lat, args.selector, slug)
         pd.DataFrame([summary] if summary else []).to_csv(
-            ENS / "latency_comparison.csv", index=False,
+            report / "latency_comparison.csv", index=False,
         )
-        print(f"Wrote latency tables -> {ENS / 'latency_comparison.csv'}")
+        print(f"Wrote latency tables -> {report / 'latency_comparison.csv'}")
         if summary:
             print(
                 f"  sum retrieve={summary['sum_retrieve_s']:.1f}s  "
@@ -308,7 +324,7 @@ def main() -> None:
                 f"mean disambig calls/cell={summary['mean_n_disambig_calls']:.1f}"
             )
     else:
-        pd.DataFrame().to_csv(ENS / "latency_comparison.csv", index=False)
+        pd.DataFrame().to_csv(report / "latency_comparison.csv", index=False)
         print("No ensemble map timing blocks found (re-run map to populate timing).")
 
 

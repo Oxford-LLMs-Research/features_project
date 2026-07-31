@@ -30,6 +30,20 @@ from .retrieval import retrieve_candidates_batch, retrieve_ensemble_candidates_b
 _LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
+def candidate_label(i: int) -> str:
+    """0-based index → A..Z, then AA..AZ, BA.. (supports ensemble max_fused > 26)."""
+    if i < 0:
+        raise IndexError(i)
+    if i < 26:
+        return _LETTERS[i]
+    i -= 26
+    return _LETTERS[i // 26] + _LETTERS[i % 26]
+
+
+def candidate_labels(n: int) -> list[str]:
+    return [candidate_label(i) for i in range(n)]
+
+
 # ── CURRENT: per-feature mapper ───────────────────────────────────────────────
 
 @dataclass
@@ -84,18 +98,25 @@ class CellMap:
 
 def parse_letter(raw: str, n: int) -> int | None:
     """Parse a per-feature disambiguation reply into a 0-based index, or None for 'none'.
-    Prefers a standalone letter token; falls back to first valid letter char."""
+
+    Accepts A..Z and AA.. labels (for pools larger than 26). Prefers an exact label
+    token (longest first so AA wins over A); for n<=26 falls back to first valid
+    letter character in the reply.
+    """
     if not raw:
         return None
     cleaned = str(raw).strip().upper()
     if not cleaned or "NONE" in cleaned:
         return None
-    for tok in re.findall(r"[A-Z]+", cleaned):
-        if len(tok) == 1 and _LETTERS.index(tok) < n:
-            return _LETTERS.index(tok)
-    for ch in cleaned:
-        if ch in _LETTERS and _LETTERS.index(ch) < n:
-            return _LETTERS.index(ch)
+    label_to_idx = {lab: i for i, lab in enumerate(candidate_labels(n))}
+    tokens = re.findall(r"[A-Z]+", cleaned)
+    for tok in sorted(tokens, key=len, reverse=True):
+        if tok in label_to_idx:
+            return label_to_idx[tok]
+    if n <= 26:
+        for ch in cleaned:
+            if ch in label_to_idx:
+                return label_to_idx[ch]
     return None
 
 
@@ -109,7 +130,7 @@ def _disambiguate_pool(
     if not pool:
         return None, None, ""
     block = "\n".join(
-        f"{_LETTERS[i]}. [{c['var_code']}] {c['question_text']}"
+        f"{candidate_label(i)}. [{c['var_code']}] {c['question_text']}"
         for i, c in enumerate(pool)
     )
     # Reasoning models (e.g. Nemotron) need CoT headroom; do not shrink below 2048.
@@ -345,7 +366,7 @@ def format_candidates(candidates: list[dict]) -> str:
     """Format candidates as a lettered list."""
     lines = []
     for i, c in enumerate(candidates):
-        lines.append(f"{_LETTERS[i]}. [{c['var_code']}] {c['question_text']}")
+        lines.append(f"{candidate_label(i)}. [{c['var_code']}] {c['question_text']}")
     return "\n".join(lines)
 
 

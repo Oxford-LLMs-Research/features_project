@@ -67,7 +67,7 @@ Candidate survey questions:
 {candidates_block}
 
 Pick the ONE candidate that best captures what the researcher is asking for, or answer "none" if none is a genuine match (do not force a weak match).
-Respond with ONLY the letter (A, B, C, ...) or "none". No explanation."""
+Respond with ONLY the candidate letter (A, B, C, …; use AA, AB, … if the list goes past Z) or "none". No explanation."""
 
 
 # ── LEGACY: strict-JSON selection prompts (pilot-1 grid) ─────────────────────
