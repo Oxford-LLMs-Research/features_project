@@ -11,6 +11,7 @@ Path contracts live in `src/survey_features/layout.py` (dual-resolves legacy loc
 | Alignment / adaptation (B2) | Complete | — | [alignment_findings.md](alignment_findings.md) | `outputs/analysis/alignment_*.csv/json` |
 | Uncertainty (B3) | Complete | — | [uncertainty_findings.md](uncertainty_findings.md) | `outputs/analysis/uncertainty_summary.json` |
 | Embedding sensitivity | Complete | [embedding_sensitivity.md](embedding_sensitivity.md) | same | `outputs/experiments/embedding_sensitivity/` |
+| Ensemble mapping | Design + runner (kimi v1) | [ensemble_mapping.md](ensemble_mapping.md) | — (run pending) | `outputs/experiments/ensemble_mapping/` |
 | Sub-item mapping | Complete (kimi v1) | [subitem_mapping.md](subitem_mapping.md) | [subitem_mapping_results.md](subitem_mapping_results.md) | `outputs/experiments/subitem_mapping/` |
 | Similarity threshold | Design only | [similarity_threshold.md](similarity_threshold.md) | — | `outputs/experiments/similarity_threshold/` (not run) |
 | Confirmatory main zoo | Design only | [main_experiment_design.md](main_experiment_design.md) | — | not run |

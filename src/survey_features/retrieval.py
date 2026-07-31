@@ -160,6 +160,105 @@ def retrieve_candidates_batch(
     return out
 
 
+# ── Ensemble retrieval (union of per-model pools → one disambig pool) ─────────
+
+def fuse_candidate_pools(
+    pools: list[list[dict]],
+    *,
+    max_pool: int,
+) -> list[dict]:
+    """Union candidate pools by ``var_code``; ``similarity`` = max across models.
+
+    Sort by similarity descending, then truncate to ``max_pool``. Sources are
+    recorded on each candidate as ``sources`` (list of embedding-model labels)
+    when present on inputs as ``source`` / ``sources``.
+    """
+    by_code: dict[str, dict] = {}
+    for pool in pools:
+        for c in pool:
+            vc = c["var_code"]
+            src = c.get("source")
+            sources = list(c.get("sources") or ([] if src is None else [src]))
+            if vc not in by_code:
+                by_code[vc] = {
+                    "var_code": vc,
+                    "question_text": c["question_text"],
+                    "similarity": float(c["similarity"]),
+                    "sources": list(sources),
+                }
+                continue
+            cur = by_code[vc]
+            cur["similarity"] = max(cur["similarity"], float(c["similarity"]))
+            for s in sources:
+                if s and s not in cur["sources"]:
+                    cur["sources"].append(s)
+    fused = sorted(by_code.values(), key=lambda x: x["similarity"], reverse=True)
+    if max_pool > 0:
+        fused = fused[:max_pool]
+    return fused
+
+
+def retrieve_ensemble_candidates_batch(
+    queries: list[tuple[str, str]],
+    model_packs: list[dict],
+    survey_variables: dict[str, str],
+    excluded: set[str],
+    top_n: int = 20,
+    min_similarity: float = 0.30,
+    max_fused: int | None = None,
+) -> tuple[list[list[dict]], list[float]]:
+    """Per-model retrieve → threshold → union fuse (max sim), capped at ``max_fused``.
+
+    ``model_packs`` items: ``{name, embed_fn, survey_embeddings, var_codes}``.
+    Threshold is applied **per model** before fusion. Default ``max_fused = 2 * top_n``
+    so unique candidates from a second model are not discarded by re-truncating to
+    single-model top_n (see docs/ensemble_mapping.md).
+
+    Returns ``(fused_pools_per_query, retrieve_wall_s_per_model)``.
+    """
+    import time
+
+    if not queries:
+        return [], []
+    cap = int(max_fused) if max_fused is not None else int(2 * top_n)
+    per_model_pools: list[list[list[dict]]] = []
+    retrieve_times: list[float] = []
+    for pack in model_packs:
+        t0 = time.perf_counter()
+        pools = retrieve_candidates_batch(
+            queries,
+            pack["embed_fn"],
+            pack["survey_embeddings"],
+            pack["var_codes"],
+            survey_variables,
+            excluded,
+            top_n,
+        )
+        name = pack.get("name") or ""
+        filtered = []
+        for pool in pools:
+            kept = []
+            for c in pool:
+                if c["similarity"] < min_similarity:
+                    continue
+                kept.append({
+                    "var_code": c["var_code"],
+                    "question_text": c["question_text"],
+                    "similarity": float(c["similarity"]),
+                    "source": name,
+                })
+            filtered.append(kept)
+        retrieve_times.append(time.perf_counter() - t0)
+        per_model_pools.append(filtered)
+
+    fused: list[list[dict]] = []
+    n_q = len(queries)
+    for i in range(n_q):
+        pools_i = [per_model_pools[m][i] for m in range(len(model_packs))]
+        fused.append(fuse_candidate_pools(pools_i, max_pool=cap))
+    return fused, retrieve_times
+
+
 # ── LEGACY: batch retrieval (pilot-1 top-5 shortlist) ─────────────────────────
 
 def map_features_to_variables(

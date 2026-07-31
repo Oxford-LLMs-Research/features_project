@@ -9,7 +9,8 @@ Module map (pipeline order):
     prompts     ALL prompt templates (current free-text + legacy JSON + extract/disambig)
     elicitation selection-prompt calls (free-text current; JSON legacy)
     extraction  free-text response -> typed feature list (fixed extractor model)
-    retrieval   sentence-transformer embeddings + dual-embed candidate retrieval
+    retrieval   sentence-transformer embeddings + dual-embed / ensemble candidate retrieval
+    ensemble    ensemble fusion labels + defaults (union max-sim)
     disambig    feature -> survey-code disambiguation (per-feature current; shortlist legacy)
     oracle      AutoGluon permutation-importance oracle (requires the [oracle] extra)
     evaluation  matched-k XGBoost CV: oracle vs model vs random

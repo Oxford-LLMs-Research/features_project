@@ -134,6 +134,17 @@ python analysis/embedding_sensitivity.py   # -> experiments/embedding_sensitivit
 
 Artifacts: `outputs/experiments/embedding_sensitivity/<model_slug>/<selector>/maps/` and `scores_<selector>.csv`, plus `manifest.json`. See `docs/embedding_sensitivity.md`.
 
+### Ensemble retrieval / mapping
+
+After embedding sensitivity (maps diverge, scores stable), fuse candidate pools from multiple embedders (default MiniLM ∪ mpnet), then **one** Nemotron disambiguation per feature. Writes only under `outputs/experiments/ensemble_mapping/`; reuses single-model baselines from `main/` and `embedding_sensitivity/`. **v1 is kimi-only.** Design: `docs/ensemble_mapping.md`.
+
+```bash
+python scripts/run_ensemble_mapping.py --phase map --selector kimi --disambiguator nemotron --limit 2
+python scripts/run_ensemble_mapping.py --phase map --selector kimi --disambiguator nemotron --arms C
+python scripts/run_ensemble_mapping.py --phase score --selector kimi
+python analysis/ensemble_mapping.py --selector kimi   # -> comparison.csv + latency_*.csv
+```
+
 ### Sub-item (subconcept) mapping
 
 Parent features are still one-to-one in the main pipeline; bundled `sub_items` are audit-only there. A separate experiment maps each sub_item as its own unit under `outputs/experiments/subitem_mapping/` (gen/extract reused; `main/` untouched). **v1 is kimi-only** map + score. Design: `docs/subitem_mapping.md`. Similarity-threshold effects are a **different** experiment (`docs/similarity_threshold.md`).
@@ -168,6 +179,7 @@ Key metrics per cell:
 python analysis/freetext_main_results.py   # headline T1/T2 numbers + tex tables
 python analysis/freetext_figures.py        # free-text figures
 python analysis/embedding_sensitivity.py   # MiniLM vs mid/large embedders (after sensitivity runs)
+python analysis/ensemble_mapping.py        # ensemble vs single-embedder baselines + latency
 python scripts/leakage_audit.py            # oracle leakage audit -> cache/audits/leakage_audit.csv
 ```
 
@@ -269,6 +281,7 @@ outputs/
     runs/<run_tag>/…                    # optional tagged map/score writes
   experiments/
     embedding_sensitivity/
+    ensemble_mapping/                   # MiniLM∪mpnet fuse → one disambig
     subitem_mapping/
     similarity_threshold/               # planned
   grid/                                 # legacy JSON prelim summaries + manifests
