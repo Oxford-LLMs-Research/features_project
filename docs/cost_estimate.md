@@ -1,5 +1,10 @@
 # Token & Cost Estimate — Nebius Token Factory grant
 
+> **Superseded (2026-08): unit costs and call volumes are stale.** This predates the
+> dual-layer decision, the measured oracle cost (~300 s/cell serial, process pool ~3-4x),
+> and the measured scoring structure (~90k XGBoost fits). Use the budget arithmetic in
+> the 2026-08 session notes / `pipeline_audit_2026-08.md` §C instead.
+
 *Drafted 2026-06-19 for the inference-provider grant application. Token volumes are
 measured from the second-pilot (arm-C, free-text) artifacts; prices are Nebius Token
 Factory list prices supplied 2026-06-19. Update the **Parameters** block and re-derive if

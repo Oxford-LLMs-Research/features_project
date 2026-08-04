@@ -1,5 +1,10 @@
 # Research Directions — main experiment + future arcs
 
+> **Written 2026-06, before the pipeline audit.** Directions here have not been
+> re-prioritised against the audit's findings (`pipeline_audit_2026-08.md`) — several
+> (mapping validation, format condition) are now done or moot. Treat as a historical
+> idea list, not a plan.
+
 *Drafted 2026-06-04, after the two pilots. Working notes for discussion, not commitments.*
 
 ---

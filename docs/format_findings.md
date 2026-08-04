@@ -1,5 +1,12 @@
 # Second Pilot — Output Format & Fixed-k Findings
 
+> **Numbers superseded (2026-08): computed on the era-1 accuracy oracle.** The
+> qualitative finding stands — the JSON format suppressed measured capability, mostly
+> via breadth — but every number here predates the log-loss, measurement-level oracle
+> (contract v3) and the arrival-order caveat on fixed-k rows. Do not quote figures from
+> this memo; see `pipeline_audit_2026-08.md` §A6 and `experiments_index.md` →
+> "Which numbers are current".
+
 > **Status (2026-06-10):** the paper now *leads* with the free-text (arm C) results —
 > `analysis/freetext_main_results.py` + `analysis/freetext_figures.py` generate the
 > main-text tables/figures (ft_*.tex, fig_ft_*) from this pilot's arm-C artifacts; the
