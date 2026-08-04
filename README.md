@@ -33,7 +33,6 @@ scripts/
     run_main.py               — CANONICAL entry point: free-text pipeline (gen/extract/map/score/pipeline)
     run_grid.py               — legacy JSON-prompt grid (appendix reproducibility; thin wrapper)
     leakage_audit.py          — empirical leakage audit of the oracle ground truth
-    migrate_outputs_layout.py — one-shot local outputs/ reorg (dry-run; --apply to move)
 analysis/                     — one-off analysis + paper-build scripts (import the package)
 prelim/                       — manifest build, target selection, metadata introspection
 docs/                         — findings, design notes, experiments_index.md
@@ -247,9 +246,6 @@ python scripts/run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.y
 
 # Discover available countries
 python scripts/run_grid.py --survey afrobarometer --list-countries
-
-# Full all-surveys prelim run (PowerShell; logs to outputs/logs/)
-.\run_prelim_full_all_surveys.ps1
 ```
 
 The preliminary results on disk cover **5 targets × 3 countries × 2 prompt conditions** per survey, for **two LLMs** (`deepseek-ai/DeepSeek-V3.2`, `moonshotai/Kimi-K2.5`) run under separate `--run-tag`s. Analysis scripts read every `grid_summary__<survey>__<tag>.csv` and report models side-by-side.
@@ -268,8 +264,8 @@ python scripts/run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.y
 
 Named shared caches + named experiment dirs. Readers dual-resolve new paths then
 legacy flat paths (`format_pilot/`, top-level cells, etc.). See
-[`docs/experiments_index.md`](docs/experiments_index.md). Migrate an existing
-local tree with `python scripts/migrate_outputs_layout.py` (dry-run by default).
+[`docs/experiments_index.md`](docs/experiments_index.md). (The one-shot migration
+script now lives in `archive/`.)
 
 ```
 outputs/
