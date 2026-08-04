@@ -51,8 +51,26 @@ Run on **today's diff**, not the whole repo (`git diff` + untracked files):
    files/formats. Boundary guards (network, process pools, per-cell sweep isolation)
    are allowed.
 3. **Comment discipline (r10):** new comment blocks >3 lines without a `docs/` pointer.
-4. **Shared-logic drift:** new `def`s in `scripts/` or `analysis/` whose names already
-   exist in `src/survey_features/`; any metric arithmetic outside `metrics.py`.
+4. **Reuse & duplication review** — three layers, because a rename defeats any grep:
+   - *(a) Name tripwire (cheap, whole repo):*
+     `grep -rn "^def \|^    def " --include=*.py src/ scripts/ analysis/` → list any
+     def name defined in >1 non-test file; for each known duplicate family, diff the
+     copies for DIVERGENCE (the killer case: `survey_assets` existed in 4 files and
+     only one was thread-safe).
+   - *(b) Semantic review of TODAY'S delta (the real check):* for every new or
+     substantially-changed function in the diff, search the package by the function's
+     **primitives, not its name** — the library calls it makes, distinctive constants
+     (thresholds, seeds, n_boot), signature shape, docstring concepts — then READ the
+     top candidates and classify: {pure orchestration | duplicate of X → propose
+     consolidation | belongs in its canonical home → propose move | genuinely new}.
+   - *(c) Housing rule:* every non-orchestration behaviour has ONE owning module —
+     the canonical-homes table in CONTRIBUTING → "Where code goes". A new def that
+     neither calls its home nor is orchestration is flagged **regardless of naming**.
+   - Known-frozen exceptions: era-1 analysis scripts carrying SUPERSEDED banners
+     (`alignment_analysis.py`, `uncertainty_analysis.py`) keep their local wrappers —
+     do not propose consolidating dead code.
+   - If the day's diff exceeds ~10 new functions, fan the semantic review out to a
+     subagent per directory rather than skimming.
 5. **Contract hygiene:** if `src/survey_features/oracle.py` changed, check whether the
    change alters output MEANING; verify `ORACLE_CONTRACT_VERSION` was bumped or
    correctly not bumped, and that the `docs/onboarding.md` §3 table matches.

@@ -22,6 +22,23 @@ Python ≥ 3.9. Survey data access goes through `synthetic_sampling` (pinned in
 - **`src/survey_features/`** — all shared pipeline logic. If two scripts need the
   same function, it belongs here, not copy-pasted. Module responsibilities are
   documented in `src/survey_features/__init__.py`.
+
+  **Canonical homes** — every behaviour has exactly one owning module. A new `def` in
+  `scripts/` or `analysis/` must either be pure orchestration or call its home;
+  reimplementing a behaviour under any name is a violation the daily audit flags:
+
+  | behaviour | home |
+  |---|---|
+  | metric arithmetic, bootstrap CIs, seeds | `metrics.py` |
+  | LLM clients / generate-fn factories | `llm.py` |
+  | survey load/clean, metadata, country maps, target types | `surveys.py` |
+  | embeddings, retrieval, per-survey (svars, emb, codes) assets | `retrieval.py` |
+  | feature-pool construction, filters, skip-pattern screen | `feature_pool.py` |
+  | oracle fit, honest split, ceiling, contract | `oracle.py` / `oracle_pool.py` |
+  | downstream estimators (XGB CV, per-type scoring) | `evaluation.py` |
+  | cell scoring, scores schema, baseline caches | `score_cell.py` |
+  | output path contracts | `layout.py` |
+  | prompt templates | `prompts.py` |
 - **`scripts/`** — entry points only (`run_main.py` = current free-text pipeline,
   `run_grid.py` = legacy JSON grid, `leakage_audit.py`). Thin orchestration; no
   analytics logic.
