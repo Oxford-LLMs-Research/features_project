@@ -100,8 +100,9 @@ def parse_letter(raw: str, n: int) -> int | None:
     """Parse a per-feature disambiguation reply into a 0-based index, or None for 'none'.
 
     Accepts A..Z and AA.. labels (for pools larger than 26). Prefers an exact label
-    token (longest first so AA wins over A); for n<=26 falls back to first valid
-    letter character in the reply.
+    token: longest first so AA wins over A; among equal length, the *last* match
+    so chatty replies like "Not A; I'd choose C" resolve to C. For n<=26 falls
+    back to the last valid letter character in the reply.
     """
     if not raw:
         return None
@@ -110,13 +111,21 @@ def parse_letter(raw: str, n: int) -> int | None:
         return None
     label_to_idx = {lab: i for i, lab in enumerate(candidate_labels(n))}
     tokens = re.findall(r"[A-Z]+", cleaned)
-    for tok in sorted(tokens, key=len, reverse=True):
-        if tok in label_to_idx:
-            return label_to_idx[tok]
+    matches = [
+        (len(tok), i, label_to_idx[tok])
+        for i, tok in enumerate(tokens)
+        if tok in label_to_idx
+    ]
+    if matches:
+        # longest token, then last occurrence
+        matches.sort(key=lambda t: (t[0], t[1]))
+        return matches[-1][2]
     if n <= 26:
+        last = None
         for ch in cleaned:
             if ch in label_to_idx:
-                return label_to_idx[ch]
+                last = label_to_idx[ch]
+        return last
     return None
 
 

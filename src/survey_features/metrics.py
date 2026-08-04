@@ -20,10 +20,12 @@ Definitions:
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.stats import rankdata
 
 from .config import OUTPUTS_DIR
 from .layout import oracle_csv_path
@@ -83,16 +85,30 @@ def captured_importance_df(
 
 
 def oracle_percentile_mean(codes: list[str], imp: dict[str, float]) -> float | None:
-    """Mean oracle-rank percentile of the model's codes (bottom=0, top=1)."""
+    """Mean oracle-rank percentile of the model's codes (bottom=0, top=1).
+
+    Ties take the AVERAGE rank — order-dependent tie-breaking once biased this metric
+    (pipeline_audit_2026-08.md #A3).
+    """
     if not imp:
         return None
-    codes_asc = [c for c, _ in sorted(imp.items(), key=lambda kv: kv[1])]
-    n = len(codes_asc)
+    n = len(imp)
     if n <= 1:
         return None
-    pos = {c: i / (n - 1) for i, c in enumerate(codes_asc)}
+    keys = list(imp)
+    ranks = rankdata([imp[k] for k in keys], method="average")  # 1..n, ties averaged
+    pos = {k: (r - 1.0) / (n - 1) for k, r in zip(keys, ranks)}
     vals = [pos[c] for c in dict.fromkeys(codes) if c in pos]
     return float(np.mean(vals)) if vals else None
+
+
+def stable_seed(*parts) -> int:
+    """Deterministic 31-bit seed from arbitrary key parts.
+
+    `hash()` on strings is randomized per process; this digest is not (audit #A3).
+    """
+    key = "\x1f".join(str(p) for p in parts).encode("utf-8")
+    return int(hashlib.blake2b(key, digest_size=4).hexdigest(), 16) % (2**31)
 
 
 def jaccard(a: set, b: set) -> float | None:

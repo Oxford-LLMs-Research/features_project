@@ -30,6 +30,8 @@ dependencies = [
 oracle = ["autogluon"]
 # Pretty tables in some diagnostics scripts.
 analysis = ["tabulate"]
+# Unit tests (pure helpers; no API / survey data required).
+dev = ["pytest"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

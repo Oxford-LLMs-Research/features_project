@@ -232,7 +232,7 @@ def get_or_compute_oracle(
         return oracle_df, feature_pool
 
     print(f"  [oracle] Computing ({target} x {country_name}) ...")
-    oracle_df, feature_pool = compute_oracle(
+    oracle_df, feature_pool, meta_out = compute_oracle(
         data,
         metadata,
         target,
@@ -246,6 +246,7 @@ def get_or_compute_oracle(
     d.mkdir(parents=True, exist_ok=True)
     oracle_path = d / "oracle.csv"
     oracle_df.to_csv(oracle_path, index=False)
+    (d / "oracle_meta.json").write_text(json.dumps(meta_out, indent=2), encoding="utf-8")
     print(f"  [oracle] Saved {oracle_path}")
     return oracle_df, feature_pool
 

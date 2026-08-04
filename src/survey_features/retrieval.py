@@ -160,6 +160,33 @@ def retrieve_candidates_batch(
     return out
 
 
+# ── Target-leakage exclusion (shared with the oracle's feature pool) ─────────
+
+LEAKAGE_THRESHOLD = 0.85
+
+
+def target_excluded_codes(
+    target_code: str,
+    survey_variables: dict[str, str],
+    survey_embeddings: np.ndarray,
+    var_codes: list[str],
+    embed_fn,
+    threshold: float = LEAKAGE_THRESHOLD,
+) -> set[str]:
+    """Codes to keep out of a cell's candidate pool: the target and its near-paraphrases
+    (>0.85 cosine), matching the oracle's own exclusion. Costs one encode per cell.
+    Why the mapper needs it too: pipeline_audit_2026-08.md #A2 / "What changed in code".
+    """
+    excluded = {target_code}
+    text = survey_variables.get(target_code)
+    if not text or threshold <= 0 or threshold >= 1:
+        return excluded
+    target_emb = np.asarray(embed_fn([text]))[0]
+    sims = target_emb @ survey_embeddings.T
+    excluded |= {vc for vc, s in zip(var_codes, sims) if s > threshold}
+    return excluded
+
+
 # ── Ensemble retrieval (union of per-model pools → one disambig pool) ─────────
 
 def fuse_candidate_pools(

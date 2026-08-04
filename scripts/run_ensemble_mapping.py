@@ -175,7 +175,7 @@ def phase_map(
 ):
     """Ensemble retrieve + single disambig; write under ensemble_mapping/."""
     from survey_features.disambig import map_features_ensemble
-    from survey_features.retrieval import make_embed_fn
+    from survey_features.retrieval import make_embed_fn, target_excluded_codes
     from survey_features.timing import TimingLog, default_timing_path
 
     models = list(embedding_models or DEFAULT_ENSEMBLE_MODELS)
@@ -226,7 +226,14 @@ def phase_map(
                     "survey_embeddings": emb,
                     "var_codes": vcodes,
                 })
-            excluded = {target}
+            # Candidates come from the union of every model's pool, so the target's
+            # near-paraphrases must be excluded in each model's embedding space.
+            excluded: set[str] = {target}
+            for pack in packs:
+                excluded |= target_excluded_codes(
+                    target, svars, pack["survey_embeddings"], pack["var_codes"],
+                    pack["embed_fn"],
+                )
             ctag = cell_tag(survey, target, country)
 
             if "C" not in arms:
@@ -333,6 +340,7 @@ def phase_score(
         resolve_score_workers,
         resolve_score_xgb_nthread,
         run_score_jobs,
+        score_cols,
     )
 
     models = list(embedding_models or DEFAULT_ENSEMBLE_MODELS)
@@ -348,12 +356,7 @@ def phase_score(
     cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
-    cols = [
-        "survey", "target", "country", "condition", "arm", "disambiguator",
-        "embedding_model", "k_spec", "k",
-        "captured_importance", "oracle_acc", "model_acc", "random_acc", "majority",
-        "value_over_random", "cost_of_imperfect", "error",
-    ]
+    cols = score_cols()
     dk = PRIMARY_DISAMBIG
     emb_label = ensemble_label(models)
 

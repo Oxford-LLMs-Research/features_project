@@ -59,6 +59,23 @@ DEFAULT_EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 # The two prompt conditions run for every cell.
 CONDITIONS = ["unprompted", "country_provided"]
 
+# ── Textbook baseline ─────────────────────────────────────────────────────────
+# Generic predictors a researcher would list WITHOUT reading the question — the
+# "knows something question-specific" null (pipeline_audit #A2). Frozen; ORDER matters
+# (fixed-k takes the first k). Resolved per survey by scripts/build_textbook_baseline.py.
+TEXTBOOK_CONSTRUCTS: list[tuple[str, str]] = [
+    ("age", "how old the respondent is, in years"),
+    ("gender", "whether the respondent is male or female"),
+    ("education", "the highest level of education the respondent completed"),
+    ("income", "the respondent's household income level"),
+    ("employment status", "whether the respondent works, and in what capacity"),
+    ("urban or rural residence", "whether the respondent lives in a town, city or rural area"),
+    ("religiosity", "how religious the respondent is, or how often they attend services"),
+    ("marital status", "whether the respondent is married, single, divorced or widowed"),
+    ("left-right political ideology", "where the respondent places themselves on a left-right political scale"),
+    ("ethnicity or language group", "the respondent's ethnic group, language or nationality"),
+]
+
 # Feature types that enter retrieve+disambiguate+score. Decision (2026-06-03): include
 # temporal_contextual alongside respondent_attribute — the study is about capability across
 # countries AND time (surveys span waves), so be generous to temporally-framed requests.

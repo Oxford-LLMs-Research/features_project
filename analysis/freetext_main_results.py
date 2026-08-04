@@ -63,6 +63,7 @@ from survey_features.metrics import (  # noqa: E402
     load_oracle_importance,
     oracle_percentile_mean,
     random_captured_mean as _random_captured_mean,
+    stable_seed,
 )
 
 B = chr(92)  # backslash for tex (avoids \b/\t control-char bugs in python strings)
@@ -159,7 +160,7 @@ def add_alignment_cols(c: pd.DataFrame, dk: str) -> pd.DataFrame:
                           r["condition"]) or []
         kk = int(r["k"]) if pd.notna(r["k"]) else 0
         pct.append(oracle_percentile_mean(codes, imp))
-        seed = abs(hash((r["target"], r["country"], r["condition"], kk))) % (2**31)
+        seed = stable_seed(r["target"], r["country"], r["condition"], kk)
         rnd.append(random_captured_mean(imp, kk, seed))
     c = c.copy()
     c["oracle_pctile_mean"] = pct
