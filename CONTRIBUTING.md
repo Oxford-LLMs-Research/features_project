@@ -5,17 +5,31 @@ pipeline reproducible. Before your first change, read
 [`docs/onboarding.md`](docs/onboarding.md) — the concepts, the cache-identity
 discipline, and the sharp edges the rules below exist to protect.
 
+## Three zones
+
+| Zone | Contents | Tracked? |
+|------|----------|----------|
+| **Pipeline** | `src/`, `scripts/`, `tests/`, live `analysis/`, slim `docs/`, `prelim/`, `data/`, `archive/` | Yes |
+| **`outputs/`** | Artifacts (`OUTPUTS_DIR` / `SURVEY_FEATURES_OUTPUTS`) | No |
+| **`paper/`** | Writing: LaTeX, figures, memos, builders, talk (`PAPER_DIR` / `SURVEY_FEATURES_PAPER`) | No |
+
+`archive/` is tracked but is not live pipeline code — see
+[`archive/README.md`](archive/README.md).
+
 ## Getting set up
 
 ```bash
 git clone https://github.com/Oxford-LLMs-Research/features_project.git
 cd features_project
-pip install -e .            # or ".[oracle]" if you need to (re)compute oracles
+pip install -e .            # core library
+pip install -e ".[oracle]"  # only if you (re)compute oracles
+pip install -e ".[dev]"     # pytest
 cp .env.example .env        # fill in API keys and DATA_CONFIG_PATH
 ```
 
 Python ≥ 3.9. Survey data access goes through `synthetic_sampling` (pinned in
 `pyproject.toml`); follow that repo's instructions for `configs/local.yaml`.
+Optional extras are defined in `pyproject.toml` (`oracle`, `analysis`, `dev`).
 
 ## Where code goes
 
@@ -47,6 +61,8 @@ Python ≥ 3.9. Survey data access goes through `synthetic_sampling` (pinned in
   (add `src/` to `sys.path` at the top if not installed) and must not redefine
   metrics that exist in `survey_features.metrics`. TeX/figure emission lives under
   local `paper/scripts/`.
+- **`tests/`** — pytest coverage for pure helpers (metrics, scoring schema, etc.).
+  Prefer `pip install -e ".[dev]"` then `pytest`.
 - **`docs/`** — onboarding, design/protocol notes, audit record, and
   [`docs/experiments_index.md`](docs/experiments_index.md). Findings memos are not here.
 - **`paper/`** — writing workspace (gitignored): LaTeX, figures, `memos/`, `scripts/`,
@@ -105,11 +121,10 @@ Python ≥ 3.9. Survey data access goes through `synthetic_sampling` (pinned in
   deletes or commits). Pass `apply-clean` to soft-delete mechanical clutter into
   `outputs/.trash/`, or `apply-all` and confirm the plan in-chat to commit. The agent
   never pushes; health-gate failure blocks commits.
-- Branch from `master`, keep PRs focused and small.
+- Branch from `main`, keep PRs focused and small.
 - Smoke-test entry points you touched, e.g.
   `python scripts/run_main.py --phase gen --limit 1` (needs API keys) or at
-  minimum `python -c "import survey_features"` plus a compile check of the
-  scripts you edited.
+  minimum `python -c "import survey_features"` plus `pytest` for helpers you edited.
 - Describe in the PR which cached artifacts (if any) your change reads or writes.
 
 ## Reporting issues

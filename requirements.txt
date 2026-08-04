@@ -9,3 +9,5 @@ matplotlib
 scipy
 python-dotenv
 pyaml
+joblib
+# Prefer: pip install -e ".[oracle|analysis|dev]" from pyproject.toml for extras.

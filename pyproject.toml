@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "survey-features"
 version = "0.1.0"
-description = "Do LLMs understand the conditional structure of human attitudes? Feature-selection capability evaluation across surveys and countries."
+description = "LLM feature-selection capability study: free-text elicitation, mapping, and oracle evaluation across surveys and countries. Pipeline package only — paper/writeup artifacts live outside the installable tree."
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
@@ -26,9 +26,9 @@ dependencies = [
 
 [project.optional-dependencies]
 # The AutoGluon oracle (survey_features.oracle) is heavy; only needed to (re)compute
-# outputs/<cell>/oracle.csv. Everything else runs against the cached oracle CSVs.
+# outputs/cache/cells/*/oracle.csv. Everything else runs against the cached oracle CSVs.
 oracle = ["autogluon"]
-# Pretty tables in some diagnostics scripts.
+# Pretty tables in some analysis/ digest scripts (not the gitignored paper/ builders).
 analysis = ["tabulate"]
 # Unit tests (pure helpers; no API / survey data required).
 dev = ["pytest"]

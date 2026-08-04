@@ -10,18 +10,32 @@ The pipeline asks an LLM (in free text) which respondent features would predict 
 
 ---
 
+## Three zones (read this first)
+
+| Zone | Role | In git? |
+|------|------|---------|
+| **Pipeline** | `src/`, `scripts/`, `tests/`, `analysis/` digests, slim `docs/`, `prelim/`, `data/` | Yes |
+| **`outputs/`** | Run artifacts and digests (`SURVEY_FEATURES_OUTPUTS`) | No |
+| **`paper/`** | Writing workspace: LaTeX, figures, memos, builders, talk (`SURVEY_FEATURES_PAPER`) | No |
+
+Clone + install runs the pipeline. Paper PDF rebuild needs a local `paper/` tree (not shipped).
+Legacy JSON-grid replication lives under [`archive/`](archive/README.md) — runnable, never imported by live code.
+
+---
+
 ## Repository layout
 
 ```
 pyproject.toml                — package metadata; install with `pip install -e .`
 src/survey_features/          — the shared library (all pipeline logic lives here)
-    config.py                 —   paths, .env loading, model registry (selectors/extractor/disambiguators)
+    config.py                 —   paths (.env), OUTPUTS_DIR / PAPER_DIR, model registry
     llm.py                    —   ONE OpenAI-compatible client: retries, backoff, token-usage log
     surveys.py                —   survey loading, country maps, metadata handling (single copy)
     prompts.py                —   ALL prompt templates (current free-text + legacy JSON + extract/disambig)
     elicitation.py            —   selection-prompt calls (free-text current; JSON legacy)
     extraction.py             —   free-text essay -> typed feature list (fixed extractor model)
     retrieval.py              —   sentence-transformer embedding cache + dual-embed candidate retrieval
+    ensemble.py               —   ensemble fusion labels + defaults
     disambig.py               —   feature -> survey-code disambiguation (per-feature current; shortlist legacy)
     oracle.py                 —   AutoGluon permutation-importance oracle (needs the [oracle] extra)
     evaluation.py             —   matched-k XGBoost CV: oracle vs model vs random
@@ -30,15 +44,23 @@ src/survey_features/          — the shared library (all pipeline logic lives h
     timing.py                 —   wall-clock spans + JSONL timing logs for pipeline phases
     score_cell.py             —   cell-level XGB scoring (ProcessPool; code-set cache)
 scripts/
-    run_main.py               — CANONICAL entry point: free-text pipeline (gen/extract/map/score/pipeline)
-    leakage_audit.py          — empirical leakage audit of the oracle ground truth
-analysis/                     — digests + experiment runners for the live free-text / experiment path
+    run_main.py               — CANONICAL free-text pipeline (gen/extract/map/score/pipeline)
+    leakage_audit.py          — empirical leakage audit -> cache/audits/leakage_audit.csv
+    compute_oracle.py         — standalone oracle fit
+    rerun_oracles.py          — recompute oracles over an audit grid
+    audit_missing_codes.py    — missing-code taxonomy
+    audit_target_types.py     — target-type audit table
+    build_textbook_baseline.py
+    run_ensemble_mapping.py / run_subitem_mapping.py
+    run_embedding_sensitivity_parallel.ps1
+analysis/                     — live digests + experiment rollups (write under outputs/ only)
+tests/                        — pytest suite (pip install -e ".[dev]")
 prelim/                       — manifest build, target selection, metadata introspection
 docs/                         — onboarding, experiments_index, design/protocol, audit record
-archive/                      — legacy JSON-grid / prelim replication + spent one-shots (see archive/README.md)
+archive/                      — JSON-grid / prelim replication + spent one-shots (see archive/README.md)
 data/                         — per-survey metadata JSONs
 outputs/                      — cached artifacts (gitignored)
-paper/                        — writing workspace (gitignored): LaTeX, figures, memos, builders
+paper/                        — writing workspace (gitignored): LaTeX, figures, memos, builders, talk
 ```
 
 ---
@@ -48,9 +70,10 @@ paper/                        — writing workspace (gitignored): LaTeX, figures
 ### 1. Install the package
 
 ```bash
-pip install -e .                # core pipeline + analysis
+pip install -e .                # core pipeline library
 pip install -e ".[oracle]"      # + autogluon, needed only to (re)compute oracles
-pip install -e ".[analysis]"    # + tabulate (some report scripts)
+pip install -e ".[analysis]"    # + tabulate (some analysis/ digest scripts)
+pip install -e ".[dev]"         # + pytest
 ```
 
 Requires Python ≥ 3.9. Survey data access goes through [`synthetic_sampling`](https://github.com/Oxford-LLMs-Research/synthetic_sampling) (installed automatically at a pinned commit). Follow that repo's setup instructions to point `configs/local.yaml` at your local data files.
@@ -62,6 +85,7 @@ On networks that block PyPI (some institutional proxies intercept `files.pythonh
 ```bash
 cp .env.example .env
 # Fill in: LLM_API_KEY, LLM_BASE_URL, LLM_MODEL, DATA_CONFIG_PATH
+# Optional: SURVEY_FEATURES_OUTPUTS, SURVEY_FEATURES_PAPER (defaults: <repo>/outputs, <repo>/paper)
 ```
 
 `LLM_BASE_URL` accepts any OpenAI-compatible endpoint: Nebius, Together.ai, OpenRouter, local SGLang, etc.
@@ -194,7 +218,7 @@ Findings memos and LaTeX live under local `paper/` (gitignored).
 
 ## Oracle — extension point
 
-The oracle is decoupled from the LLM pipeline via a cache contract. To plug in a pre-computed or alternative oracle, place a CSV at `outputs/<target>_<country>/oracle.csv` with columns:
+The oracle is decoupled from the LLM pipeline via a cache contract. To plug in a pre-computed or alternative oracle, place a CSV at `outputs/cache/cells/<target>_<country>/oracle.csv` (legacy flat `outputs/<target>_<country>/oracle.csv` is still dual-resolved) with columns:
 
 | column | description |
 |--------|-------------|
@@ -269,9 +293,10 @@ legacy flat paths (`format_pilot/`, top-level cells, etc.). See
 [`docs/experiments_index.md`](docs/experiments_index.md). (The one-shot migration
 script now lives in `archive/`.)
 
-The outputs root defaults to `<repo>/outputs` but is relocatable with one `.env`
-line: `SURVEY_FEATURES_OUTPUTS=<path>` (read by `survey_features.config.OUTPUTS_DIR`;
-scripts must never spell `ROOT / "outputs"` themselves).
+The outputs root defaults to `<repo>/outputs` but is relocatable with
+`SURVEY_FEATURES_OUTPUTS=<path>` (`survey_features.config.OUTPUTS_DIR`).
+The writing workspace defaults to `<repo>/paper` via `SURVEY_FEATURES_PAPER`
+(`PAPER_DIR`). Scripts must never hard-code `ROOT / "outputs"` or `ROOT / "paper"`.
 
 Superseded-era artifacts (era-1 accuracy-oracle cells, era-2 log-loss-v2 cells, raw
 `grid_results__*.json`) live as verified zips in
