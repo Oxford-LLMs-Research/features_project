@@ -6,14 +6,14 @@ CURRENT (paper main text; free-text elicitation):
   EXTRACT_PROMPT                                           essay -> typed feature list (fixed extractor)
   DISAMBIG_PROMPT                                          per-feature top-N -> one code or "none"
 
-LEGACY (pilot-1 JSON grid; kept for appendix reproducibility via scripts/run_grid.py):
+LEGACY (pilot-1 JSON grid; kept for appendix reproducibility via archive/run_grid.py):
   SYSTEM_PROMPT + PROMPT_UNPROMPTED / PROMPT_COUNTRY       strict-JSON selection
   DISAMBIG_PROMPT_LEGACY                                   shortlist (top-5) disambiguation
 
 The free-text prompts are the EXACT JSON prompts with only the JSON formatting block
 removed — nothing added, nothing rephrased. This isolates the output-format instruction
 as the single variable between the JSON and free-text arms (validated in the format
-pilot; see docs/format_findings.md).
+pilot; see paper/memos/format_findings.md).
 """
 
 from __future__ import annotations
@@ -67,7 +67,7 @@ Candidate survey questions:
 {candidates_block}
 
 Pick the ONE candidate that best captures what the researcher is asking for, or answer "none" if none is a genuine match (do not force a weak match).
-Respond with ONLY the letter (A, B, C, ...) or "none". No explanation."""
+Respond with ONLY the candidate letter (A, B, C, …; use AA, AB, … if the list goes past Z) or "none". No explanation."""
 
 
 # ── LEGACY: strict-JSON selection prompts (pilot-1 grid) ─────────────────────

@@ -358,7 +358,7 @@ def phase_map(
     map_workers: int = 1,
 ):
     from survey_features.disambig import map_features
-    from survey_features.retrieval import make_embed_fn
+    from survey_features.retrieval import make_embed_fn, target_excluded_codes
     from survey_features.timing import TimingLog, default_timing_path
 
     emb_model = embedding_model or DEFAULT_EMBEDDING_MODEL
@@ -393,7 +393,7 @@ def phase_map(
     ):
         for i, (survey, target, country) in enumerate(cells):
             svars, emb, vcodes = survey_assets(survey, emb_model)
-            excluded = {target}
+            excluded = target_excluded_codes(target, svars, emb, vcodes, embed)
             ctag = cell_tag(survey, target, country)
 
             if "C" in arms:
@@ -505,7 +505,7 @@ def phase_pipeline(
     from survey_features.disambig import map_features
     from survey_features.elicitation import freetext_messages
     from survey_features.extraction import extract_features
-    from survey_features.retrieval import make_embed_fn
+    from survey_features.retrieval import make_embed_fn, target_excluded_codes
     from survey_features.timing import TimingLog, default_timing_path
 
     sel_model = SELECTORS[selector_key]["model"]
@@ -607,7 +607,7 @@ def phase_pipeline(
 
     def _map_one(survey, target, country) -> str:
         svars, emb, vcodes = survey_assets(survey, emb_model)
-        excluded = {target}
+        excluded = target_excluded_codes(target, svars, emb, vcodes, embed)
         ctag = cell_tag(survey, target, country)
         wrote = skipped = 0
 
@@ -798,6 +798,7 @@ def phase_score(
         resolve_score_workers,
         resolve_score_xgb_nthread,
         run_score_jobs,
+        score_cols,
     )
     from survey_features.timing import TimingLog, default_timing_path
 
@@ -826,12 +827,7 @@ def phase_score(
     cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
-    cols = [
-        "survey", "target", "country", "condition", "arm", "disambiguator",
-        "embedding_model", "k_spec", "k",
-        "captured_importance", "oracle_acc", "model_acc", "random_acc", "majority",
-        "value_over_random", "cost_of_imperfect", "error",
-    ]
+    cols = score_cols()
 
     specs = []
     for survey, target, country in cells:

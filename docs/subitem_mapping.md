@@ -1,10 +1,20 @@
 # Sub-item (subconcept) mapping — experiment design
 
+> **Note (2026-08): the "Hard rule" below is out of date.** It says main-paper numbers
+> stay parent-only and expanded-k must never be appended. The 2026-07-31 decision locked
+> **dual-layer** for the confirmatory run on construct-coverage grounds, even though the
+> experiment did not meet its own pre-stated adoption rule (matched-k dCaptured +0.0004,
+> dVoR at k=10 -0.0013). That is defensible, but it is a criterion change made after the
+> evidence, so it has to be argued rather than substituted: report the null matched-k
+> result in the same table as the headline. See `subitem_mapping_results.md` D.5 and
+> [pipeline_audit_2026-08.md](pipeline_audit_2026-08.md) §A8 — construct redundancy (credit *sharing*), not bundling, is the likely
+> reason expansion did not move matched-k capability.
+
 > **Status:** v1 protocol locked for **kimi-only** map + score. Do **not** fold
 > similarity-threshold sweeps into this run (see `docs/similarity_threshold.md`).
 > Artifacts live under `outputs/subitem_mapping/` and never overwrite
 > `outputs/format_pilot/`.
-> **Results appendix:** `docs/subitem_mapping_results.md`.
+> **Results appendix:** `paper/memos/subitem_mapping_results.md` (local).
 
 ## Question
 

@@ -17,19 +17,14 @@ qwen235b is computed alongside as robustness and stored in the JSON summary.
 
 Methodology mirrors the pilot-1 analysis scripts exactly (shared arithmetic now lives
 in survey_features.metrics):
-  - captured importance / oracle percentile: alignment_analysis.py arithmetic
-  - own-vs-cross adaptation (T2b) + Jaccard movement (T2a): alignment_analysis.py logic,
-    applied to arm-C mapped codes (oracle-arithmetic, no model refits)
-  - cluster bootstrap (cluster = survey x target, 2000 resamples): uncertainty_analysis.py
-  - matched-k random captured-importance baseline: 200 draws from the cell's oracle pool
+  - captured importance / oracle percentile / Jaccard / adaptation: metrics helpers
+    (same formulas as archive/alignment_analysis.py)
+  - cluster bootstrap + matched-k random captured-importance baseline: metrics helpers
+    (same formulas as archive/uncertainty_analysis.py)
 
 Outputs:
   outputs/main/freetext_main_summary.json
-  paper/generated_current_state/ft_global_metrics.tex
-  paper/generated_current_state/ft_fixedk.tex
-  paper/generated_current_state/ft_survey_metrics.tex
-  paper/generated_current_state/ft_test2_adaptation.tex
-  paper/generated_current_state/ft_uncertainty.tex
+  (TeX tables: python paper/scripts/write_freetext_tex.py)
 
 Run:  python analysis/freetext_main_results.py
 """
@@ -46,7 +41,9 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
-OUT = ROOT / "outputs"
+from survey_features.config import OUTPUTS_DIR  # noqa: E402
+
+OUT = OUTPUTS_DIR
 from survey_features.layout import (  # noqa: E402
     genuine_cells as _genuine_cells,
     main_dir,
@@ -54,18 +51,16 @@ from survey_features.layout import (  # noqa: E402
     selector_dirs,
 )
 PILOT = main_dir(OUT)
-GEN = ROOT / "paper" / "generated_current_state"
 
 from survey_features.metrics import (  # noqa: E402
     captured_importance,
     cluster_bootstrap_ci as _cluster_bootstrap_ci,
     jaccard,
-    load_oracle_importance,
+    load_oracle_splits,
     oracle_percentile_mean,
     random_captured_mean as _random_captured_mean,
+    stable_seed,
 )
-
-B = chr(92)  # backslash for tex (avoids \b/\t control-char bugs in python strings)
 
 N_BOOT = 2000
 RAND_DRAWS = 200
@@ -104,13 +99,13 @@ def load_scores() -> pd.DataFrame:
     return df
 
 
-_imp_cache: dict[tuple[str, str], dict[str, float]] = {}
+_imp_cache: dict[tuple[str, str], tuple[dict[str, float], dict[str, float]]] = {}
 
 
-def oracle_importance(target: str, country: str) -> dict[str, float]:
+def oracle_splits(target: str, country: str) -> tuple[dict[str, float], dict[str, float]]:
     key = (target, country)
     if key not in _imp_cache:
-        _imp_cache[key] = load_oracle_importance(target, country, OUT)
+        _imp_cache[key] = load_oracle_splits(target, country, OUT)
     return _imp_cache[key]
 
 
@@ -133,8 +128,9 @@ def map_codes(selector: str, dk: str, survey: str, target: str, country: str,
 # ── metric arithmetic (single copy in survey_features.metrics) ───────────────
 
 def random_captured_mean(imp: dict[str, float], k: int, seed: int,
-                         draws: int = RAND_DRAWS) -> float | None:
-    return _random_captured_mean(imp, k, seed, draws=draws)
+                         draws: int = RAND_DRAWS,
+                         rank: dict[str, float] | None = None) -> float | None:
+    return _random_captured_mean(imp, k, seed, draws=draws, rank=rank)
 
 
 def cluster_bootstrap_ci(df: pd.DataFrame, col: str, cluster_cols=("survey", "target"),
@@ -154,13 +150,13 @@ def add_alignment_cols(c: pd.DataFrame, dk: str) -> pd.DataFrame:
     """Per-row oracle percentile + matched-k random captured baseline (paired delta)."""
     pct, rnd = [], []
     for _, r in c.iterrows():
-        imp = oracle_importance(r["target"], r["country"])
+        rank, score = oracle_splits(r["target"], r["country"])
         codes = map_codes(r["selector"], dk, r["survey"], r["target"], r["country"],
                           r["condition"]) or []
         kk = int(r["k"]) if pd.notna(r["k"]) else 0
-        pct.append(oracle_percentile_mean(codes, imp))
-        seed = abs(hash((r["target"], r["country"], r["condition"], kk))) % (2**31)
-        rnd.append(random_captured_mean(imp, kk, seed))
+        pct.append(oracle_percentile_mean(codes, rank))
+        seed = stable_seed(r["target"], r["country"], r["condition"], kk)
+        rnd.append(random_captured_mean(score, kk, seed, rank=rank))
     c = c.copy()
     c["oracle_pctile_mean"] = pct
     c["rand_captured"] = rnd
@@ -196,12 +192,14 @@ def t2_metrics(dk: str) -> tuple[pd.DataFrame, dict]:
             j_upcp = jaccard(s, up) if up is not None else None
             codes = list(s)
             k = len(codes)
-            own = captured_importance(codes, oracle_importance(t, ctry), k)
+            rank, score = oracle_splits(t, ctry)
+            own = captured_importance(codes, score, k, rank=rank)
             cross_vals = []
             for c2 in by_t.get(t, {}):
                 if c2 == ctry:
                     continue
-                cv = captured_importance(codes, oracle_importance(t, c2), k)
+                r2, s2 = oracle_splits(t, c2)
+                cv = captured_importance(codes, s2, k, rank=r2)
                 if cv is not None:
                     cross_vals.append(cv)
             cross = float(np.mean(cross_vals)) if cross_vals else None
@@ -225,33 +223,6 @@ def t2_metrics(dk: str) -> tuple[pd.DataFrame, dict]:
     return pd.DataFrame(rows), summ
 
 
-# ── tex helpers ───────────────────────────────────────────────────────────────
-
-def f3(x, dash="--"):
-    if x is None or (isinstance(x, float) and not np.isfinite(x)):
-        return dash
-    s = f"{x:.3f}"
-    return s.replace("0.", ".", 1) if abs(x) < 1 else s
-
-
-def f4(x, dash="--"):
-    if x is None or (isinstance(x, float) and not np.isfinite(x)):
-        return dash
-    return f"{x:.4f}"
-
-
-def ci_str(d: dict) -> str:
-    if d.get("mean") is None:
-        return "--"
-    return f"{f3(d['mean'])} [{f3(d['ci_low'])}, {f3(d['ci_high'])}]"
-
-
-def write_tex(name: str, body: str) -> None:
-    GEN.mkdir(parents=True, exist_ok=True)
-    (GEN / name).write_text(body, encoding="utf-8")
-    print(f"  wrote {GEN / name}")
-
-
 # ── main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -262,10 +233,8 @@ def main() -> None:
     # ---------- T1 primary (nemotron) ----------
     c = t1_frames(scores, PRIMARY_DK)
     ck = {ks: c[c["k_spec"] == ks] for ks in ("model", "k10", "k5")}
-    labels = [SELECTORS[s] for s in SELECTORS]
 
     # global table (model-k)
-    g_rows = []
     glob: dict = {}
     for sel, label in SELECTORS.items():
         d = ck["model"][ck["model"]["selector"] == sel]
@@ -282,73 +251,33 @@ def main() -> None:
             "captured_importance": round(float(d["captured_importance"].mean()), 4),
         }
     summary["global_model_k"] = glob
-    gd, gk = glob["deepseek"], glob["kimi"]
-    g_rows = [
-        ("Scored cells (cell $" + B + "times$ condition)", str(gd["n_rows"]), str(gk["n_rows"])),
-        ("Mean realised $k$", f"{gd['mean_k']:.1f}", f"{gk['mean_k']:.1f}"),
-        ("Mean oracle accuracy", f4(gd["oracle_acc"]), f4(gk["oracle_acc"])),
-        ("Mean model accuracy", f4(gd["model_acc"]), f4(gk["model_acc"])),
-        ("Mean random-$k$ accuracy", f4(gd["random_acc"]), f4(gk["random_acc"])),
-        ("Mean majority baseline", f4(gd["majority"]), f4(gk["majority"])),
-        ("Mean cost of imperfect", f4(gd["cost_of_imperfect"]), f4(gk["cost_of_imperfect"])),
-        ("Mean value over random", f4(gd["value_over_random"]), f4(gk["value_over_random"])),
-        ("Share value " + B + "textgreater{} 0", f3(gd["share_beat_random"]), f3(gk["share_beat_random"])),
-        ("Mean captured importance", f4(gd["captured_importance"]), f4(gk["captured_importance"])),
-    ]
-    tex = [B + "begin{tabular}{lrr}", B + "toprule",
-           f"Metric & {labels[0]} & {labels[1]} {B}{B}", B + "midrule"]
-    tex += [f"{a} & {b} & {cc} {B}{B}" for a, b, cc in g_rows]
-    tex += [B + "bottomrule", B + "end{tabular}"]
-    write_tex("ft_global_metrics.tex", "\n".join(tex) + "\n")
 
-    # fixed-k table: captured imp + VoR + beat share at model-k / k10 / k5
+    # fixed-k: captured imp + VoR + beat share at model-k / k10 / k5
     fixedk: dict = {}
-    rows_tex = []
-    for ks, ks_label in (("model", "model-chosen $k$"), ("k10", "$k=10$"), ("k5", "$k=5$")):
+    for ks in ("model", "k10", "k5"):
         ent = {}
-        cells_out = []
         for sel in SELECTORS:
             d = ck[ks][ck[ks]["selector"] == sel]
-            ent[sel] = {"captured_importance": round(float(d["captured_importance"].mean()), 4),
-                        "value_over_random": round(float(d["value_over_random"].mean()), 4),
-                        "share_beat_random": round(float(d["beat_random"].mean()), 4)}
-            cells_out += [f3(ent[sel]["captured_importance"]),
-                          f3(ent[sel]["value_over_random"]),
-                          f3(ent[sel]["share_beat_random"])]
+            ent[sel] = {
+                "captured_importance": round(float(d["captured_importance"].mean()), 4),
+                "value_over_random": round(float(d["value_over_random"].mean()), 4),
+                "share_beat_random": round(float(d["beat_random"].mean()), 4),
+            }
         fixedk[ks] = ent
-        rows_tex.append(f"{ks_label} & " + " & ".join(cells_out) + f" {B}{B}")
     summary["fixed_k"] = fixedk
-    tex = ["{" + B + "setlength{" + B + "tabcolsep}{5pt}",
-           B + "begin{tabular}{@{}lcccccc@{}}", B + "toprule",
-           f"& {B}multicolumn{{3}}{{c}}{{{labels[0]}}} & {B}multicolumn{{3}}{{c}}{{{labels[1]}}} {B}{B}",
-           B + "cmidrule(lr){2-4} " + B + "cmidrule(lr){5-7}",
-           "Budget & Capt.\\ imp. & VoR & Beat rnd. & Capt.\\ imp. & VoR & Beat rnd. " + B + B,
-           B + "midrule"] + rows_tex + [B + "bottomrule", B + "end{tabular}}"]
-    write_tex("ft_fixedk.tex", "\n".join(tex) + "\n")
 
-    # survey table (model-k): per survey x model oracle/model/random acc + captured imp
+    # survey (model-k): per survey x model oracle/model/random acc + captured imp
     surv: dict = {}
-    body = []
     for survey in sorted(ck["model"]["survey"].unique()):
-        row_cells = [survey.replace("_", B + "_")]
         for sel in SELECTORS:
             d = ck["model"][(ck["model"]["selector"] == sel) & (ck["model"]["survey"] == survey)]
-            e = {"oracle_acc": round(float(d["oracle_acc"].mean()), 3),
-                 "model_acc": round(float(d["model_acc"].mean()), 3),
-                 "random_acc": round(float(d["random_acc"].mean()), 3),
-                 "captured_importance": round(float(d["captured_importance"].mean()), 3)}
-            surv.setdefault(survey, {})[sel] = e
-            row_cells += [f3(e["oracle_acc"]), f3(e["model_acc"]), f3(e["random_acc"]),
-                          f3(e["captured_importance"])]
-        body.append(" & ".join(row_cells) + f" {B}{B}")
+            surv.setdefault(survey, {})[sel] = {
+                "oracle_acc": round(float(d["oracle_acc"].mean()), 3),
+                "model_acc": round(float(d["model_acc"].mean()), 3),
+                "random_acc": round(float(d["random_acc"].mean()), 3),
+                "captured_importance": round(float(d["captured_importance"].mean()), 3),
+            }
     summary["survey_model_k"] = surv
-    tex = ["{" + B + "setlength{" + B + "tabcolsep}{4pt}" + B + "small",
-           B + "begin{tabular}{@{}lcccccccc@{}}", B + "toprule",
-           f"& {B}multicolumn{{4}}{{c}}{{{labels[0]}}} & {B}multicolumn{{4}}{{c}}{{{labels[1]}}} {B}{B}",
-           B + "cmidrule(lr){2-5} " + B + "cmidrule(lr){6-9}",
-           "Survey & Oracle & Model & Random & Capt. & Oracle & Model & Random & Capt. " + B + B,
-           B + "midrule"] + body + [B + "bottomrule", B + "end{tabular}}"]
-    write_tex("ft_survey_metrics.tex", "\n".join(tex) + "\n")
 
     # ---------- alignment extras + uncertainty (model-k, nemotron) ----------
     cm = add_alignment_cols(ck["model"], PRIMARY_DK)
@@ -382,46 +311,6 @@ def main() -> None:
         }
     summary["t2_adaptation"] = t2_unc
 
-    t2_rows = [
-        ("Jaccard, unprompted vs.\\ country-provided",
-         *(ci_str(t2_unc[s]["jaccard_up_cp"]) for s in SELECTORS)),
-        ("Jaccard, across countries (same target)",
-         *(ci_str(t2_unc[s]["xcountry_jaccard"]) for s in SELECTORS)),
-        ("Own-country captured importance",
-         *(ci_str(t2_unc[s]["own_ci"]) for s in SELECTORS)),
-        ("Cross-country captured importance",
-         *(ci_str(t2_unc[s]["cross_ci"]) for s in SELECTORS)),
-        ("Adaptation score (own $-$ cross)",
-         *(ci_str(t2_unc[s]["adaptation"]) for s in SELECTORS)),
-        ("Share adaptation " + B + "textgreater{} 0",
-         *(f3(t2_unc[s]["share_adapt_pos"]) for s in SELECTORS)),
-    ]
-    tex = ["{" + B + "setlength{" + B + "tabcolsep}{6pt}" + B + "renewcommand{" + B + "arraystretch}{1.1}",
-           B + "begin{tabular}{@{}lcc@{}}", B + "toprule",
-           f"Metric (mean [95{B}% CI]) & {labels[0]} & {labels[1]} {B}{B}", B + "midrule"]
-    tex += [f"{a} & {b} & {cc} {B}{B}" for a, b, cc in t2_rows]
-    tex += [B + "bottomrule", B + "end{tabular}}"]
-    write_tex("ft_test2_adaptation.tex", "\n".join(tex) + "\n")
-
-    # uncertainty headline table
-    u_rows = [
-        ("Value over random", *(ci_str(unc[s]["value_over_random"]) for s in SELECTORS)),
-        ("Cost of imperfect", *(ci_str(unc[s]["cost_of_imperfect"]) for s in SELECTORS)),
-        ("Captured importance", *(ci_str(unc[s]["captured_importance"]) for s in SELECTORS)),
-        (B + "quad random-$k$ baseline", *(ci_str(unc[s]["rand_captured"]) for s in SELECTORS)),
-        (B + "quad $" + B + "Delta$ (model $-$ random)",
-         *(ci_str(unc[s]["delta_captured"]) for s in SELECTORS)),
-        ("Oracle percentile", *(ci_str(unc[s]["oracle_pctile_mean"]) for s in SELECTORS)),
-        ("Adaptation score (own $-$ cross)",
-         *(ci_str(t2_unc[s]["adaptation"]) for s in SELECTORS)),
-    ]
-    tex = ["{" + B + "setlength{" + B + "tabcolsep}{6pt}" + B + "renewcommand{" + B + "arraystretch}{1.1}",
-           B + "begin{tabular}{@{}lcc@{}}", B + "toprule",
-           f"Metric (mean [95{B}% CI]) & {labels[0]} & {labels[1]} {B}{B}", B + "midrule"]
-    tex += [f"{a} & {b} & {cc} {B}{B}" for a, b, cc in u_rows]
-    tex += [B + "bottomrule", B + "end{tabular}}"]
-    write_tex("ft_uncertainty.tex", "\n".join(tex) + "\n")
-
     # ---------- robustness: qwen235b disambiguator ----------
     cq = t1_frames(scores, ROBUST_DK)
     rob: dict = {}
@@ -430,12 +319,16 @@ def main() -> None:
         ent = {}
         for sel in SELECTORS:
             dd = d[d["selector"] == sel]
-            ent[sel] = {"captured_importance": round(float(dd["captured_importance"].mean()), 4),
-                        "value_over_random": round(float(dd["value_over_random"].mean()), 4)}
+            ent[sel] = {
+                "captured_importance": round(float(dd["captured_importance"].mean()), 4),
+                "value_over_random": round(float(dd["value_over_random"].mean()), 4),
+            }
         rob[ks] = ent
     t2q, _ = t2_metrics(ROBUST_DK)
-    rob["adaptation"] = {sel: cluster_bootstrap_ci(t2q[t2q["selector"] == sel], "adaptation")
-                         for sel in SELECTORS}
+    rob["adaptation"] = {
+        sel: cluster_bootstrap_ci(t2q[t2q["selector"] == sel], "adaptation")
+        for sel in SELECTORS
+    }
     summary["robustness_qwen235b"] = rob
 
     out = PILOT / "freetext_main_summary.json"

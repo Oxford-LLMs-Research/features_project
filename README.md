@@ -4,6 +4,10 @@
 
 The pipeline asks an LLM (in free text) which respondent features would predict a target survey answer, extracts a typed feature list from the essay, maps each feature to a concrete survey variable via embedding retrieval + LLM disambiguation, and evaluates whether the selected variables actually predict the answer better than matched-size random baselines — against an AutoGluon permutation-importance oracle as the ceiling.
 
+> **New to the repo? Start with [`docs/onboarding.md`](docs/onboarding.md)** — the concepts
+> (oracle contracts, the honest split, cache identity), which numbers are current, and the
+> sharp edges. This README covers setup and layout; that file covers how the system thinks.
+
 ---
 
 ## Repository layout
@@ -27,15 +31,14 @@ src/survey_features/          — the shared library (all pipeline logic lives h
     score_cell.py             —   cell-level XGB scoring (ProcessPool; code-set cache)
 scripts/
     run_main.py               — CANONICAL entry point: free-text pipeline (gen/extract/map/score/pipeline)
-    run_grid.py               — legacy JSON-prompt grid (appendix reproducibility; thin wrapper)
     leakage_audit.py          — empirical leakage audit of the oracle ground truth
-    migrate_outputs_layout.py — one-shot local outputs/ reorg (dry-run; --apply to move)
-analysis/                     — one-off analysis + paper-build scripts (import the package)
+analysis/                     — digests + experiment runners for the live free-text / experiment path
 prelim/                       — manifest build, target selection, metadata introspection
-docs/                         — findings, design notes, experiments_index.md
-archive/                      — dead scripts kept for reference (do not run)
+docs/                         — onboarding, experiments_index, design/protocol, audit record
+archive/                      — legacy JSON-grid / prelim replication + spent one-shots (see archive/README.md)
 data/                         — per-survey metadata JSONs
 outputs/                      — cached artifacts (gitignored)
+paper/                        — writing workspace (gitignored): LaTeX, figures, memos, builders
 ```
 
 ---
@@ -134,6 +137,17 @@ python analysis/embedding_sensitivity.py   # -> experiments/embedding_sensitivit
 
 Artifacts: `outputs/experiments/embedding_sensitivity/<model_slug>/<selector>/maps/` and `scores_<selector>.csv`, plus `manifest.json`. See `docs/embedding_sensitivity.md`.
 
+### Ensemble retrieval / mapping
+
+After embedding sensitivity (maps diverge, scores stable), fuse candidate pools from multiple embedders (default MiniLM ∪ mpnet), then **one** Nemotron disambiguation per feature. Writes only under `outputs/experiments/ensemble_mapping/`; reuses single-model baselines from `main/` and `embedding_sensitivity/`. **v1 is kimi-only.** Design: `docs/ensemble_mapping.md`.
+
+```bash
+python scripts/run_ensemble_mapping.py --phase map --selector kimi --disambiguator nemotron --limit 2
+python scripts/run_ensemble_mapping.py --phase map --selector kimi --disambiguator nemotron --arms C
+python scripts/run_ensemble_mapping.py --phase score --selector kimi
+python analysis/ensemble_mapping.py --selector kimi   # -> comparison.csv + latency_*.csv
+```
+
 ### Sub-item (subconcept) mapping
 
 Parent features are still one-to-one in the main pipeline; bundled `sub_items` are audit-only there. A separate experiment maps each sub_item as its own unit under `outputs/experiments/subitem_mapping/` (gen/extract reused; `main/` untouched). **v1 is kimi-only** map + score. Design: `docs/subitem_mapping.md`. Similarity-threshold effects are a **different** experiment (`docs/similarity_threshold.md`).
@@ -162,16 +176,19 @@ Key metrics per cell:
 - `value_over_random` = model_acc − random_acc
 - `cost_of_imperfect` = oracle_acc − model_acc
 
-### Analysis / paper artifacts
+### Analysis digests / paper artifacts
 
 ```bash
-python analysis/freetext_main_results.py   # headline T1/T2 numbers + tex tables
-python analysis/freetext_figures.py        # free-text figures
-python analysis/embedding_sensitivity.py   # MiniLM vs mid/large embedders (after sensitivity runs)
-python scripts/leakage_audit.py            # oracle leakage audit -> cache/audits/leakage_audit.csv
+python analysis/freetext_main_results.py          # headline T1/T2 digest → outputs/main/
+python paper/scripts/write_freetext_tex.py        # TeX tables from that digest (local)
+python paper/scripts/freetext_figures.py          # free-text figures → paper/figures/
+python analysis/embedding_sensitivity.py          # MiniLM vs mid/large embedders (after sensitivity runs)
+python analysis/ensemble_mapping.py               # ensemble vs single-embedder baselines + latency
+python scripts/leakage_audit.py                   # oracle leakage audit -> cache/audits/leakage_audit.csv
 ```
 
-Findings and design notes live in `docs/` — start from [`docs/experiments_index.md`](docs/experiments_index.md).
+Design/protocol live in `docs/` — start from [`docs/experiments_index.md`](docs/experiments_index.md).
+Findings memos and LaTeX live under local `paper/` (gitignored).
 
 ---
 
@@ -193,7 +210,7 @@ The file must contain **all** features considered — evaluation picks its own t
 Standalone oracle run (requires `pip install -e ".[oracle]"`):
 
 ```bash
-python -m survey_features.oracle \
+python scripts/compute_oracle.py \
     --survey wvs --targets Q47 Q57 Q199 Q235 Q164 \
     --countries Germany Nigeria Japan Brazil Egypt \
     --runtime-mode balanced --force
@@ -215,34 +232,31 @@ Key flags: `--runtime-mode` (`quick`/`balanced`/`best`), `--similarity-threshold
 
 ---
 
-## Appendix: legacy JSON-prompt grid (`scripts/run_grid.py`)
+## Appendix: legacy JSON-prompt grid (`archive/run_grid.py`)
 
-The first pilot elicited selections as **JSON lists** rather than free text. Pilot 2 established that JSON suppresses selection breadth, so the paper's headline results use the free-text pipeline above — but the JSON grid is kept runnable for appendix reproducibility, and its cached artifacts feed arms A/B of the format comparison.
+The first pilot elicited selections as **JSON lists** rather than free text. Pilot 2 established that JSON suppresses selection breadth, so the paper's headline results use the free-text pipeline above — but the JSON grid stays under `archive/` for appendix reproducibility, and its cached artifacts feed arms A/B of the format comparison.
 
 ```bash
 # Single cells
-python scripts/run_grid.py --targets Q164 --countries Germany
-python scripts/run_grid.py --survey afrobarometer --targets Q4A --countries Nigeria Kenya
+python archive/run_grid.py --targets Q164 --countries Germany
+python archive/run_grid.py --survey afrobarometer --targets Q4A --countries Nigeria Kenya
 
 # Manifest-based prelim grid (5 targets per survey)
 python prelim/build_prelim_manifest.py
-python scripts/run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml --stop-after oracle
-python scripts/run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml
+python archive/run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml --stop-after oracle
+python archive/run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml
 
 # Discover available countries
-python scripts/run_grid.py --survey afrobarometer --list-countries
-
-# Full all-surveys prelim run (PowerShell; logs to outputs/logs/)
-.\run_prelim_full_all_surveys.ps1
+python archive/run_grid.py --survey afrobarometer --list-countries
 ```
 
-The preliminary results on disk cover **5 targets × 3 countries × 2 prompt conditions** per survey, for **two LLMs** (`deepseek-ai/DeepSeek-V3.2`, `moonshotai/Kimi-K2.5`) run under separate `--run-tag`s. Analysis scripts read every `grid_summary__<survey>__<tag>.csv` and report models side-by-side.
+The preliminary results on disk cover **5 targets × 3 countries × 2 prompt conditions** per survey, for **two LLMs** (`deepseek-ai/DeepSeek-V3.2`, `moonshotai/Kimi-K2.5`) run under separate `--run-tag`s. Archived analysis digests (`archive/prelim_*.py`, `archive/alignment_analysis.py`, …) read every `grid_summary__<survey>__<tag>.csv` and report models side-by-side.
 
 Every invocation writes a run manifest at `outputs/run_manifest__<survey>__<exp_id>.json` recording models, prompt variant, embedding model, grid and completion counts. The experiment ID (`--run-tag`) determines all output paths for a run:
 
 ```bash
-python scripts/run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml --run-tag deepseek-default
-python scripts/run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml --run-tag kimi-default
+python archive/run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml --run-tag deepseek-default
+python archive/run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.yaml --run-tag kimi-default
 # Sensitivity runs: --prompt-variant explicit / --embedding-model all-mpnet-base-v2
 ```
 
@@ -252,8 +266,17 @@ python scripts/run_grid.py --survey wvs --from-manifest prelim/prelim_manifest.y
 
 Named shared caches + named experiment dirs. Readers dual-resolve new paths then
 legacy flat paths (`format_pilot/`, top-level cells, etc.). See
-[`docs/experiments_index.md`](docs/experiments_index.md). Migrate an existing
-local tree with `python scripts/migrate_outputs_layout.py` (dry-run by default).
+[`docs/experiments_index.md`](docs/experiments_index.md). (The one-shot migration
+script now lives in `archive/`.)
+
+The outputs root defaults to `<repo>/outputs` but is relocatable with one `.env`
+line: `SURVEY_FEATURES_OUTPUTS=<path>` (read by `survey_features.config.OUTPUTS_DIR`;
+scripts must never spell `ROOT / "outputs"` themselves).
+
+Superseded-era artifacts (era-1 accuracy-oracle cells, era-2 log-loss-v2 cells, raw
+`grid_results__*.json`) live as verified zips in
+`C:\Users\murrn\cursor\features_project_snapshots\` — see `MANIFEST.md` there for
+contents and restore commands.
 
 ```
 outputs/
@@ -265,18 +288,20 @@ outputs/
     audits/leakage_audit.csv
   main/                                 # canonical free-text pipeline (was format_pilot/)
     <selector>/{freetext,extracted,maps}/
-    scores_<selector>.csv               # prefer scores_deepseek.csv (legacy scores.csv still read)
+    scores_<selector>.csv               # canonical per-selector scores
     runs/<run_tag>/…                    # optional tagged map/score writes
-  experiments/
+  experiments/                          # artifacts + manifest only; logs go to logs/
     embedding_sensitivity/
+    ensemble_mapping/                   # MiniLM∪mpnet fuse → one disambig
     subitem_mapping/
     similarity_threshold/               # planned
-  grid/                                 # legacy JSON prelim summaries + manifests
-    grid_summary__<survey>__<exp_id>.csv
-    …
+  grid/                                 # legacy JSON prelim: summaries + run manifests only
+    grid_summary__<survey>__<exp_id>.csv   # (raw grid_results/llm_usage → snapshot zips)
   analysis/                             # alignment_*, uncertainty_*, _prelim_stats.json
-  logs/
+  logs/                                 # timing JSONL + ALL shell-redirect logs
+    experiments/<name>/                 # per-experiment driver logs
   .tmp/                                 # AutoGluon scratch — safe to delete
+  .trash/                               # recoverable soft-deletes from /repo-audit
 ```
 
 ---

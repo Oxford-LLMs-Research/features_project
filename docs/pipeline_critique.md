@@ -1,5 +1,11 @@
 # Pipeline Critique — preparing the main experiment
 
+> **Largely superseded (2026-08).** This was the 2026-06 audit of the model→score path;
+> it deliberately treated the oracle as sound. The 2026-08 audit
+> (`pipeline_audit_2026-08.md`) re-examined the oracle itself and fixed most of what
+> this memo flagged (format condition, parser, mapping validation via recall
+> diagnostics). Kept for the record of what was known when.
+
 *2026-06-02. Honest stage-by-stage evaluation of the measurement pipeline, grounded in
 the pilot code and outputs. Goal: capture LLM capability as faithfully as possible before
 scaling to more targets, countries, and models. The oracle (ground truth) is treated as

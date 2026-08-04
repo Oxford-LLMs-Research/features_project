@@ -108,7 +108,7 @@ reason to discard MiniLM main-experiment scores. Selector head-to-heads are soft
 | Priority | Action | Why |
 |----------|--------|-----|
 | Now | Document this verdict; separate mean Δ vs mean \|Δ\| in reporting | Avoid over-reading `conclusions_move` |
-| Next | Ensemble retrieval (union / rank-fuse MiniLM+mpnet top-N → one Nemotron call) | Stabilise candidate pool without new selector runs |
+| Next | Ensemble retrieval (union MiniLM+mpnet top-N → one Nemotron call) — see [ensemble_mapping.md](ensemble_mapping.md) | Stabilise candidate pool without new selector runs |
 | Next | Cross-embedder Jaccard as uncertainty on mapped codes / k | Quantify mapping fragility in results |
 | Optional | Default future runs to `all-mpnet-base-v2` + matching oracle near-dup | Mid-size; slightly higher VoR here |
 | Later | Human mapping validation + recall@20 (already in design) | Ground-truth the unstable stage |

@@ -98,7 +98,7 @@ def _upsert_manifest(**fields) -> None:
 def phase_map(selector_key: str, disambig_key: str, arms=("C",), force=False, limit=None,
               run_tag: str | None = None, map_workers: int = 1):
     """Expand parent + bundled sub_item mapping units; write under subitem_mapping/."""
-    from survey_features.retrieval import make_embed_fn
+    from survey_features.retrieval import make_embed_fn, target_excluded_codes
     from survey_features.subitem_map import expanded_cell_to_record, map_features_with_subitems
     from survey_features.timing import TimingLog, default_timing_path
 
@@ -130,7 +130,7 @@ def phase_map(selector_key: str, disambig_key: str, arms=("C",), force=False, li
     ):
         for i, (survey, target, country) in enumerate(cells):
             svars, emb, vcodes = survey_assets(survey, emb_model)
-            excluded = {target}
+            excluded = target_excluded_codes(target, svars, emb, vcodes, embed)
             ctag = cell_tag(survey, target, country)
 
             if "C" not in arms:
@@ -219,6 +219,7 @@ def phase_score(
         resolve_score_workers,
         resolve_score_xgb_nthread,
         run_score_jobs,
+        score_cols,
     )
 
     unknown = [m for m in k_modes if m not in K_MODE_CODE_FIELDS]
@@ -239,12 +240,7 @@ def phase_score(
     cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
-    cols = [
-        "survey", "target", "country", "condition", "arm", "disambiguator",
-        "embedding_model", "k_mode", "k_spec", "k",
-        "captured_importance", "oracle_acc", "model_acc", "random_acc", "majority",
-        "value_over_random", "cost_of_imperfect", "error",
-    ]
+    cols = score_cols("k_mode")
     dk = PRIMARY_DISAMBIG
 
     specs = []

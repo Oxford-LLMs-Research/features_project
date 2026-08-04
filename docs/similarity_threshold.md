@@ -1,5 +1,10 @@
 # Similarity threshold — separate experiment (stub)
 
+> **Still a design stub — never run.** Partly overtaken: `analysis/mapping_diagnostics.py`
+> now measures retrieval recall@20 directly (0.489 mean on the era-2 oracle), which is
+> the number this experiment was meant to bound. A threshold sweep remains worthwhile
+> before the confirmatory run; recompute recall against the era-3 oracle first.
+
 > **Status:** design stub only. Orthogonal to sub-item expansion.
 > **Not** part of the subitem-mapping v1 run (`docs/subitem_mapping.md`).
 > Suggested artifacts: `outputs/similarity_threshold/`.

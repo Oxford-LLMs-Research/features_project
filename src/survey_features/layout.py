@@ -12,7 +12,7 @@ Target layout (writers prefer new paths; readers dual-resolve new then legacy):
       <selector>/{freetext,extracted,maps}/
       scores_<selector>.csv
       runs/<run_tag>/…             # optional tagged map/score writes
-    experiments/<name>/…           # embedding_sensitivity, subitem_mapping, …
+    experiments/<name>/…           # embedding_sensitivity, ensemble_mapping, subitem_mapping, …
       runs/<run_tag>/…             # optional tagged experiment writes
     grid/                          # legacy JSON prelim (tagged summaries + llm caches)
     analysis/                      # derived digests (alignment, uncertainty, …)
@@ -581,6 +581,27 @@ def subitem_run_dirs(
 
 def similarity_threshold_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
     return experiment_dir("similarity_threshold", outputs_dir)
+
+
+def ensemble_mapping_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    """Root for ensemble retrieval/mapping experiment (isolated from main/)."""
+    return experiment_dir("ensemble_mapping", outputs_dir)
+
+
+def ensemble_run_dirs(
+    fusion_slug: str,
+    selector_key: str,
+    outputs_dir: Path = OUTPUTS_DIR,
+    run_tag: str | None = None,
+) -> tuple[Path, Path]:
+    """(maps_dir, scores_csv) under ensemble_mapping/[runs/<tag>/]<fusion>/<selector>/."""
+    slug = sanitize_model_slug(fusion_slug)
+    root = ensemble_mapping_dir(outputs_dir)
+    if run_tag:
+        base = root / "runs" / sanitize_model_slug(run_tag) / slug / selector_key
+    else:
+        base = root / slug / selector_key
+    return base / "maps", base / f"scores_{selector_key}.csv"
 
 
 # ── Cell helpers ──────────────────────────────────────────────────────────────
