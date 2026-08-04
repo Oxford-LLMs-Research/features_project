@@ -68,10 +68,10 @@ Per-survey value-over-random (both models track closely):
 ### 2b. Regenerate artifacts (run, in order, with miniconda `python`)
 
 ```
-python analysis/prelim_results_stats.py > outputs/_prelim_stats.json   # was missing
-python analysis/build_current_state_report.py                          # tables → paper/generated_current_state/
-python analysis/build_flagship_appendix.py                             # flagship cells still exist on disk
-python analysis/build_paper_figures.py                                 # figures → paper/figures/
+python archive/prelim_results_stats.py > outputs/_prelim_stats.json   # was missing
+python paper/scripts/build_current_state_report.py                     # tables → paper/generated_current_state/
+python paper/scripts/build_flagship_appendix.py                        # flagship cells still exist on disk
+python paper/scripts/build_paper_figures.py                            # figures → paper/figures/
 ```
 
 ### 2c. `current_state.tex` prose fixes (canonical doc)

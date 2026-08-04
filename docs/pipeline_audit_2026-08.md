@@ -3,8 +3,9 @@
 **Status (2026-08-03): complete.** All findings verified against artifacts on disk; Tier-0
 fixes implemented; the log-loss oracle re-run finished (89/89 cells, 0 failures), the
 leakage screen was re-run against it, and both selectors were re-scored. Superseded caches
-are archived at `outputs/cache/cells_accuracy_v1/` and
-`cache/audits/leakage_audit_accuracy_v1.csv`.
+(cells + `leakage_audit_accuracy_v1.csv`) are archived out of tree at
+`C:\Users\murrn\cursor\features_project_snapshots\era1_cells_accuracy_v1_*.zip`
+(see MANIFEST.md there to restore).
 
 Outstanding: cluster-bootstrap CIs (`analysis/freetext_main_results.py` predates the
 textbook columns — read it before running) and era-3 mapping recall.
@@ -159,7 +160,7 @@ selector would ever pick**, making the null weaker than matched and inflating
 "the model knows what predicts *this* attitude". Beating a uniform draw from ~240 survey
 variables only shows it knows *something*: any competent researcher writes down age,
 education, income, gender, religiosity, ideology without reading the question and beats
-that null comfortably. `docs/framing_and_comparisons.md` anticipates the reviewer
+that null comfortably. `paper/memos/framing_and_comparisons.md` anticipates the reviewer
 objection ("why not just use the oracle?") and, as the pipeline stood, could not answer it.
 
 **Fix (implemented): a frozen textbook baseline.** `config.TEXTBOOK_CONSTRUCTS` is a
@@ -205,7 +206,7 @@ are −1 Don't know, −2 No answer, −3 Not applicable, −4 Not asked, −5 M
 single flat tuple mixing "refused" and "don't know" with "not asked" and "inap" — never
 even ran in the oracle, which called the function without `metadata`. Meanwhile
 `score_cell`/`evaluation` applied no cleaning at all, so −3 "Not applicable" reached
-XGBoost as a value on the scale. The deprecated `scripts/run_grid.py` was the only path
+XGBoost as a value on the scale. The deprecated `archive/run_grid.py` was the only path
 passing metadata: the legacy code was cleaner than the current one.
 
 Don't-know and refusal are answers the respondent chose to give and are as interesting as
@@ -532,15 +533,15 @@ way — the only honest lever left there is dropping arms A/B.
 1. `docs/experiments_index.md` lists ensemble mapping as "run pending" while
    `docs/ensemble_mapping.md` carries full v1 results and commit `42f28e5` documents them.
 2. **Test 2 sign contradiction — the most consequential ambiguity in the corpus.**
-   `alignment_findings.md` / `uncertainty_findings.md` report adaptation as a clean null
+   `paper/memos/alignment_findings.md` / `paper/memos/uncertainty_findings.md` report adaptation as a clean null
    (−0.002, "every interval straddles zero"); the free-text results report Kimi +0.023
    [0.001, 0.045]. Both are true of their own runs, neither carries a supersession banner,
    and the index lists both as "Complete" with no ordering. T2 is the designated signature
    result.
-3. `framing_and_comparisons.md` argues "the LLM is weak as an importance estimator" from
+3. `paper/memos/framing_and_comparisons.md` argues "the LLM is weak as an importance estimator" from
    the superseded JSON numbers (VoR 0.025, ~half beat random) without saying so; free text
    gives 0.054–0.063 and 76–78%.
-4. `prelim_findings.md` describes the 5×5 run `RECONCILIATION_PLAN.md` records as
+4. `paper/memos/prelim_findings.md` describes the 5×5 run `RECONCILIATION_PLAN.md` records as
    unrecoverable; the index still points to it as the results memo.
 5. `subitem_mapping.md` still carries the pre-lock hard rule ("never append expanded-k
    rows / main paper numbers stay parent-only"). Dual-layer stays per the 2026-07-31
@@ -566,7 +567,7 @@ way — the only honest lever left there is dropping arms A/B.
 | tests | 14 → 75; new coverage for the metric functions that feed headline numbers and for the missing-code classifier |
 
 **Re-runs this invalidates.** Every cached `oracle.csv` (archived to
-`outputs/cache/cells_accuracy_v1/`), the leakage/degeneracy screen, all `scores_*.csv`
+`features_project_snapshots/era1_cells_accuracy_v1_*.zip`), the leakage/degeneracy screen, all `scores_*.csv`
 (auto-archived on schema change), and every downstream table.
 
 ## A10. Where the grid goes: 89 → 47, and why a pre-screen belongs before the oracle

@@ -28,7 +28,13 @@ import pandas as pd
 from survey_features.config import OUTPUTS_DIR, ROOT
 from survey_features.evaluation import evaluate_feature_set, single_random_draw_result
 from survey_features.layout import cell_dir, genuine_cells, oracle_csv_path
-from survey_features.metrics import captured_importance_df, stable_seed
+from survey_features.metrics import (
+    captured_importance_df,
+    load_oracle_train_index,
+    oracle_topk_codes,
+    rank_score_from_frame,
+    stable_seed,
+)
 from survey_features.surveys import (
     SURVEY_COUNTRY_COL,
     build_country_code_map,
@@ -103,16 +109,29 @@ def _baselines_path(target: str, country: str, outputs_dir: Path = OUTPUTS_DIR) 
     return cell_dir(target, country, outputs_dir) / "baselines.json"
 
 
-def baseline_fingerprint(pool: list[str], textbook: list[str], n_draws: int) -> str:
+def baseline_fingerprint(
+    pool: list[str],
+    textbook: list[str],
+    n_draws: int,
+    train_index: list | None = None,
+) -> str:
     """Identity of the inputs a cached baseline depends on.
 
     Anything that changes what a baseline MEANS belongs in here (onboarding.md #4).
     """
+    if train_index:
+        train_fp = hashlib.blake2b(
+            ",".join(map(str, train_index)).encode("utf-8"), digest_size=4
+        ).hexdigest()
+        train_key = f"train={len(train_index)}:{train_fp}"
+    else:
+        train_key = "train=none"
     key = "|".join([
         str(len(pool)),
         ",".join(sorted(pool)[:64]),   # pool identity; prefix is enough with the length
         ",".join(textbook),            # order matters: fixed-k takes a prefix
         f"draws={n_draws}",
+        train_key,
     ])
     return hashlib.blake2b(key.encode("utf-8"), digest_size=8).hexdigest()
 
@@ -230,12 +249,17 @@ def _oracle_table(survey: str, outputs_dir: Path):
             continue
         df = pd.read_csv(p)
         code = cmap.get(c, c)
+        has_select = "importance_select" in df.columns
+        has_score = "importance_score" in df.columns
         for _, r in df.iterrows():
+            mean_v = r["importance_mean"]
             rows.append({
                 "target_variable": t,
                 "country": code,
                 "feature_variable": r["feature_variable"],
-                "importance_mean": r["importance_mean"],
+                "importance_mean": mean_v,
+                "importance_select": r["importance_select"] if has_select else mean_v,
+                "importance_score": r["importance_score"] if has_score else mean_v,
             })
     result = (pd.DataFrame(rows), ccol, cmap)
     _oracle_cache[survey] = result
@@ -275,10 +299,16 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
     # demographics, and the baseline must not predict the target from itself.
     textbook = [c for c in textbook_codes(survey, outputs_dir) if c != target]
 
+    # Fit-split labels: confine every arm's CV to rows the oracle ranking never saw.
+    train_index = load_oracle_train_index(target, country, outputs_dir)
+
     def oracle_topk(t, country_code, k):
         sub = oracle_df[
             (oracle_df["target_variable"] == t) & (oracle_df["country"] == country_code)
         ]
+        rank, _score = rank_score_from_frame(sub)
+        if rank:
+            return oracle_topk_codes(rank, k)
         return (
             sub.sort_values("importance_mean", ascending=False)["feature_variable"]
             .head(k)
@@ -287,9 +317,9 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
 
     # Baselines depend only on (cell, k) — never on which model is being scored — so
     # they are cached on disk and shared across every selector in the zoo. They DO
-    # depend on the oracle ranking, the random pool and the textbook set, so the cache
-    # carries a fingerprint of those and is discarded when any of them changes.
-    fingerprint = baseline_fingerprint(pool, textbook, n_draws)
+    # depend on the oracle ranking, the random pool, the textbook set, and the eval
+    # row regime (train_index), so the cache carries a fingerprint of those.
+    fingerprint = baseline_fingerprint(pool, textbook, n_draws, train_index=train_index)
     baselines = load_cell_baselines(target, country, outputs_dir)
     if baselines.get("_fingerprint") != fingerprint:
         baselines = {"_fingerprint": fingerprint}
@@ -305,6 +335,7 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
         if hit is None:
             hit = evaluate_feature_set(
                 country_data, target, feature_codes, nthread=nthread,
+                row_index=train_index,
             )
             eval_cache[key] = hit
         return hit
@@ -323,7 +354,7 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
         draws = [
             single_random_draw_result(
                 country_data, target, pool, k, stable_seed(target, country, k, i),
-                nthread=nthread,
+                nthread=nthread, row_index=train_index,
             )
             for i in range(n_draws)
         ]

@@ -11,7 +11,7 @@ CURRENT path: ``retrieve_candidates`` — per-feature top-N (default 20) for the
 per-feature disambiguator (survey_features.disambig.map_features).
 
 LEGACY path: ``map_features_to_variables`` — batch top-k (default 5) with target/leakage
-exclusion, feeding the pilot-1 shortlist disambiguator (scripts/run_grid.py).
+exclusion, feeding the pilot-1 shortlist disambiguator (archive/run_grid.py).
 """
 
 from __future__ import annotations

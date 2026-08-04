@@ -18,7 +18,13 @@ ROOT = Path(os.environ.get("SURVEY_FEATURES_ROOT") or Path(__file__).resolve().p
 # .env at the repo root holds LLM endpoints/keys and DATA_CONFIG_PATH (see .env.example).
 load_dotenv(ROOT / ".env")
 
-OUTPUTS_DIR = ROOT / "outputs"
+# Outputs root: overridable so the artifact tree can live outside the checkout.
+# One .env line relocates everything; default is the historical in-repo location.
+OUTPUTS_DIR = Path(os.environ.get("SURVEY_FEATURES_OUTPUTS") or (ROOT / "outputs"))
+
+# Paper / writing workspace (gitignored): LaTeX, figures, memos, local builders.
+# Mirrors OUTPUTS_DIR — local-only zone under the project folder by default.
+PAPER_DIR = Path(os.environ.get("SURVEY_FEATURES_PAPER") or (ROOT / "paper"))
 
 
 # ── Model registry ────────────────────────────────────────────────────────────
@@ -44,7 +50,7 @@ DISAMBIGUATORS: dict[str, str] = {
     "qwen235b": "Qwen/Qwen3-235B-A22B-Instruct-2507",
 }
 
-# Fixed small model used for disambiguation in the legacy JSON grid (run_grid.py).
+# Fixed small model used for disambiguation in the legacy JSON grid (archive/run_grid.py).
 # Keeping this constant ensures differences in final mapped variables are attributable
 # only to feature-selection quality, not disambiguation quality.
 DISAMBIG_MODEL = os.environ.get("DISAMBIG_MODEL", "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B")

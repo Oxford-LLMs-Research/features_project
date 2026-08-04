@@ -1,4 +1,7 @@
-"""Emit JSON stats for analysis/prelim_findings.md from outputs/grid_summary__*.csv."""
+"""Emit JSON stats for paper/memos/prelim_findings.md from outputs/grid_summary__*.csv.
+
+Run:  python archive/prelim_results_stats.py
+"""
 from __future__ import annotations
 
 import json
@@ -11,7 +14,9 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
-OUT = ROOT / "outputs"
+from survey_features.config import OUTPUTS_DIR  # noqa: E402
+
+OUT = OUTPUTS_DIR
 
 
 def main() -> None:
@@ -193,6 +198,13 @@ def main() -> None:
     }
 
     json.dump(payload, sys.stdout, indent=2)
+
+    # Also materialize the artifact docs point at, so no shell redirect is needed.
+    from survey_features.layout import analysis_write_dir
+
+    out_path = analysis_write_dir(OUT) / "_prelim_stats.json"
+    out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    print(f"\nWrote {out_path}", file=sys.stderr)
 
 
 if __name__ == "__main__":

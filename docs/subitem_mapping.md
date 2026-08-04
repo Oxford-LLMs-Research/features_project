@@ -14,7 +14,7 @@
 > similarity-threshold sweeps into this run (see `docs/similarity_threshold.md`).
 > Artifacts live under `outputs/subitem_mapping/` and never overwrite
 > `outputs/format_pilot/`.
-> **Results appendix:** `docs/subitem_mapping_results.md`.
+> **Results appendix:** `paper/memos/subitem_mapping_results.md` (local).
 
 ## Question
 

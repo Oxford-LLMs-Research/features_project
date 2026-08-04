@@ -47,7 +47,7 @@ from survey_features.config import (  # noqa: E402
     SELECTORS,
 )
 from survey_features.layout import selector_dirs  # noqa: E402
-from survey_features.metrics import jaccard, load_oracle_importance  # noqa: E402
+from survey_features.metrics import jaccard, load_oracle_splits, oracle_topk_codes  # noqa: E402
 from survey_features.retrieval import (  # noqa: E402
     load_or_build_survey_embeddings,
     make_embed_fn,
@@ -106,11 +106,11 @@ def analyse(selector: str, disambig: str, embedding_model: str,
         pools = [[c for c in pool if c["similarity"] >= MIN_SIM] for pool in pools]
 
         # ── 1. retrieval recall of the oracle's top-k ─────────────────────────
-        imp = load_oracle_importance(target, country)
+        rank, score = load_oracle_splits(target, country)
         retrieved = {c["var_code"] for pool in pools for c in pool}
-        if imp:
-            pos = {c: v for c, v in imp.items() if v > 0}
-            oracle_top = [c for c, _ in sorted(pos.items(), key=lambda kv: -kv[1])][:top_k]
+        if rank:
+            pos_rank = {c: v for c, v in rank.items() if score.get(c, 0.0) > 0}
+            oracle_top = oracle_topk_codes(pos_rank, top_k)
             if oracle_top:
                 hit = [c for c in oracle_top if c in retrieved]
                 mapped = set(rec.get("mapped_codes") or [])

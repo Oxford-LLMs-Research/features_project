@@ -61,12 +61,13 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
-OUT = ROOT / "outputs"
-
+from survey_features.config import OUTPUTS_DIR, PAPER_DIR  # noqa: E402
 from survey_features.layout import (  # noqa: E402
     cache_cells_dir,
     leakage_audit_write_paths,
 )
+
+OUT = OUTPUTS_DIR
 
 
 def load_target_detail() -> dict[str, dict]:
@@ -344,7 +345,7 @@ def main() -> None:
 
 
 def write_tex(rows: pd.DataFrame) -> None:
-    gen = ROOT / "paper" / "generated_current_state"
+    gen = PAPER_DIR / "generated_current_state"
     gen.mkdir(parents=True, exist_ok=True)
 
     def esc(x):

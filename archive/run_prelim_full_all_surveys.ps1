@@ -61,7 +61,7 @@ $surveys = @(
 
 foreach ($s in $surveys) {
     Invoke-PythonStep "full_pipeline_$s" @(
-        "scripts/run_grid.py",
+        "archive/run_grid.py",
         "--survey", $s,
         "--from-manifest", $manifest,
         "--stop-after", "full",
@@ -70,15 +70,15 @@ foreach ($s in $surveys) {
 }
 
 Invoke-PythonStep "aggregate_summary" @(
-    "analysis/prelim_aggregate.py"
+    "archive/prelim_aggregate.py"
 )
 
 Invoke-PythonStep "build_paper_figures" @(
-    "analysis/build_paper_figures.py"
+    "paper/scripts/build_paper_figures.py"
 )
 
 Invoke-PythonStep "build_current_state_report" @(
-    "analysis/build_current_state_report.py"
+    "paper/scripts/build_current_state_report.py"
 )
 
 "`nPrelim full pipeline finished $(Get-Date -Format o)" | Tee-Object -FilePath $log -Append

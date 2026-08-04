@@ -1,6 +1,6 @@
 """
-LEGACY grid runner (pilot-1, strict-JSON elicitation) — kept runnable so the paper's
-appendix results stay reproducible. The current pipeline is scripts/run_main.py.
+LEGACY grid runner (pilot-1, strict-JSON elicitation) — archived for appendix
+reproducibility. The current pipeline is scripts/run_main.py.
 
 Runs any subset of targets × countries end-to-end:
   1. Oracle permutation importances (AutoGluon; cached, model-independent)
@@ -16,10 +16,10 @@ Artifact paths (via survey_features.layout; dual-resolves legacy locations):
   outputs/grid/llm_usage__<survey>__<run_tag>.jsonl
 
 Usage:
-    python scripts/run_grid.py                                             # full WVS 5×5 grid
-    python scripts/run_grid.py --targets Q164 --countries Germany         # single WVS cell
-    python scripts/run_grid.py --survey afrobarometer --targets Q1 --countries Nigeria Ghana
-    python scripts/run_grid.py --survey afrobarometer --list-countries    # show available countries
+    python archive/run_grid.py                                             # full WVS 5×5 grid
+    python archive/run_grid.py --targets Q164 --countries Germany         # single WVS cell
+    python archive/run_grid.py --survey afrobarometer --targets Q1 --countries Nigeria Ghana
+    python archive/run_grid.py --survey afrobarometer --list-countries    # show available countries
 
 Country names and admin columns are derived automatically from the survey
 metadata — no hardcoding needed. Use --list-countries to see valid names for

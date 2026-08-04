@@ -3,7 +3,7 @@ Summarise outputs/grid_summary__*.csv files from multi-survey prelim runs.
 
 Usage (from repo root):
 
-    python analysis/prelim_aggregate.py
+    python archive/prelim_aggregate.py
 """
 
 from __future__ import annotations
@@ -16,7 +16,9 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
-OUT = ROOT / "outputs"
+from survey_features.config import OUTPUTS_DIR  # noqa: E402
+
+OUT = OUTPUTS_DIR
 
 
 def main():

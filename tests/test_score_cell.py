@@ -59,6 +59,18 @@ def test_fingerprint_changes_when_the_target_is_dropped_from_the_textbook_set():
     assert baseline_fingerprint(POOL, full, 10) != baseline_fingerprint(POOL, filtered, 10)
 
 
+def test_fingerprint_changes_when_train_index_appears():
+    assert baseline_fingerprint(POOL, TEXTBOOK, 10) != baseline_fingerprint(
+        POOL, TEXTBOOK, 10, train_index=[1, 2, 3]
+    )
+
+
+def test_fingerprint_changes_when_train_index_changes():
+    assert baseline_fingerprint(POOL, TEXTBOOK, 10, train_index=[1, 2]) != baseline_fingerprint(
+        POOL, TEXTBOOK, 10, train_index=[1, 2, 3]
+    )
+
+
 # ── score column schema ───────────────────────────────────────────────────────
 
 def test_score_cols_defaults_to_the_canonical_schema():

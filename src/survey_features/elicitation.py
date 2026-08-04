@@ -7,7 +7,7 @@ is cached verbatim and later parsed by ``survey_features.extraction`` (fixed ext
 model). No structure is imposed on the selector's output.
 
 LEGACY path (strict JSON, pilot-1): ``run_single`` / ``run_batch`` demand a JSON list
-and parse it directly. Kept runnable for appendix reproducibility (scripts/run_grid.py).
+and parse it directly. Kept runnable for appendix reproducibility (archive/run_grid.py).
 """
 
 from __future__ import annotations

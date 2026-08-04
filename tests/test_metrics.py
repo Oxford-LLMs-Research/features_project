@@ -91,6 +91,17 @@ def test_random_captured_none_cases():
     assert random_captured_mean({"A": 0.0, "B": 0.0}, k=1, seed=1) is None  # denom 0
 
 
+def test_random_captured_uses_rank_for_denom():
+    """When rank and score diverge, denom follows select ranking."""
+    rank = {"A": 1.0, "B": 0.9, "C": 0.1}
+    score = {"A": 0.1, "B": 0.1, "C": 10.0}
+    # k=2 denom = score(A)+score(B)=0.2; any 2-subset including C scores high
+    v = random_captured_mean(score, k=2, seed=1, draws=50, rank=rank)
+    assert v is not None
+    # Cursed denom would be ~10.1 and drive the mean near 0; honest denom is 0.2.
+    assert v > 1.0  # random pairs that include C exceed the honest top-2 mass
+
+
 # ── cluster_bootstrap_ci ──────────────────────────────────────────────────────
 
 def _df(vals, clusters):

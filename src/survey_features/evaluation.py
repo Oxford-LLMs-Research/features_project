@@ -12,6 +12,8 @@ contrast is matched-k within a cell.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import numpy as np
 import pandas as pd
 import xgboost as xgb
@@ -22,6 +24,30 @@ from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 
 REGRESSION_TYPES = {"ordinal", "continuous"}
+
+
+def _normalize_row_label(x) -> tuple:
+    """Canonical form so int / int-like str labels from oracle_meta match the frame index."""
+    if isinstance(x, (bool, np.bool_)):
+        return ("s", str(x))
+    if isinstance(x, (int, np.integer)):
+        return ("i", int(x))
+    if isinstance(x, float) and np.isfinite(x) and float(x).is_integer():
+        return ("i", int(x))
+    s = str(x)
+    try:
+        return ("i", int(s))
+    except ValueError:
+        return ("s", s)
+
+
+def _row_index_mask(index: pd.Index, row_index: Sequence) -> np.ndarray:
+    wanted = {_normalize_row_label(i) for i in row_index}
+    return np.fromiter(
+        (_normalize_row_label(i) in wanted for i in index),
+        dtype=bool,
+        count=len(index),
+    )
 
 # Shared tree hyperparameters — identical between the classifier and the regressor so the
 # only thing the measurement level changes is the objective and the score.
@@ -60,6 +86,7 @@ def evaluate_feature_set(
     nthread: int | None = None,
     target_type: str | None = None,
     target_valid_range: tuple[float, float] | None = None,
+    row_index: Sequence | None = None,
 ) -> dict:
     """
     Train XGBoost on a specific feature set and return CV accuracy.
@@ -70,6 +97,8 @@ def evaluate_feature_set(
         feature_vars: list of feature column names to use
         n_splits: number of CV folds
         random_state: random seed
+        row_index: optional row labels (e.g. oracle_meta train_index) that restrict
+            CV to the oracle fit split so selection never saw these eval rows
 
     Returns:
         dict with accuracy stats
@@ -77,6 +106,14 @@ def evaluate_feature_set(
     # Drop rows with missing target
     valid = data[target_var].notna()
     df = data.loc[valid].copy()
+
+    if row_index is not None:
+        df = df.loc[_row_index_mask(df.index, row_index)]
+        if len(df) < max(n_splits, 2):
+            return {
+                "accuracy_mean": None, "accuracy_std": None, "n_features": 0,
+                "n_samples": len(df), "error": "train_index too thin for CV",
+            }
 
     # Defensive: drop any duplicated columns in the input frame (WVS loader has
     # been known to produce them) so XGBoost's unique-feature-name check holds.
@@ -213,12 +250,15 @@ def single_random_draw_result(
     seed: int,
     nthread: int | None = 1,
     target_type: str | None = None,
+    row_index: Sequence | None = None,
 ) -> dict:
     """One random-k draw evaluated with the same downstream estimator (full result)."""
     rng = np.random.RandomState(seed)
     random_vars = list(rng.choice(all_feature_pool, size=min(k, len(all_feature_pool)), replace=False))
-    return evaluate_feature_set(country_data, target_var, random_vars,
-                                nthread=nthread, target_type=target_type)
+    return evaluate_feature_set(
+        country_data, target_var, random_vars,
+        nthread=nthread, target_type=target_type, row_index=row_index,
+    )
 
 
 def single_random_draw(
@@ -251,6 +291,7 @@ def run_comparison(
     random_state: int = 42,
     n_jobs: int = -1,
     eval_xgb_nthread: int | None = None,
+    row_index: Sequence | None = None,
 ) -> dict:
     """
     Compare oracle, model-selected, and random feature sets.
@@ -264,14 +305,18 @@ def run_comparison(
             (None entries = unmapped, will be filtered out)
         oracle_importances: DataFrame with columns
             [target_variable, country, feature_variable, importance_mean]
+            (prefer importance_select for ranking when present)
         n_random_draws: number of random feature draws for baseline
         all_feature_pool: list of all available feature codes for random draws.
             If None, uses all columns except target and country.
         random_state: random seed
+        row_index: optional oracle fit-split labels passed to every arm's CV
 
     Returns:
         dict with results for oracle, model, and random conditions.
     """
+    from .metrics import oracle_topk_codes, rank_score_from_frame
+
     # Filter to country
     country_data = data[data[country_col] == country_code].copy()
 
@@ -298,30 +343,44 @@ def run_comparison(
             "k_mapped": k_mapped,
         }
 
-    # Oracle top-k (matched to model's k)
-    oracle_df = oracle_importances[
+    # Oracle top-k: rank on select split when present, else importance_mean
+    oracle_sub = oracle_importances[
         (oracle_importances["target_variable"] == target_var)
         & (oracle_importances["country"] == country_code)
-    ].sort_values("importance_mean", ascending=False)
-    oracle_vars = oracle_df["feature_variable"].head(k).tolist()
+    ]
+    rank, _score = rank_score_from_frame(oracle_sub)
+    if rank:
+        oracle_vars = [c for c in oracle_topk_codes(rank, k) if c in pool_set][:k]
+    else:
+        oracle_vars = (
+            oracle_sub.sort_values("importance_mean", ascending=False)["feature_variable"]
+            .head(k).tolist()
+        )
 
     # Evaluate oracle
     oracle_result = evaluate_feature_set(
-        country_data, target_var, oracle_vars, nthread=eval_xgb_nthread
+        country_data, target_var, oracle_vars, nthread=eval_xgb_nthread,
+        row_index=row_index,
     )
 
     # Evaluate model-selected
     model_result = evaluate_feature_set(
-        country_data, target_var, model_vars, nthread=eval_xgb_nthread
+        country_data, target_var, model_vars, nthread=eval_xgb_nthread,
+        row_index=row_index,
     )
 
     # Evaluate random-k (averaged over draws, parallelised across cores)
     seeds = [random_state + i for i in range(n_random_draws)]
     raw = Parallel(n_jobs=n_jobs)(
-        delayed(single_random_draw)(country_data, target_var, all_feature_pool, k, s)
+        delayed(single_random_draw_result)(
+            country_data, target_var, all_feature_pool, k, s,
+            nthread=eval_xgb_nthread, row_index=row_index,
+        )
         for s in seeds
     )
-    random_scores = [s for s in raw if s is not None]
+    random_scores = [
+        d["accuracy_mean"] for d in raw if d.get("accuracy_mean") is not None
+    ]
 
     random_result = {
         "accuracy_mean": round(float(np.mean(random_scores)), 4) if random_scores else None,

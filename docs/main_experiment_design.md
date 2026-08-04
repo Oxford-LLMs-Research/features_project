@@ -40,7 +40,7 @@ converts "conditional on mapping quality" into a measured number.
   continuity baseline / ablation; kimi v1 showed collapse is real (~29% parents bundled,
   parent↔subitem Jaccard ~0.16, recovery when parent is `none` in ~half of bundled cells)
   while matched-k VoR barely moves — so expansion is about **faithful construct coverage**,
-  not a secret quality lift ([subitem_mapping_results.md](subitem_mapping_results.md)).
+  not a secret quality lift (`paper/memos/subitem_mapping_results.md`).
 - **Oracle** = AutoGluon permutation importance (single split, test 0.2, 5 shuffle sets);
   downstream evaluator = fixed XGBoost, 5-fold CV, matched-k.
 - **Leakage + degeneracy screen** runs as a *design-stage* gate (pilot: 6 leakage + 31

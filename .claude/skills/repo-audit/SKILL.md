@@ -74,6 +74,9 @@ Targets (same set in every mode):
 - `outputs/logs/`: files older than 7 days; 0-byte or obvious failed-start stubs.
   **Never hard-delete.** Soft-delete only if the basename is **not** mentioned in any
   `docs/**/*.md` or `*.md` at repo root (grep the basename). If grep is ambiguous → propose.
+- Logs sitting outside `outputs/logs/` (shell redirects in `main/`, `experiments/*`, or
+  the repo root): propose relocation to `outputs/logs/<context>/` (e.g.
+  `logs/experiments/<name>/`) — logs never live next to data.
 - `outputs/audits/`: reports beyond the newest 14 → soft-delete (keep today's draft).
 
 **Soft-delete procedure** (when mode is `apply-clean` or `apply-all`):
@@ -140,6 +143,11 @@ message. Still write the report and walk-through.
 - Overlapping-purpose files: reference counts via grep; propose keep/merge/archive.
 - Data files in code dirs; spent one-shot scripts → propose `archive/`.
 - Large stray files at root.
+- Superseded-era artifact trees (an era-superseding event in `experiments_index.md`, or
+  an artifact dir no active-era code/doc references): propose zip-to-snapshots — zip to
+  `C:\Users\murrn\cursor\features_project_snapshots\` as `<era>_<content>_<date>.zip`,
+  add a `MANIFEST.md` entry (file count, bytes, md5, restore command), verify the zip,
+  THEN soft-delete the originals. Propose only; never auto-apply.
 
 ## Phase 5 — Report
 
@@ -189,8 +197,10 @@ without bound — if proposing an add, also propose one obsolete line to remove.
 
 ## Guardrails
 
-- NEVER delete (hard or soft) anything under `outputs/cache/cells*` — era archives are
-  provenance of published numbers.
+- NEVER delete (hard or soft) `outputs/cache/cells/` — the current era, provenance of
+  published numbers. Superseded `cells_*` era dirs may be soft-deleted ONLY when a
+  verified zip exists in `C:\Users\murrn\cursor\features_project_snapshots\` (check its
+  `MANIFEST.md`); propose, never auto-apply.
 - NEVER touch `.env` or credentials.
 - NEVER hard-delete logs, audits, or anything under `outputs/` except emptying paths
   already inside `outputs/.trash/` when the user explicitly asks to purge trash.

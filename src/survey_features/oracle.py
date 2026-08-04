@@ -39,8 +39,9 @@ estimates). Measured: two honest reads of a cell agree on only ~1/3 of their top
 so the curse is large, not hypothetical. The by-product `oracle_ceiling@k` =
 V2-mass(top-k chosen on V1) / V2-mass(top-k on V2) calibrates what a data-driven
 oracle achieves when it cannot cheat — report the LLM against that, not against 1.0.
-`train_index` in the meta lets the downstream evaluator stay on T, so the oracle never
-selects on rows the evaluation later scores.
+`train_index` in the meta is consumed by the downstream evaluator (`evaluate_feature_set`
+/ `score_cell`) so every arm's CV stays on T and the oracle never selects on rows the
+evaluation later scores.
 
 Output contract
 ---------------
@@ -59,18 +60,16 @@ Cache contract
 --------------
 When run via scripts/compute_oracle.py, results are saved to:
   outputs/cache/cells/<target>_<country>/oracle.csv  (+ oracle_meta.json)
-and are picked up by scripts/run_grid.py (which skips oracle computation if the
+and are picked up by archive/run_grid.py (which skips oracle computation if the
 file already exists).
 """
 
 from __future__ import annotations
 
-import argparse
-import json
 import os
 import shutil
 import tempfile
-import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import numpy as np
@@ -79,11 +78,8 @@ from autogluon.tabular import TabularPredictor
 from sklearn.model_selection import train_test_split
 
 from .config import OUTPUTS_DIR
-from .layout import cell_dir as layout_cell_dir, oracle_csv_path, tmp_dir
+from .layout import tmp_dir
 from .surveys import (
-    SURVEY_COUNTRY_COL,
-    build_admin_cols,
-    build_country_code_map,
     clean_question_columns,
     detect_target_type,
     _code_variants,
@@ -92,7 +88,6 @@ from .surveys import (
     substantive_numeric_mask,
     to_ordinal_codes,
     flatten_metadata,
-    load_survey,
 )
 from .feature_pool import (  # noqa: F401  (re-exported; moved 2026-08)
     build_feature_pool,
@@ -111,7 +106,7 @@ def _prewarm_autogluon_imports() -> None:
 
     AutoGluon lazy-imports model implementations (and their callbacks /
     hyperparameter helpers) the first time each model is fit. When
-    run_grid.py uses a ThreadPoolExecutor to fit multiple cells concurrently,
+    archive/run_grid.py uses a ThreadPoolExecutor to fit multiple cells concurrently,
     two worker threads can race the first-ever import of the same submodule;
     one thread then sees a partially-initialised module and fails with
     'cannot import name ... (most likely due to a circular import)', causing
@@ -177,10 +172,7 @@ AUTOGLUON_RUNTIME_MODES = {
 ENFORCE_IDENTICAL_FEATURE_POOL = False
 MAX_MISSINGNESS_THRESHOLD = 0.2
 MIN_NORMALIZED_FEATURE_ENTROPY = 0.0
-
 MIN_CLASS_COUNT = 5
-
-
 
 
 def load_similarity_model(similarity_threshold: float) -> object | None:
@@ -209,6 +201,41 @@ def _resolve_num_gpus(requested: int) -> int:
         return int(requested)
     os.environ["CUDA_VISIBLE_DEVICES"] = ""
     return 0
+
+
+@contextmanager
+def _gpu_scope(requested: int):
+    """Yield a resolved GPU count; blank CUDA_VISIBLE_DEVICES only for the fit scope."""
+    if requested and requested > 0:
+        yield int(requested)
+        return
+    prev = os.environ.get("CUDA_VISIBLE_DEVICES")
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""
+    try:
+        yield 0
+    finally:
+        if prev is None:
+            os.environ.pop("CUDA_VISIBLE_DEVICES", None)
+        else:
+            os.environ["CUDA_VISIBLE_DEVICES"] = prev
+
+
+@contextmanager
+def _tmp_scope(tmp_root: Path):
+    """Point TMP/TEMP/TMPDIR at tmp_root for the fit, then restore prior values."""
+    tmp_root.mkdir(parents=True, exist_ok=True)
+    keys = ("TMPDIR", "TEMP", "TMP")
+    prev = {k: os.environ.get(k) for k in keys}
+    for k in keys:
+        os.environ[k] = str(tmp_root)
+    try:
+        yield tmp_root
+    finally:
+        for k, v in prev.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
 
 
 def _coerce_target(y_raw: pd.Series) -> pd.Series:
@@ -493,15 +520,16 @@ def _assemble_outputs(fi_select, fi_score, *, target_var, country_code,
                 "importance_select_std", "importance_score_std"):
         oracle_df[col] = pd.to_numeric(oracle_df[col], errors="coerce").fillna(0.0)
 
-    # `importance_mean` / `importance_std` stay as aliases of the SCORE split so every
-    # existing reader (metrics.load_oracle_importance, score_cell, the analysis scripts)
-    # keeps working unchanged and picks up the unbiased values automatically.
+    # `importance_mean` / `importance_std` stay as aliases of the SCORE split so value
+    # readers pick up the unbiased estimates. Ranking readers (top-k, captured-importance
+    # denom) must use importance_select — see metrics.captured_importance.
     oracle_df["importance_mean"] = oracle_df["importance_score"]
     oracle_df["importance_std"] = oracle_df["importance_score_std"]
     oracle_df.insert(0, "country", country_code)
     oracle_df.insert(0, "target_variable", target_var)
     oracle_df["majority_baseline"] = round(float(majority_baseline), 4)
-    oracle_df = oracle_df.sort_values("importance_score", ascending=False).reset_index(drop=True)
+    # Default CSV order = select ranking so head(k) / naive readers get the honest top-k.
+    oracle_df = oracle_df.sort_values("importance_select", ascending=False).reset_index(drop=True)
 
     sel = oracle_df.set_index("feature_variable")["importance_select"]
     sco = oracle_df.set_index("feature_variable")["importance_score"]
@@ -519,7 +547,7 @@ def _assemble_outputs(fi_select, fi_score, *, target_var, country_code,
         "n_positive_score": int((oracle_df["importance_score"] > 0).sum()),
         "majority_baseline": round(float(majority_baseline), 4),
         "oracle_ceiling": {str(k): oracle_ceiling(sel, sco, k) for k in CEILING_KS},
-        # Row labels of the fit split: the downstream evaluator restricts its CV to
+        # Row labels of the fit split: score_cell / evaluate_feature_set restrict CV to
         # these so no arm is scored on rows the oracle's ranking already saw.
         # NOTE: train_idx is positional within the filtered y, whose pandas index still
         # carries the original country_data labels - so index through y.
@@ -617,22 +645,21 @@ def compute_oracle(
 
     # 5. One fit, two importance passes. (Temp dir avoids file locks on synced folders.)
     preset, time_limit = resolve_runtime_config(runtime_mode, autogluon_time_limit)
-    num_gpus = _resolve_num_gpus(num_gpus)
     if tmp_root is None:
         tmp_root = tmp_dir(OUTPUTS_DIR)
-    tmp_root = _set_local_tmp_dir(tmp_root)
-    run_output_dir = Path(tempfile.mkdtemp(prefix="autogluon_oracle_", dir=str(tmp_root)))
-    try:
-        fi_select, fi_score = _fit_and_rank(
-            train_data, select_data, score_data, run_output_dir,
-            problem_type=problem_type, resolved_metric=resolved_metric,
-            preset=preset, time_limit=time_limit,
-            num_gpus=num_gpus, num_cpus=num_cpus,
-            n_repeats=n_repeats, ag_verbosity=ag_verbosity,
-        )
-    finally:
-        # Scratch only; Windows may briefly hold handles, so best-effort.
-        shutil.rmtree(run_output_dir, ignore_errors=True)
+    with _gpu_scope(num_gpus) as resolved_gpus, _tmp_scope(tmp_root) as tmp_root:
+        run_output_dir = Path(tempfile.mkdtemp(prefix="autogluon_oracle_", dir=str(tmp_root)))
+        try:
+            fi_select, fi_score = _fit_and_rank(
+                train_data, select_data, score_data, run_output_dir,
+                problem_type=problem_type, resolved_metric=resolved_metric,
+                preset=preset, time_limit=time_limit,
+                num_gpus=resolved_gpus, num_cpus=num_cpus,
+                n_repeats=n_repeats, ag_verbosity=ag_verbosity,
+            )
+        finally:
+            # Scratch only; Windows may briefly hold handles, so best-effort.
+            shutil.rmtree(run_output_dir, ignore_errors=True)
 
     # 6. oracle.csv columns + oracle_meta.json.
     return _assemble_outputs(

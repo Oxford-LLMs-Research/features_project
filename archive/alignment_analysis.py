@@ -1,7 +1,7 @@
 """
 Phase B2 — Selection alignment + cross-national adaptation (Test 1 deepened, Test 2).
 
-Motivation (see docs/framing_and_comparisons.md): the matched-k accuracy horse-race understates
+Motivation (see paper/memos/framing_and_comparisons.md): the matched-k accuracy horse-race understates
 what the LLM is for. The design doc's primary selection metric is *captured importance* —
 how much of the oracle's predictive-importance mass the model's chosen features recover —
 and the signature test is *cross-national adaptation*: does the model request different
@@ -33,14 +33,13 @@ Test 2b (does adaptation track reality) — the signature test:
   adaptation_score = own_CI - mean(cross_CI). Positive aggregate = country-specific picks
   fit that country's structure better than other countries'.
 
-Outputs: outputs/alignment_by_cell.csv, outputs/alignment_summary.json,
-  paper/generated_current_state/main_alignment_{overall,metrics}.tex + main_test2_adaptation.tex.
+Outputs: outputs/analysis/alignment_by_cell.csv, outputs/analysis/alignment_summary.json
+  (TeX tables: python paper/scripts/write_alignment_tex.py)
 
-Run:  python analysis/alignment_analysis.py --write-tex
+Run:  python archive/alignment_analysis.py
 """
 from __future__ import annotations
 
-import argparse
 import json
 import sys
 from itertools import combinations
@@ -52,12 +51,14 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
-OUT = ROOT / "outputs"
+from survey_features.config import OUTPUTS_DIR  # noqa: E402
+
+OUT = OUTPUTS_DIR
 
 from survey_features.metrics import (  # noqa: E402
     captured_importance,
     jaccard,
-    load_oracle_importance as _load_oracle_importance,
+    load_oracle_splits,
     oracle_percentile_mean,
 )
 from survey_features.layout import (  # noqa: E402
@@ -65,8 +66,6 @@ from survey_features.layout import (  # noqa: E402
     leakage_audit_csv_path,
 )
 
-SURVEY_ORDER = ["wvs", "afrobarometer", "arabbarometer", "asianbarometer",
-                "latinobarometer", "ess_wave_11"]
 CONDITIONS = ["unprompted", "country_provided"]
 
 
@@ -84,8 +83,8 @@ def model_label(tag: str) -> str:
     return tag.split("_", 1)[1] if "_" in tag else tag
 
 
-def load_oracle_importance(target: str, country: str) -> dict[str, float]:
-    return _load_oracle_importance(target, country, OUT)
+def load_oracle_splits_cached(target: str, country: str) -> tuple[dict[str, float], dict[str, float]]:
+    return load_oracle_splits(target, country, OUT)
 
 
 def mapped_codes(disambig_items: list[dict], condition: str) -> list[str]:
@@ -141,7 +140,7 @@ def iter_cells() -> list[tuple[str, str, str, Path]]:
 def collect_rows() -> pd.DataFrame:
     detail = load_target_detail()
     leak = load_leakage_classes()
-    imp_cache: dict[tuple[str, str], dict[str, float]] = {}
+    imp_cache: dict[tuple[str, str], tuple[dict[str, float], dict[str, float]]] = {}
     model_sets: dict[tuple[str, str, str, str], set[str]] = {}
     records = []
 
@@ -151,8 +150,8 @@ def collect_rows() -> pd.DataFrame:
         except Exception:
             continue
         if (target, country) not in imp_cache:
-            imp_cache[(target, country)] = load_oracle_importance(target, country)
-        imp = imp_cache[(target, country)]
+            imp_cache[(target, country)] = load_oracle_splits_cached(target, country)
+        rank, score = imp_cache[(target, country)]
         survey = detail.get(target, {}).get("survey")
         bucket = detail.get(target, {}).get("bucket")
 
@@ -164,8 +163,8 @@ def collect_rows() -> pd.DataFrame:
                 "survey": survey, "target": target, "country": country,
                 "model": tag, "model_label": model_label(tag), "condition": cond,
                 "bucket": bucket, "k_mapped": k,
-                "captured_importance": captured_importance(codes, imp, k),
-                "oracle_pctile_mean": oracle_percentile_mean(codes, imp),
+                "captured_importance": captured_importance(codes, score, k, rank=rank),
+                "oracle_pctile_mean": oracle_percentile_mean(codes, rank),
                 "leakage_class": leak.get((target, country), "unknown"),
                 "n_model_features": k,
             })
@@ -195,12 +194,14 @@ def collect_rows() -> pd.DataFrame:
         for c, codeset in per_country.items():
             codes = list(codeset)
             k = len(codes)
-            own = captured_importance(codes, imp_cache.get((t, c), {}), k)
+            rank, score = imp_cache.get((t, c), ({}, {}))
+            own = captured_importance(codes, score, k, rank=rank)
             cross_vals = []
             for c2, _ in per_country.items():
                 if c2 == c:
                     continue
-                cv = captured_importance(codes, imp_cache.get((t, c2)) or load_oracle_importance(t, c2), k)
+                r2, s2 = imp_cache.get((t, c2)) or load_oracle_splits_cached(t, c2)
+                cv = captured_importance(codes, s2, k, rank=r2)
                 if cv is not None:
                     cross_vals.append(cv)
             cross = float(np.mean(cross_vals)) if cross_vals else None
@@ -276,89 +277,7 @@ def summarize(df: pd.DataFrame) -> dict:
     }
 
 
-def write_tex(df: pd.DataFrame, summ: dict) -> None:
-    """Emit LaTeX tables. All \\begin/\\end/brace scaffolding stays in plain (non-f)
-    strings; f-strings carry only numeric content (no literal braces)."""
-    gen = ROOT / "paper" / "generated_current_state"
-    gen.mkdir(parents=True, exist_ok=True)
-    EOL = " " + chr(92) + chr(92)        # ' \\'  (LaTeX row terminator)
-    USC = chr(92) + "_"                  # '\_'
-
-    def num(x):
-        return "-" if x is None else f"{x:.4f}"
-
-    def tabular(colspec: str, header: str, body_rows: list[str]) -> str:
-        return (
-            "\\begin{tabular}{" + colspec + "}\n\\toprule\n"
-            + header + EOL + "\n\\midrule\n"
-            + "\n".join(r + EOL for r in body_rows)
-            + "\n\\bottomrule\n\\end{tabular}\n"
-        )
-
-    # Captured importance by survey x model
-    valid = df[df["captured_importance"].notna()]
-    models = sorted(valid["model_label"].unique())
-    rows = []
-    for s in SURVEY_ORDER:
-        sub = valid[valid["survey"] == s]
-        if sub.empty:
-            continue
-        cells = " & ".join(num(_m(sub[sub["model_label"] == m]["captured_importance"])) for m in models)
-        rows.append(s.replace("_", USC) + " & " + cells)
-    (gen / "main_alignment_metrics.tex").write_text(
-        tabular("l" + "r" * len(models), "Survey & " + " & ".join(models), rows), encoding="utf-8")
-
-    # Overall: model columns, all vs excl-leakage as separate rows.
-    def col(sub, fld):
-        return num(_m(sub[fld]))
-    noleak = valid[valid["leakage_class"] != "leakage"]
-    ov_rows = []
-    for fld, lbl in [("captured_importance", "Captured importance"),
-                     ("oracle_pctile_mean", "Oracle percentile")]:
-        ov_rows.append(lbl + " (all) & " + " & ".join(col(valid[valid["model_label"] == m], fld) for m in models))
-        ov_rows.append(lbl + " (excl.\\ leakage) & "
-                       + " & ".join(col(noleak[noleak["model_label"] == m], fld) for m in models))
-    ov_rows.append("N rows (all / excl.\\ leakage) & "
-                   + " & ".join(f"{int((valid['model_label'] == m).sum())} / {int((noleak['model_label'] == m).sum())}"
-                                for m in models))
-    (gen / "main_alignment_overall.tex").write_text(
-        tabular("l" + "r" * len(models), "Metric & " + " & ".join(models), ov_rows), encoding="utf-8")
-
-    # Test 2 adaptation: model columns.
-    cp = df[df["condition"] == "country_provided"]
-    cp_nl = cp[cp["leakage_class"] != "leakage"]
-
-    def cpcol(fld, frame=cp):
-        return " & ".join(num(_m(frame[frame["model_label"] == m][fld])) for m in models)
-
-    def cpshare(frame=cp):
-        out = []
-        for m in models:
-            s = pd.to_numeric(frame[frame["model_label"] == m]["adaptation_score"], errors="coerce").dropna()
-            out.append(num(round(float((s > 0).mean()), 3)) if len(s) else "-")
-        return " & ".join(out)
-
-    t2_rows = [
-        "Jaccard, unprompted vs country & " + cpcol("jaccard_up_vs_cp"),
-        "Cross-country Jaccard (per target) & " + cpcol("xcountry_jaccard_target"),
-        "Own-country captured importance & " + cpcol("own_country_ci"),
-        "Cross-country captured importance & " + cpcol("cross_country_ci"),
-        "Adaptation score (own $-$ cross) & " + cpcol("adaptation_score"),
-        "\\quad excl.\\ leakage & " + cpcol("adaptation_score", cp_nl),
-        "Share adaptation score $>0$ & " + cpshare(),
-    ]
-    (gen / "main_test2_adaptation.tex").write_text(
-        tabular("l" + "r" * len(models),
-                "Cross-national adaptation (country-provided) & " + " & ".join(models), t2_rows),
-        encoding="utf-8")
-    print(f"Wrote alignment TeX to {gen}")
-
-
 def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--write-tex", action="store_true")
-    args = ap.parse_args()
-
     df = collect_rows()
     if df.empty:
         print("No disambig.json cells found under outputs/.", file=sys.stderr)
@@ -368,8 +287,6 @@ def main() -> None:
     summ = summarize(df)
     (write_dir / "alignment_summary.json").write_text(json.dumps(summ, indent=2), encoding="utf-8")
     print(f"Wrote {write_dir / 'alignment_by_cell.csv'} ({len(df)} rows) and alignment_summary.json")
-    if args.write_tex:
-        write_tex(df, summ)
 
 
 if __name__ == "__main__":

@@ -52,8 +52,8 @@ The **contract version** in each cell's `oracle_meta.json` records which rules b
 
 | contract | rules | cache |
 |---|---|---|
-| v1 | accuracy metric, single 80/20 split, everything multiclass | `outputs/cache/cells_accuracy_v1/` (archived — provenance of all pre-2026-08 numbers) |
-| v2 | log loss, honest 60/20/20 split, still everything multiclass | `outputs/cache/cells_logloss_multiclass_v2/` (archived) |
+| v1 | accuracy metric, single 80/20 split, everything multiclass | `features_project_snapshots/era1_cells_accuracy_v1_*.zip` (archived out of tree — provenance of all pre-2026-08 numbers; restore per that dir's MANIFEST.md) |
+| v2 | log loss, honest 60/20/20 split, still everything multiclass | `features_project_snapshots/era2_cells_logloss_multiclass_v2_*.zip` (archived out of tree) |
 | **v3** | + measurement-level aware (ordinal→regression+Spearman), out-of-scale sentinels excluded | `outputs/cache/cells/` (**current**) |
 
 The constant lives in `src/survey_features/oracle.py` (`ORACLE_CONTRACT_VERSION`);

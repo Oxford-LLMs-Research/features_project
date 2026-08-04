@@ -13,6 +13,11 @@ Answers the questions the audit's oracle change was made to answer:
 Reads outputs/cache/cells_accuracy_v1/*/oracle.csv (archived) against
 outputs/cache/cells/*/oracle.csv + oracle_meta.json (current). Pure arithmetic.
 
+NOTE (2026-08-04): cells_accuracy_v1/ was zipped out of the tree — restore it from
+C:/Users/murrn/cursor/features_project_snapshots/era1_cells_accuracy_v1_2026-08-04.zip
+before re-running. The digest outputs/analysis/oracle_era_comparison.csv is already
+materialized.
+
 Usage:
     python analysis/oracle_era_comparison.py
     python analysis/oracle_era_comparison.py --top-k 10 --csv
