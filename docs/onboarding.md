@@ -128,8 +128,9 @@ python scripts/audit_missing_codes.py
 python scripts/build_textbook_baseline.py --show
 ```
 
-End every workday with the `/repo-audit` skill (agent-run audit + cleanup + grouped
-commits, then your manual walk-through; see CONTRIBUTING → Workflow).
+End every workday with the `/repo-audit` skill (audit + walk-through + commit plan by
+default; cleanup/commits only with `apply-clean` / confirmed `apply-all` — see
+CONTRIBUTING → Workflow).
 
 Order matters: oracle → leakage screen → scoring. Scoring against a half-rebuilt oracle
 mixes eras.

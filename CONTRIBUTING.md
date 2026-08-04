@@ -88,9 +88,10 @@ Python ≥ 3.9. Survey data access goes through `synthetic_sampling` (pinned in
 ## Workflow
 
 - **End every workday with `/repo-audit`** (project skill, `.claude/skills/repo-audit/`):
-  it safe-cleans mechanical clutter, checks the rules above on the day's diff, groups
-  the day's work into commits, and hands you a ranked walk-through list for your own
-  review pass. The agent never pushes.
+  default mode is audit-only (policy check + ranked walk-through + commit *plan*; no
+  deletes or commits). Pass `apply-clean` to soft-delete mechanical clutter into
+  `outputs/.trash/`, or `apply-all` and confirm the plan in-chat to commit. The agent
+  never pushes; health-gate failure blocks commits.
 - Branch from `master`, keep PRs focused and small.
 - Smoke-test entry points you touched, e.g.
   `python scripts/run_main.py --phase gen --limit 1` (needs API keys) or at
