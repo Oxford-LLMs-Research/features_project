@@ -5,18 +5,60 @@ Computes AutoGluon-based permutation importances for a single (target, country) 
 writes outputs in the cache format used by the grid runners so the rest of the pipeline
 can reuse them.
 
+Design
+------
+compute_oracle runs six stages, one helper each (search for "compute_oracle stages"):
+
+  1. rows     _prepare_cell_frame   country slice, metadata-aware cleaning
+  2. columns  _build_cell_pool      candidate pool, near-duplicate + skip-pattern excl.
+  3. target   _prepare_target       measurement level drives the model:
+                                      binary/nominal -> classification, log loss
+                                      ordinal/continuous -> regression, Spearman rho
+                                    (log loss because accuracy only moves when a
+                                    permutation flips an argmax — on mode-dominated
+                                    items importance collapsed to exact zeros;
+                                    Spearman because an 11-point scale is ordered,
+                                    not 11 unrelated classes)
+  4. split    _three_way_split      THE HONEST SPLIT — see below
+  5. fit      _fit_and_rank         one AutoGluon fit, two importance passes
+  6. output   _assemble_outputs     oracle.csv + oracle_meta.json
+
+The honest split (the part that names the "honest oracle"):
+
+    one country-cell
+    +-- 60%  T   fit      train the predictor once
+    +-- 20%  V1  select   permutation importance #1 -> only RANKS (picks top-k)
+    +-- 20%  V2  score    permutation importance #2 -> only VALUES the picks
+
+Captured importance divides the model's mass by "the oracle top-k's mass". If the same
+noisy estimates both choose the top-k and value it, the chosen features are exactly the
+ones whose noise broke upward — a winner's curse that inflates the denominator, by an
+amount that varies per cell. Ranking on V1 and valuing on disjoint V2 removes it
+("honest" in the Athey–Imbens sample-splitting sense: one subsample chooses, another
+estimates). Measured: two honest reads of a cell agree on only ~1/3 of their top ten,
+so the curse is large, not hypothetical. The by-product `oracle_ceiling@k` =
+V2-mass(top-k chosen on V1) / V2-mass(top-k on V2) calibrates what a data-driven
+oracle achieves when it cannot cheat — report the LLM against that, not against 1.0.
+`train_index` in the meta lets the downstream evaluator stay on T, so the oracle never
+selects on rows the evaluation later scores.
+
 Output contract
 ---------------
-compute_oracle() returns:
-  oracle_df   - DataFrame with columns:
-                target_variable, country, feature_variable,
-                importance_mean, importance_std, majority_baseline
+compute_oracle() returns (oracle_df, feature_pool, meta):
+  oracle_df   - target_variable, country, feature_variable,
+                importance_select, importance_select_std,
+                importance_score,  importance_score_std,
+                importance_mean, importance_std   (aliases of the score columns,
+                                                   so existing readers are unaffected),
+                majority_baseline
   feature_pool - list of feature variable codes included in the model
+  meta         - eval_metric, split sizes, n_positive_score, oracle_ceiling per k,
+                 and train_index (row labels of the fit split)
 
 Cache contract
 --------------
-When run as a script (python -m survey_features.oracle), results are saved to:
-  outputs/cache/cells/<target>_<country>/oracle.csv
+When run via scripts/compute_oracle.py, results are saved to:
+  outputs/cache/cells/<target>_<country>/oracle.csv  (+ oracle_meta.json)
 and are picked up by scripts/run_grid.py (which skips oracle computation if the
 file already exists).
 """
@@ -24,6 +66,7 @@ file already exists).
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import tempfile
@@ -42,8 +85,23 @@ from .surveys import (
     build_admin_cols,
     build_country_code_map,
     clean_question_columns,
+    detect_target_type,
+    _code_variants,
+    _substantive_values,
+    out_of_scale_codes,
+    substantive_numeric_mask,
+    to_ordinal_codes,
     flatten_metadata,
     load_survey,
+)
+from .feature_pool import (  # noqa: F401  (re-exported; moved 2026-08)
+    build_feature_pool,
+    detect_conditional_leakage,
+    feature_passes_variation,
+    filter_feature_pool_across_countries,
+    filter_feature_pool_for_country,
+    normalized_entropy,
+    standardize_missing,
 )
 
 
@@ -89,6 +147,27 @@ RANDOM_STATE = 42
 SIMILARITY_THRESHOLD = 0.85
 TEST_SIZE = 0.2
 
+# Importance metric for classification targets. Proper scoring rule; accuracy collapsed
+# most importances to exact zeros (pipeline_audit_2026-08.md #A1).
+ORACLE_EVAL_METRIC = "log_loss"
+
+# Bump when cached oracle outputs change MEANING (metric / split / type handling);
+# rerun_oracles resumes on it. Version log: docs/onboarding.md #3.
+ORACLE_CONTRACT_VERSION = 3
+
+# Measurement level -> (problem_type, importance metric). Ordinal = regression +
+# Spearman (rank-based, no spacing assumption, one fit). Units differ per cell by
+# design: captured importance is a within-cell ratio. Why: pipeline_audit #A11.
+TARGET_TYPE_PROBLEM: dict[str, tuple[str, str]] = {
+    "binary":     ("binary",     "log_loss"),
+    "nominal":    ("multiclass", "log_loss"),
+    "ordinal":    ("regression", "spearmanr"),
+    "continuous": ("regression", "spearmanr"),
+}
+
+# k values at which the honest-oracle ceiling is recorded (see compute_oracle).
+CEILING_KS = (5, 10, 20)
+
 AUTOGLUON_RUNTIME_MODES = {
     "quick": {"preset": "medium_quality", "time_limit": 60},
     "balanced": {"preset": "good_quality", "time_limit": 180},
@@ -101,9 +180,7 @@ MIN_NORMALIZED_FEATURE_ENTROPY = 0.0
 
 MIN_CLASS_COUNT = 5
 
-DEFAULT_SURVEY = "wvs"
-DEFAULT_TARGETS = ["Q47", "Q57", "Q199", "Q235", "Q164"]
-DEFAULT_COUNTRIES = ["Germany", "Nigeria", "Japan", "Brazil", "Egypt"]
+
 
 
 def load_similarity_model(similarity_threshold: float) -> object | None:
@@ -117,228 +194,6 @@ def load_similarity_model(similarity_threshold: float) -> object | None:
     return SentenceTransformer(DEFAULT_EMBEDDING_MODEL)
 
 
-def build_feature_pool(
-    df: pd.DataFrame,
-    metadata: dict[str, dict[str, str]],
-    target_var: str,
-    admin_cols: frozenset[str],
-    similarity_model: object | None,
-    similarity_threshold: float,
-) -> tuple[list[str], dict[str, int]]:
-    """Create target-specific feature pool with optional semantic exclusion."""
-    if target_var not in metadata:
-        raise ValueError(f"Target {target_var} missing from metadata.")
-
-    start_pool = list(dict.fromkeys([c for c in df.columns if c != target_var]))
-    in_metadata = [c for c in start_pool if c in metadata]
-    not_in_metadata = [c for c in start_pool if c not in metadata]
-    admin_excluded = [c for c in in_metadata if c in admin_cols]
-    candidates = [c for c in in_metadata if c not in admin_cols]
-
-    if not candidates:
-        diagnostics = {
-            "start_pool": len(start_pool),
-            "missing_metadata_excluded": len(not_in_metadata),
-            "admin_excluded": len(admin_excluded),
-            "semantic_excluded": 0,
-            "final_pool": 0,
-        }
-        return [], diagnostics
-
-    if similarity_model is None:
-        similar_cols: list[str] = []
-        feature_pool = candidates
-    else:
-        from sklearn.metrics.pairwise import cosine_similarity
-
-        target_text = (
-            metadata[target_var].get("question")
-            or metadata[target_var].get("description")
-            or target_var
-        )
-        candidate_texts = [
-            metadata[c].get("question") or metadata[c].get("description") or c
-            for c in candidates
-        ]
-
-        target_emb = similarity_model.encode([target_text])
-        candidate_emb = similarity_model.encode(candidate_texts)
-        similarities = cosine_similarity(target_emb, candidate_emb).flatten()
-
-        similar_cols = [c for c, sim in zip(candidates, similarities) if sim > similarity_threshold]
-        feature_pool = [c for c, sim in zip(candidates, similarities) if sim <= similarity_threshold]
-
-    diagnostics = {
-        "start_pool": len(start_pool),
-        "missing_metadata_excluded": len(not_in_metadata),
-        "admin_excluded": len(admin_excluded),
-        "semantic_excluded": len(similar_cols),
-        "final_pool": len(feature_pool),
-    }
-    return feature_pool, diagnostics
-
-
-def standardize_missing(series: pd.Series) -> pd.Series:
-    """Treat negative values and blanks as missing, preserving type when possible."""
-    if pd.api.types.is_numeric_dtype(series):
-        series_num = pd.to_numeric(series, errors="coerce")
-        return series_num.mask(series_num < 0, np.nan)
-    cleaned = series.copy()
-    return cleaned.replace("", np.nan)
-
-
-def normalized_entropy(values: pd.Series) -> float:
-    """Compute normalized entropy for a categorical-like series."""
-    clean = values.dropna()
-    if clean.empty:
-        return 0.0
-    counts = clean.value_counts()
-    n_unique = int(len(counts))
-    if n_unique <= 1:
-        return 0.0
-    probs = counts / counts.sum()
-    entropy = -float(np.sum(probs * np.log(probs)))
-    return float(entropy / np.log(n_unique))
-
-
-def feature_passes_variation(series: pd.Series, min_normalized_feature_entropy: float) -> bool:
-    """Check feature variation using entropy or numeric dispersion rules."""
-    standardized = standardize_missing(series)
-    non_missing = standardized.dropna()
-    n_unique = int(non_missing.nunique())
-    if pd.api.types.is_numeric_dtype(standardized) and n_unique >= 10:
-        if non_missing.empty:
-            return False
-        std = float(non_missing.std(ddof=0))
-        zero_share = float((non_missing == 0).mean())
-        return std > 0 and zero_share < 0.95
-    entropy = normalized_entropy(non_missing)
-    return entropy >= min_normalized_feature_entropy
-
-
-def filter_feature_pool_for_country(
-    df_country: pd.DataFrame,
-    feature_pool: list[str],
-    max_missingness_threshold: float,
-    min_normalized_feature_entropy: float,
-) -> tuple[list[str], dict[str, int]]:
-    """Apply missingness and variation filters for one country."""
-    kept: list[str] = []
-    missing_excluded = 0
-    variation_excluded = 0
-
-    for col in feature_pool:
-        series = standardize_missing(df_country[col])
-        n_total = int(len(series))
-        missing_share = float(series.isna().mean()) if n_total else 1.0
-        if missing_share >= max_missingness_threshold:
-            missing_excluded += 1
-            continue
-        if not feature_passes_variation(series, min_normalized_feature_entropy):
-            variation_excluded += 1
-            continue
-        kept.append(col)
-
-    diagnostics = {
-        "missingness_excluded": int(missing_excluded),
-        "variation_excluded": int(variation_excluded),
-        "final_pool": int(len(kept)),
-    }
-    return kept, diagnostics
-
-
-def filter_feature_pool_across_countries(
-    df: pd.DataFrame,
-    feature_pool: list[str],
-    country_codes: dict[str, int | str],
-    country_col: str,
-    max_missingness_threshold: float,
-    min_normalized_feature_entropy: float,
-) -> tuple[list[str], dict[str, int]]:
-    """Keep only features that pass filters in every selected country."""
-    missing_excluded: set[str] = set()
-    variation_excluded: set[str] = set()
-
-    for country_code in country_codes.values():
-        df_country = df[df[country_col] == country_code]
-        for col in feature_pool:
-            if col in missing_excluded:
-                continue
-            series = standardize_missing(df_country[col])
-            n_total = int(len(series))
-            missing_share = float(series.isna().mean()) if n_total else 1.0
-            if missing_share >= max_missingness_threshold:
-                missing_excluded.add(col)
-                continue
-            if col in variation_excluded:
-                continue
-            if not feature_passes_variation(series, min_normalized_feature_entropy):
-                variation_excluded.add(col)
-
-    final_pool = [c for c in feature_pool if c not in missing_excluded and c not in variation_excluded]
-    diagnostics = {
-        "missingness_excluded": int(len(missing_excluded)),
-        "variation_excluded": int(len(variation_excluded - missing_excluded)),
-        "final_pool": int(len(final_pool)),
-    }
-    return final_pool, diagnostics
-
-
-def detect_conditional_leakage(
-    country_df: pd.DataFrame,
-    target_var: str,
-    feature_pool: list[str],
-    missing_range_threshold: float = 0.7,
-    min_n_per_class: int = 20,
-) -> set[str]:
-    """
-    Identify features that are structurally conditional on the target variable.
-
-    A feature is flagged when its missingness rate differs dramatically across
-    target classes — the signature of a survey question only administered to
-    respondents who gave a specific answer to the target (e.g. follow-up
-    sub-modules asked only of respondents who said "Yes" to the target item).
-
-    For example, Arab Barometer Q104A ("What are the main reasons you thought
-    about emigrating?") is only asked of respondents who said Yes to Q104
-    ("Have you thought about emigrating?").  Its missingness is ~0% for the
-    Yes class and ~100% for the No class, yielding a range of ~1.0 — well
-    above the default threshold of 0.7.
-
-    Parameters
-    ----------
-    country_df              : DataFrame for one country; target column still present.
-    target_var              : the outcome variable code.
-    feature_pool            : candidate feature codes to inspect.
-    missing_range_threshold : flag when max_class_missing - min_class_missing
-                              >= this value. 0.7 gives a wide margin between clear
-                              downstream proxies (~1.0) and legitimate predictors (~0.0).
-    min_n_per_class         : minimum observations per class for a reliable rate.
-
-    Returns
-    -------
-    set of feature variable codes to exclude from the feature pool.
-    """
-    valid = country_df[target_var].notna()
-    df = country_df.loc[valid]
-    y = df[target_var]
-
-    class_counts = y.value_counts()
-    usable_classes = class_counts[class_counts >= min_n_per_class].index.tolist()
-    if len(usable_classes) < 2:
-        return set()
-
-    leakage_set: set[str] = set()
-    for feat in feature_pool:
-        if feat not in df.columns:
-            continue
-        rates = [df.loc[y == cls, feat].isna().mean() for cls in usable_classes]
-        if (max(rates) - min(rates)) >= missing_range_threshold:
-            leakage_set.add(feat)
-
-    return leakage_set
-
-
 def resolve_runtime_config(runtime_mode: str, autogluon_time_limit: int) -> tuple[str, int]:
     """Resolve AutoGluon preset + time limit from CLI settings."""
     runtime_cfg = AUTOGLUON_RUNTIME_MODES[runtime_mode]
@@ -347,15 +202,6 @@ def resolve_runtime_config(runtime_mode: str, autogluon_time_limit: int) -> tupl
     if autogluon_time_limit > 0:
         time_limit = autogluon_time_limit
     return preset, time_limit
-
-
-def _detect_gpu_available() -> bool:
-    try:
-        import torch
-
-        return torch.cuda.is_available()
-    except Exception:
-        return shutil.which("nvidia-smi") is not None
 
 
 def _resolve_num_gpus(requested: int) -> int:
@@ -372,18 +218,6 @@ def _coerce_target(y_raw: pd.Series) -> pd.Series:
         return y_raw.astype(str)
 
 
-def _safe_rmtree(path: Path, retries: int = 3, delay: float = 0.5) -> None:
-    for attempt in range(retries):
-        try:
-            shutil.rmtree(path, ignore_errors=False)
-            return
-        except (OSError, PermissionError):
-            if attempt < retries - 1:
-                time.sleep(delay)
-            else:
-                shutil.rmtree(path, ignore_errors=True)
-
-
 def _set_local_tmp_dir(tmp_root: Path) -> Path:
     tmp_root.mkdir(parents=True, exist_ok=True)
     os.environ["TMPDIR"] = str(tmp_root)
@@ -392,20 +226,309 @@ def _set_local_tmp_dir(tmp_root: Path) -> Path:
     return tmp_root
 
 
-def _feature_importance(
-    predictor: TabularPredictor,
-    data: pd.DataFrame,
-    n_repeats: int,
-    verbosity: int = 0,
-) -> pd.DataFrame:
-    kwargs = {"silent": verbosity == 0}
-    if n_repeats and n_repeats > 0:
-        kwargs["num_shuffle_sets"] = int(n_repeats)
+def _three_way_split(y: pd.Series, holdout_size: float, random_state: int,
+                     stratify: bool = True):
+    """Stratified fit / select / score split (default 60 / 20 / 20).
+
+    Why three parts: the model's captured importance is scored against a denominator of
+    "the oracle's top-k". When that top-k is chosen using the SAME importance estimates
+    that supply the denominator, the denominator inherits a winner's curse — the
+    selected features' estimates are biased upward — while the model's numerator has no
+    such selection. Choosing on V1 and scoring on V2 makes the denominator unbiased.
+    It also removes the separate problem that the oracle used to select on rows the
+    downstream evaluation later scored, which no other arm had access to.
+    """
+    idx = np.arange(len(y))
+    train_idx, hold_idx = train_test_split(
+        idx, test_size=min(0.9, 2 * holdout_size), random_state=random_state,
+        stratify=y if stratify else None,
+    )
+    y_hold = y.iloc[hold_idx]
     try:
-        return predictor.feature_importance(data, **kwargs)
-    except TypeError:
-        kwargs.pop("num_shuffle_sets", None)
-        return predictor.feature_importance(data, **kwargs)
+        select_idx, score_idx = train_test_split(
+            hold_idx, test_size=0.5, random_state=random_state,
+            stratify=y_hold if stratify else None,
+        )
+    except ValueError:
+        # A class can be too thin to stratify twice; an unstratified halving still
+        # gives independent select/score rows, which is what the design needs.
+        select_idx, score_idx = train_test_split(
+            hold_idx, test_size=0.5, random_state=random_state
+        )
+    return train_idx, select_idx, score_idx
+
+
+def oracle_ceiling(select_imp: pd.Series, score_imp: pd.Series, k: int) -> float | None:
+    """Fraction of the achievable top-k importance mass an HONEST oracle captures.
+
+    Numerator: score-split mass of the k features chosen on the select split.
+    Denominator: score-split mass of the true top k on the score split.
+
+    Below 1 by exactly the amount the ranking is noise. This is the number that turns
+    "captured importance is a lower bound of unknown tightness" into a calibrated
+    fraction: the model can be reported against what a data-driven method itself
+    achieves out-of-sample, not against an in-sample ideal nothing can reach.
+    """
+    if k <= 0 or select_imp.empty:
+        return None
+    chosen = select_imp.nlargest(k).index
+    scored = score_imp.clip(lower=0)
+    denom = float(scored.nlargest(k).sum())
+    if denom <= 0:
+        return None
+    return round(float(scored.reindex(chosen).fillna(0.0).sum()) / denom, 4)
+
+
+
+# == compute_oracle stages ====================================================
+# One helper per pipeline stage so compute_oracle reads as the design:
+#   rows -> columns -> target -> honest split -> fit + rank/value -> assemble.
+# Pure re-organisation of the former ~250-line body; no behavioural change.
+
+
+def _prepare_cell_frame(data, metadata, target_var, country_code, country_col, admin_cols):
+    """Rows: country slice, metadata-aware cleaning, column dedupe, drop missing target."""
+    country_data = data[data[country_col] == country_code].copy()
+    if len(country_data) == 0:
+        raise ValueError(
+            f"No rows found for {country_col}={country_code!r}. "
+            f"Actual values in data: {sorted(data[country_col].dropna().unique().tolist())}"
+        )
+
+    # metadata is REQUIRED: without labels the cleaner drops all negative codes,
+    # destroying WVS "Don't know"(-1) / "No answer"(-2) (onboarding.md #5.4).
+    country_data = clean_question_columns(country_data, country_col, admin_cols, metadata)
+
+    if country_data.columns.duplicated().any():
+        country_data = country_data.loc[:, ~country_data.columns.duplicated()]
+
+    valid = country_data[target_var].notna()
+    country_data = country_data.loc[valid]
+    if len(country_data) == 0:
+        raise ValueError(
+            f"No valid (non-missing) rows for target '{target_var}' "
+            f"in {country_col}={country_code!r}."
+        )
+    return country_data
+
+
+def _build_cell_pool(country_data, flat_metadata, target_var, country_col, admin_cols,
+                     similarity_model, similarity_threshold,
+                     max_missingness_threshold, min_normalized_feature_entropy,
+                     feature_pool_override):
+    """Columns: candidate pool (built or overridden) -> skip-pattern leakage exclusion
+    -> the feature frame X."""
+    if feature_pool_override is None:
+        base_pool, _ = build_feature_pool(
+            country_data,
+            flat_metadata,
+            target_var,
+            admin_cols,
+            similarity_model,
+            similarity_threshold,
+        )
+        feature_pool, _ = filter_feature_pool_for_country(
+            country_data,
+            base_pool,
+            max_missingness_threshold,
+            min_normalized_feature_entropy,
+        )
+    else:
+        feature_pool = [
+            c for c in feature_pool_override
+            if c in country_data.columns and c not in admin_cols
+            and c != target_var and c != country_col
+        ]
+
+    feature_pool = list(dict.fromkeys(feature_pool))
+
+    leakage_set = detect_conditional_leakage(country_data, target_var, feature_pool)
+    if leakage_set:
+        print(f"  Conditional leakage excluded ({len(leakage_set)}): {sorted(leakage_set)}")
+        feature_pool = [f for f in feature_pool if f not in leakage_set]
+
+    if not feature_pool:
+        raise ValueError("No usable features after feature-pool filtering.")
+
+    X = country_data[feature_pool].copy()
+
+    all_missing = X.columns[X.isna().all()].tolist()
+    if all_missing:
+        X = X.drop(columns=all_missing)
+
+    if X.empty:
+        raise ValueError("No usable features after dropping all-missing columns.")
+    return X
+
+
+def _prepare_target(country_data, X, y, metadata, target_var, problem_type,
+                    min_class_count):
+    """Target: type-specific preparation. Returns (X, y, problem_type, majority).
+
+    regression - recover numeric scale positions (label text -> codes), keep only
+    substantive scale points, drop out-of-scale sentinel codes.
+    classification - restrict to labelled substantive values, drop rare classes, and
+    let the DATA pick binary vs multiclass.
+    """
+    if problem_type == "regression":
+        # Numeric scale positions (labels may be stored as text; unlabelled codes drop).
+        # Respondent non-response leaves ONLY here — no position on an ordered scale.
+        # Rationale: surveys.substantive_numeric_mask / onboarding.md #5.4.
+        y = to_ordinal_codes(target_var, metadata, country_data[target_var])
+        keep = y.notna() & substantive_numeric_mask(target_var, metadata, y)
+        out_of_scale = out_of_scale_codes(_substantive_values(target_var, metadata))
+        if out_of_scale:
+            keep &= ~y.isin(out_of_scale)
+        X, y = X.loc[keep], y.loc[keep]
+        if y.nunique() < 3:
+            raise ValueError("Ordinal/continuous target has fewer than 3 distinct values.")
+    else:
+        labelled = _substantive_values(target_var, metadata)
+        if labelled:
+            allowed = {str(c).strip() for k in labelled for c in _code_variants(k)}
+            keep = y.astype(str).str.strip().isin(allowed)
+            if keep.any():
+                X, y = X.loc[keep], y.loc[keep]
+        class_counts = y.value_counts()
+        rare = class_counts[class_counts < min_class_count].index.tolist()
+        if rare:
+            keep = ~y.isin(rare)
+            X = X.loc[keep]
+            y = y.loc[keep]
+        if y.nunique() < 2:
+            raise ValueError("Not enough class variation after rare-class filtering.")
+        # The DATA decides binary vs multiclass. The label count can disagree with it:
+        # afro Q43A is labelled {0: No, 1: Yes} but carries unlabelled 8 and 9.
+        problem_type = "binary" if y.nunique() == 2 else "multiclass"
+
+    majority_baseline = float(y.value_counts().max() / len(y))
+    return X, y, problem_type, majority_baseline
+
+
+def _labelled_frames(X, y, train_idx, select_idx, score_idx, is_regression):
+    """__label__-bearing frames for fit / select / score.
+
+    Regression labels are floats; classification labels are Categoricals pinned to the
+    TRAIN categories, with holdout rows whose class never appeared in training dropped.
+    """
+    train_data = X.iloc[train_idx].copy()
+    if is_regression:
+        train_data["__label__"] = y.iloc[train_idx].astype(float)
+    else:
+        train_data["__label__"] = pd.Categorical(y.iloc[train_idx].astype(str))
+    categories = (None if is_regression
+                  else train_data["__label__"].cat.categories)
+
+    def _holdout_frame(idx: np.ndarray) -> pd.DataFrame:
+        Xh = X.iloc[idx].copy()
+        if is_regression:
+            Xh["__label__"] = y.iloc[idx].astype(float).to_numpy()
+            return Xh
+        labels = pd.Categorical(y.iloc[idx].astype(str), categories=categories)
+        keep = ~pd.isna(labels)
+        Xh = Xh.loc[keep].copy()
+        Xh["__label__"] = labels[keep]
+        return Xh
+
+    select_data = _holdout_frame(select_idx)
+    score_data = _holdout_frame(score_idx)
+
+    if len(select_data) == 0 or len(score_data) == 0:
+        raise ValueError("No valid holdout rows after preprocessing.")
+    return train_data, select_data, score_data
+
+
+def _fit_and_rank(train_data, select_data, score_data, run_output_dir, *,
+                  problem_type, resolved_metric, preset, time_limit,
+                  num_gpus, num_cpus, n_repeats, ag_verbosity):
+    """ONE AutoGluon fit on the train split, then TWO permutation-importance passes on
+    the disjoint select/score holdouts - the honest-split core: V1 ranks, V2 values.
+    Importance is far cheaper than the fit, so the second pass costs ~1.2x, not 2x."""
+    predictor = TabularPredictor(
+        label="__label__",
+        problem_type=problem_type,
+        eval_metric=resolved_metric,
+        path=str(run_output_dir),
+        verbosity=ag_verbosity,
+    ).fit(
+        train_data=train_data,
+        presets=preset,
+        time_limit=time_limit,
+        num_gpus=num_gpus,
+        # The worker's ACTUAL core budget; omitting it over-subscribes concurrent fits
+        # and blows the wall-clock time_limit (onboarding.md #5).
+        **({"num_cpus": int(num_cpus)} if num_cpus else {}),
+        verbosity=ag_verbosity,
+        # Both lines: keep Ray out — it deadlocks/crashes on Windows and silently drops
+        # models (onboarding.md #5.7). Importance doesn't need stacking anyway.
+        dynamic_stacking=False,
+        ag_args_ensemble={"fold_fitting_strategy": "sequential_local"},
+    )
+
+    def _importance(frame: pd.DataFrame, suffix: str) -> pd.DataFrame:
+        fi = predictor.feature_importance(
+            frame, num_shuffle_sets=int(n_repeats), silent=ag_verbosity == 0
+        )
+        if fi.empty:
+            raise ValueError("AutoGluon returned empty feature importance.")
+        fi = fi.reset_index().rename(columns={
+            "index": "feature_variable",
+            "importance": f"importance_{suffix}",
+            "stddev": f"importance_{suffix}_std",
+        })
+        if f"importance_{suffix}_std" not in fi.columns:
+            fi[f"importance_{suffix}_std"] = 0.0
+        return fi[["feature_variable", f"importance_{suffix}", f"importance_{suffix}_std"]]
+
+    return _importance(select_data, "select"), _importance(score_data, "score")
+
+
+def _assemble_outputs(fi_select, fi_score, *, target_var, country_code,
+                      majority_baseline, resolved_metric, problem_type, ttype,
+                      train_data, select_data, score_data, y, train_idx):
+    """Merge the two importance frames, alias importance_mean to the SCORE split, and
+    build oracle_meta.json (contract version, split sizes, honest ceiling, train_index)."""
+    oracle_df = fi_select.merge(fi_score, on="feature_variable", how="outer")
+    for col in ("importance_select", "importance_score",
+                "importance_select_std", "importance_score_std"):
+        oracle_df[col] = pd.to_numeric(oracle_df[col], errors="coerce").fillna(0.0)
+
+    # `importance_mean` / `importance_std` stay as aliases of the SCORE split so every
+    # existing reader (metrics.load_oracle_importance, score_cell, the analysis scripts)
+    # keeps working unchanged and picks up the unbiased values automatically.
+    oracle_df["importance_mean"] = oracle_df["importance_score"]
+    oracle_df["importance_std"] = oracle_df["importance_score_std"]
+    oracle_df.insert(0, "country", country_code)
+    oracle_df.insert(0, "target_variable", target_var)
+    oracle_df["majority_baseline"] = round(float(majority_baseline), 4)
+    oracle_df = oracle_df.sort_values("importance_score", ascending=False).reset_index(drop=True)
+
+    sel = oracle_df.set_index("feature_variable")["importance_select"]
+    sco = oracle_df.set_index("feature_variable")["importance_score"]
+    meta_out = {
+        "target_variable": target_var,
+        "country": country_code,
+        "contract_version": ORACLE_CONTRACT_VERSION,
+        "eval_metric": resolved_metric,
+        "problem_type": problem_type,
+        "target_type": ttype,
+        "n_train": int(len(train_data)),
+        "n_select": int(len(select_data)),
+        "n_score": int(len(score_data)),
+        "n_features": int(len(oracle_df)),
+        "n_positive_score": int((oracle_df["importance_score"] > 0).sum()),
+        "majority_baseline": round(float(majority_baseline), 4),
+        "oracle_ceiling": {str(k): oracle_ceiling(sel, sco, k) for k in CEILING_KS},
+        # Row labels of the fit split: the downstream evaluator restricts its CV to
+        # these so no arm is scored on rows the oracle's ranking already saw.
+        # NOTE: train_idx is positional within the filtered y, whose pandas index still
+        # carries the original country_data labels - so index through y.
+        "train_index": [int(i) if isinstance(i, (int, np.integer)) else str(i)
+                        for i in y.index[train_idx]],
+    }
+
+    feature_pool = oracle_df["feature_variable"].astype(str).tolist()
+    return oracle_df, feature_pool, meta_out
 
 
 def compute_oracle(
@@ -430,447 +553,97 @@ def compute_oracle(
     test_size: float = TEST_SIZE,
     min_class_count: int = MIN_CLASS_COUNT,
     num_gpus: int = 0,
+    num_cpus: int | None = None,
     ag_verbosity: int = 0,
-) -> tuple[pd.DataFrame, list[str]]:
+    eval_metric: str | None = None,
+    target_type: str | None = None,
+    survey_id: str | None = None,
+) -> tuple[pd.DataFrame, list[str], dict]:
     """
     Compute AutoGluon permutation importances for one target-country cell.
 
+    Returns (oracle_df, feature_pool, meta). The frame carries `importance_select`
+    (rank on the select holdout) and `importance_score` (value on a disjoint score
+    holdout), with `importance_mean`/`importance_std` kept as aliases of the score
+    columns so existing readers are unaffected.
+
     Note: n_splits is kept for drop-in compatibility with earlier oracle scripts but
-    is not used by AutoGluon here (single holdout split).
+    is not used by AutoGluon here (a single fit on the train split).
     """
     if target_var not in data.columns:
         raise ValueError(f"Target {target_var} missing from dataset columns.")
-
-    country_data = data[data[country_col] == country_code].copy()
-    if len(country_data) == 0:
-        raise ValueError(
-            f"No rows found for {country_col}={country_code!r}. "
-            f"Actual values in data: {sorted(data[country_col].dropna().unique().tolist())}"
-        )
-
     if n_splits != 1:
         print("  Note: n_splits is ignored in AutoGluon oracle (single holdout).")
 
-    country_data = clean_question_columns(country_data, country_col, admin_cols)
-
-    if country_data.columns.duplicated().any():
-        country_data = country_data.loc[:, ~country_data.columns.duplicated()]
-
-    valid = country_data[target_var].notna()
-    country_data = country_data.loc[valid]
-    if len(country_data) == 0:
-        raise ValueError(
-            f"No valid (non-missing) rows for target '{target_var}' "
-            f"in {country_col}={country_code!r}."
-        )
-
-    flat_metadata = metadata_flat or flatten_metadata(metadata)
-    if feature_pool_override is None:
-        base_pool, _ = build_feature_pool(
-            country_data,
-            flat_metadata,
-            target_var,
-            admin_cols,
-            similarity_model,
-            similarity_threshold,
-        )
-        feature_pool, _ = filter_feature_pool_for_country(
-            country_data,
-            base_pool,
-            max_missingness_threshold,
-            min_normalized_feature_entropy,
-        )
-    else:
-        feature_pool = [
-            c for c in feature_pool_override
-            if c in country_data.columns and c not in admin_cols and c != target_var and c != country_col
-        ]
-
-    feature_pool = list(dict.fromkeys(feature_pool))
-
-    leakage_set = detect_conditional_leakage(country_data, target_var, feature_pool)
-    if leakage_set:
-        print(f"  Conditional leakage excluded ({len(leakage_set)}): {sorted(leakage_set)}")
-        feature_pool = [f for f in feature_pool if f not in leakage_set]
-
-    if not feature_pool:
-        raise ValueError("No usable features after feature-pool filtering.")
-
-    X = country_data[feature_pool].copy()
-
-    all_missing = X.columns[X.isna().all()].tolist()
-    if all_missing:
-        X = X.drop(columns=all_missing)
-
-    if X.empty:
-        raise ValueError("No usable features after dropping all-missing columns.")
-
-    y = _coerce_target(country_data[target_var])
-
-    class_counts = y.value_counts()
-    rare = class_counts[class_counts < min_class_count].index.tolist()
-    if rare:
-        keep = ~y.isin(rare)
-        X = X.loc[keep]
-        y = y.loc[keep]
-
-    if y.nunique() < 2:
-        raise ValueError("Not enough class variation after rare-class filtering.")
-
-    majority_baseline = float(y.value_counts().max() / len(y))
-
-    train_idx, test_idx = train_test_split(
-        np.arange(len(y)),
-        test_size=test_size,
-        random_state=random_state,
-        stratify=y,
+    # 1. Rows.
+    country_data = _prepare_cell_frame(
+        data, metadata, target_var, country_code, country_col, admin_cols
     )
 
-    X_train = X.iloc[train_idx].copy()
-    X_test = X.iloc[test_idx].copy()
-    y_train = y.iloc[train_idx]
-    y_test = y.iloc[test_idx]
+    # 2. Columns.
+    flat_metadata = metadata_flat or flatten_metadata(metadata)
+    X = _build_cell_pool(
+        country_data, flat_metadata, target_var, country_col, admin_cols,
+        similarity_model, similarity_threshold,
+        max_missingness_threshold, min_normalized_feature_entropy,
+        feature_pool_override,
+    )
 
-    train_data = X_train.copy()
-    train_data["__label__"] = pd.Categorical(y_train.astype(str))
+    # 3. Target: measurement level decides how it is modelled and scored.
+    #    Detected from value labels (auditable via scripts/audit_target_types.py);
+    #    override with target_type=.
+    y = _coerce_target(country_data[target_var])
+    ttype = target_type or detect_target_type(
+        target_var, metadata, y, survey=survey_id
+    )[0]
+    problem_type, resolved_metric = TARGET_TYPE_PROBLEM.get(
+        ttype, ("multiclass", ORACLE_EVAL_METRIC)
+    )
+    if eval_metric is not None:
+        resolved_metric = eval_metric
+    X, y, problem_type, majority_baseline = _prepare_target(
+        country_data, X, y, metadata, target_var, problem_type, min_class_count
+    )
+    is_regression = problem_type == "regression"
 
-    test_labels = pd.Categorical(y_test.astype(str), categories=train_data["__label__"].cat.categories)
-    valid_test = ~pd.isna(test_labels)
-    if not valid_test.all():
-        X_test = X_test.loc[valid_test].copy()
-        test_labels = test_labels[valid_test]
+    # 4. The honest split: fit on T (60%), rank on V1 (20%), value on V2 (20%).
+    #    (Stratification is meaningless for a continuous target.)
+    train_idx, select_idx, score_idx = _three_way_split(
+        y, test_size, random_state, stratify=not is_regression
+    )
+    train_data, select_data, score_data = _labelled_frames(
+        X, y, train_idx, select_idx, score_idx, is_regression
+    )
 
-    test_data = X_test.copy()
-    test_data["__label__"] = test_labels
-
-    if len(test_data) == 0:
-        raise ValueError("No valid test rows after preprocessing.")
-
+    # 5. One fit, two importance passes. (Temp dir avoids file locks on synced folders.)
     preset, time_limit = resolve_runtime_config(runtime_mode, autogluon_time_limit)
     num_gpus = _resolve_num_gpus(num_gpus)
-
-    # Use a temp directory to avoid file-lock issues on Dropbox-backed folders.
     if tmp_root is None:
         tmp_root = tmp_dir(OUTPUTS_DIR)
     tmp_root = _set_local_tmp_dir(tmp_root)
-    temp_dir = tempfile.mkdtemp(prefix="autogluon_oracle_", dir=str(tmp_root))
-    run_output_dir = Path(temp_dir)
-
+    run_output_dir = Path(tempfile.mkdtemp(prefix="autogluon_oracle_", dir=str(tmp_root)))
     try:
-        predictor = TabularPredictor(
-            label="__label__",
-            problem_type="multiclass",
-            eval_metric="accuracy",
-            path=str(run_output_dir),
-            verbosity=ag_verbosity,
-        ).fit(
-            train_data=train_data,
-            presets=preset,
-            time_limit=time_limit,
-            num_gpus=num_gpus,
-            verbosity=ag_verbosity,
-            # Ray-backed sub-fit deadlocks on Windows (AutoGluon 1.4 + Ray 2.44);
-            # disable dynamic stacking since oracle permutation importance doesn't need it.
-            dynamic_stacking=False,
-            # Force fold-level fitting to skip Ray. With concurrent grid workers, each
-            # cell would otherwise race to start its own Ray cluster + dashboard, which
-            # crashes on Windows + Python 3.9 (typing.py:734 "unhashable type: 'list'")
-            # and causes every *_BAG_L1/L2 model to be silently skipped.
-            ag_args_ensemble={"fold_fitting_strategy": "sequential_local"},
+        fi_select, fi_score = _fit_and_rank(
+            train_data, select_data, score_data, run_output_dir,
+            problem_type=problem_type, resolved_metric=resolved_metric,
+            preset=preset, time_limit=time_limit,
+            num_gpus=num_gpus, num_cpus=num_cpus,
+            n_repeats=n_repeats, ag_verbosity=ag_verbosity,
         )
-
-        fi = _feature_importance(predictor, test_data, n_repeats, verbosity=ag_verbosity)
-        if fi.empty:
-            raise ValueError("AutoGluon returned empty feature importance.")
-
-        fi = fi.reset_index().rename(
-            columns={"index": "feature_variable", "importance": "importance_mean", "stddev": "importance_std"}
-        )
-        if "importance_std" not in fi.columns:
-            fi["importance_std"] = 0.0
-
     finally:
-        _safe_rmtree(run_output_dir)
+        # Scratch only; Windows may briefly hold handles, so best-effort.
+        shutil.rmtree(run_output_dir, ignore_errors=True)
 
-    oracle_df = fi[["feature_variable", "importance_mean", "importance_std"]].copy()
-    oracle_df.insert(0, "country", country_code)
-    oracle_df.insert(0, "target_variable", target_var)
-    oracle_df["majority_baseline"] = round(float(majority_baseline), 4)
-
-    feature_pool = oracle_df["feature_variable"].astype(str).tolist()
-    return oracle_df, feature_pool
-
-
-def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="AutoGluon oracle runner.")
-    parser.add_argument(
-        "--survey",
-        default=DEFAULT_SURVEY,
-        choices=list(SURVEY_COUNTRY_COL),
-        help=f"Survey to run (default: {DEFAULT_SURVEY}).",
+    # 6. oracle.csv columns + oracle_meta.json.
+    return _assemble_outputs(
+        fi_select, fi_score,
+        target_var=target_var, country_code=country_code,
+        majority_baseline=majority_baseline, resolved_metric=resolved_metric,
+        problem_type=problem_type, ttype=ttype,
+        train_data=train_data, select_data=select_data, score_data=score_data,
+        y=y, train_idx=train_idx,
     )
-    parser.add_argument(
-        "--targets",
-        nargs="+",
-        default=None,
-        metavar="VAR",
-        help="Target variable(s). Defaults to WVS targets when --survey=wvs.",
-    )
-    parser.add_argument(
-        "--countries",
-        nargs="+",
-        default=None,
-        metavar="COUNTRY",
-        help="Country name(s). Defaults to WVS countries when --survey=wvs.",
-    )
-    parser.add_argument(
-        "--list-countries",
-        action="store_true",
-        help="Print available countries for the chosen survey and exit.",
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=str,
-        default=None,
-        help="Output root (default: outputs/).",
-    )
-    parser.add_argument(
-        "--runtime-mode",
-        type=str,
-        default="balanced",
-        choices=["quick", "balanced", "best"],
-        help="AutoGluon runtime profile.",
-    )
-    parser.add_argument(
-        "--autogluon-time-limit",
-        type=int,
-        default=0,
-        help="Override AutoGluon time limit in seconds (0 = default per mode).",
-    )
-    parser.add_argument(
-        "--test-size",
-        type=float,
-        default=TEST_SIZE,
-        help=f"Holdout test size (default: {TEST_SIZE}).",
-    )
-    parser.add_argument(
-        "--random-state",
-        type=int,
-        default=RANDOM_STATE,
-        help=f"Random seed (default: {RANDOM_STATE}).",
-    )
-    parser.add_argument(
-        "--similarity-threshold",
-        type=float,
-        default=SIMILARITY_THRESHOLD,
-        help=f"Semantic exclusion threshold (default: {SIMILARITY_THRESHOLD}).",
-    )
-    parser.add_argument(
-        "--max-missingness-threshold",
-        type=float,
-        default=MAX_MISSINGNESS_THRESHOLD,
-        help=f"Drop features with missingness >= threshold (default: {MAX_MISSINGNESS_THRESHOLD}).",
-    )
-    parser.add_argument(
-        "--min-normalized-feature-entropy",
-        type=float,
-        default=MIN_NORMALIZED_FEATURE_ENTROPY,
-        help=f"Minimum normalized entropy (default: {MIN_NORMALIZED_FEATURE_ENTROPY}).",
-    )
-    parser.add_argument(
-        "--enforce-identical-feature-pool",
-        action="store_true",
-        default=ENFORCE_IDENTICAL_FEATURE_POOL,
-        help="Use a single feature pool per target across selected countries.",
-    )
-    parser.add_argument(
-        "--min-class-count",
-        type=int,
-        default=MIN_CLASS_COUNT,
-        help=f"Minimum class count (default: {MIN_CLASS_COUNT}).",
-    )
-    parser.add_argument(
-        "--n-repeats",
-        type=int,
-        default=5,
-        help="Permutation repeats for feature importance (AutoGluon shuffle sets).",
-    )
-    parser.add_argument(
-        "--auto-detect-gpu",
-        action="store_true",
-        default=False,
-        help="Use one GPU if available; otherwise force CPU.",
-    )
-    parser.add_argument(
-        "--max-cells-per-run",
-        type=int,
-        default=0,
-        help="If >0, process at most this many target-country cells.",
-    )
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Recompute even if cache/cells/<target>_<country>/oracle.csv exists.",
-    )
-    parser.add_argument(
-        "--ag-verbosity",
-        type=int,
-        default=0,
-        choices=[0, 1, 2, 3, 4],
-        help=(
-            "AutoGluon verbosity (0=silent, 2=info, 3=info+model details, 4=debug). "
-            "Use 3+ to surface 'skipping model X' tracebacks while debugging."
-        ),
-    )
-    return parser.parse_args()
-
-
-def main() -> None:
-    args = _parse_args()
-
-    survey_id = args.survey
-    country_col = SURVEY_COUNTRY_COL[survey_id]
-    targets = args.targets or (DEFAULT_TARGETS if survey_id == DEFAULT_SURVEY else None)
-    countries = args.countries or (DEFAULT_COUNTRIES if survey_id == DEFAULT_SURVEY else None)
-
-    config_path = os.environ.get("DATA_CONFIG_PATH")
-    if not config_path:
-        raise ValueError("DATA_CONFIG_PATH is not set in .env")
-
-    data, metadata = load_survey(survey_id, config_path)
-    country_codes = build_country_code_map(metadata, country_col, data)
-    admin_cols = build_admin_cols(metadata, country_col)
-    metadata_flat = flatten_metadata(metadata)
-    similarity_model = load_similarity_model(args.similarity_threshold)
-
-    if args.list_countries:
-        print(f"\nAvailable countries for '{survey_id}':")
-        for name in sorted(country_codes):
-            print(f"  {name} ({country_codes[name]})")
-        return
-
-    if not targets:
-        raise SystemExit(f"--targets is required for survey '{survey_id}'")
-    if not countries:
-        raise SystemExit(f"--countries is required for survey '{survey_id}'")
-
-    unknown = [c for c in countries if c not in country_codes]
-    if unknown:
-        raise ValueError(
-            f"Unknown country/ies {unknown} for survey '{survey_id}'. "
-            f"Run with --list-countries to see valid names."
-        )
-
-    output_root = Path(args.output_dir).expanduser().resolve() if args.output_dir else OUTPUTS_DIR
-    output_root.mkdir(parents=True, exist_ok=True)
-    tmp_root = _set_local_tmp_dir(tmp_dir(output_root))
-
-    num_gpus = 1 if (args.auto_detect_gpu and _detect_gpu_available()) else 0
-    num_gpus = _resolve_num_gpus(num_gpus)
-
-    processed = 0
-    errors: list[dict] = []
-
-    print("\n" + "=" * 72)
-    print(f"Survey: {survey_id}  |  country column: {country_col}")
-    print(f"Targets:   {targets}")
-    print(f"Countries: {countries}")
-    print(f"AutoGluon: runtime={args.runtime_mode}, time_limit={args.autogluon_time_limit or 'default'}")
-    print(f"GPU: num_gpus={num_gpus}")
-    print("=" * 72)
-
-    selected_country_codes = {c: country_codes[c] for c in countries}
-
-    for target_var in targets:
-        if target_var not in data.columns:
-            raise ValueError(f"Target {target_var} missing from dataset columns.")
-
-        target_feature_pool = None
-        if args.enforce_identical_feature_pool:
-            df_target = data[data[country_col].isin(selected_country_codes.values())].copy()
-            df_target = clean_question_columns(df_target, country_col, admin_cols)
-            df_target = df_target[df_target[target_var].notna()].copy()
-            base_pool, _ = build_feature_pool(
-                df_target,
-                metadata_flat,
-                target_var,
-                admin_cols,
-                similarity_model,
-                args.similarity_threshold,
-            )
-            target_feature_pool, _ = filter_feature_pool_across_countries(
-                df_target,
-                base_pool,
-                selected_country_codes,
-                country_col,
-                args.max_missingness_threshold,
-                args.min_normalized_feature_entropy,
-            )
-
-        for country_name in countries:
-            country_code = country_codes[country_name]
-            prefix = f"{target_var}_{country_name}"
-            # Prefer dual-resolved existing oracle; write under cache/cells/ for new runs.
-            existing = oracle_csv_path(target_var, country_name, output_root)
-            if existing.is_file() and not args.force:
-                print(f"[skip] {prefix}: oracle.csv already exists ({existing})")
-                continue
-
-            cell_path = layout_cell_dir(target_var, country_name, output_root)
-            cell_path.mkdir(parents=True, exist_ok=True)
-            oracle_path = cell_path / "oracle.csv"
-
-            print(f"\n[oracle] {target_var} x {country_name}")
-            try:
-                oracle_df, feature_pool = compute_oracle(
-                    data=data,
-                    metadata=metadata,
-                    target_var=target_var,
-                    country_code=country_code,
-                    country_col=country_col,
-                    admin_cols=admin_cols,
-                    metadata_flat=metadata_flat,
-                    similarity_model=similarity_model,
-                    similarity_threshold=args.similarity_threshold,
-                    max_missingness_threshold=args.max_missingness_threshold,
-                    min_normalized_feature_entropy=args.min_normalized_feature_entropy,
-                    feature_pool_override=target_feature_pool,
-                    tmp_root=tmp_root,
-                    n_splits=1,
-                    n_repeats=args.n_repeats,
-                    random_state=args.random_state,
-                    runtime_mode=args.runtime_mode,
-                    autogluon_time_limit=args.autogluon_time_limit,
-                    test_size=args.test_size,
-                    min_class_count=args.min_class_count,
-                    num_gpus=num_gpus,
-                    ag_verbosity=args.ag_verbosity,
-                )
-
-                oracle_df.to_csv(oracle_path, index=False)
-                pd.DataFrame({"feature_variable": feature_pool}).to_csv(
-                    cell_path / "feature_pool.csv", index=False
-                )
-                print(f"  Saved {oracle_path}")
-                processed += 1
-
-            except Exception as exc:
-                errors.append({"target": target_var, "country": country_name, "error": str(exc)})
-                print(f"  [error] {type(exc).__name__}: {exc}")
-
-            if args.max_cells_per_run > 0 and processed >= args.max_cells_per_run:
-                print("\nMax cells per run reached; stopping.")
-                break
-
-        if args.max_cells_per_run > 0 and processed >= args.max_cells_per_run:
-            break
-
-    if errors:
-        print("\n" + "=" * 72)
-        print(f"Errors in {len(errors)} cell(s):")
-        for err in errors:
-            print(f"  - {err['target']} x {err['country']}: {err['error']}")
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit("CLI moved to scripts/compute_oracle.py")

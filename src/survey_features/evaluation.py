@@ -1,7 +1,13 @@
 """
 Downstream prediction evaluation.
-Compare XGBoost accuracy using oracle, model-selected, and random feature sets
-(matched-k, 5-fold CV). Shared by the current free-text pipeline and the legacy grid.
+Compare XGBoost performance using oracle, model-selected, textbook and random feature
+sets (matched-k, 5-fold CV). Shared by the current free-text pipeline and the legacy grid.
+
+The target's MEASUREMENT LEVEL selects estimator and score, mirroring the oracle
+(oracle.TARGET_TYPE_PROBLEM); why: pipeline_audit_2026-08.md §A11. Every result carries
+`primary_score`, higher-is-better and comparable WITHIN a cell only (neg log loss for
+classification, Spearman rho for regression) — all the metrics need, since every
+contrast is matched-k within a cell.
 """
 
 from __future__ import annotations
@@ -10,27 +16,39 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from joblib import Parallel, delayed
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import KFold
+from scipy.stats import spearmanr
+from sklearn.metrics import accuracy_score, log_loss, mean_absolute_error
+from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
+
+REGRESSION_TYPES = {"ordinal", "continuous"}
+
+# Shared tree hyperparameters — identical between the classifier and the regressor so the
+# only thing the measurement level changes is the objective and the score.
+_XGB_PARAMS = dict(
+    n_estimators=300,
+    max_depth=6,
+    learning_rate=0.1,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    min_child_weight=5,
+    random_state=42,
+    verbosity=0,
+)
 
 
 def make_clf(nthread=None):
     """XGBoost classifier with fixed hyperparameters (matching Phase 0a)."""
     kwargs = {"nthread": nthread} if nthread is not None else {}
     return xgb.XGBClassifier(
-        n_estimators=300,
-        max_depth=6,
-        learning_rate=0.1,
-        subsample=0.8,
-        colsample_bytree=0.8,
-        min_child_weight=5,
-        random_state=42,
-        use_label_encoder=False,
-        eval_metric="mlogloss",
-        verbosity=0,
-        **kwargs,
+        use_label_encoder=False, eval_metric="mlogloss", **_XGB_PARAMS, **kwargs
     )
+
+
+def make_regressor(nthread=None):
+    """XGBoost regressor for ordinal/continuous targets (same tree settings)."""
+    kwargs = {"nthread": nthread} if nthread is not None else {}
+    return xgb.XGBRegressor(objective="reg:squarederror", **_XGB_PARAMS, **kwargs)
 
 
 def evaluate_feature_set(
@@ -40,6 +58,8 @@ def evaluate_feature_set(
     n_splits: int = 5,
     random_state: int = 42,
     nthread: int | None = None,
+    target_type: str | None = None,
+    target_valid_range: tuple[float, float] | None = None,
 ) -> dict:
     """
     Train XGBoost on a specific feature set and return CV accuracy.
@@ -86,6 +106,42 @@ def evaluate_feature_set(
         X.loc[non_null, col] = col_le.fit_transform(X.loc[non_null, col])
         X[col] = pd.to_numeric(X[col], errors="coerce")
 
+    # ── Ordinal / continuous: regress on the codes and score by rank correlation ──
+    if target_type in REGRESSION_TYPES:
+        y = pd.to_numeric(y_raw, errors="coerce")
+        keep = y.notna()
+        if target_valid_range is not None:
+            lo, hi = target_valid_range
+            keep &= y.between(lo, hi)
+        X, y = X.loc[keep], y.loc[keep]
+        if y.nunique() < 3:
+            return {"primary_score": None, "n_features": len(available),
+                    "n_samples": len(y), "error": "fewer than 3 distinct values"}
+        kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+        rhos, maes = [], []
+        for tr, te in kf.split(X):
+            reg = make_regressor(nthread=nthread)
+            reg.fit(X.iloc[tr], y.iloc[tr])
+            pred = reg.predict(X.iloc[te])
+            rho = spearmanr(y.iloc[te], pred).correlation
+            rhos.append(0.0 if pd.isna(rho) else float(rho))
+            maes.append(mean_absolute_error(y.iloc[te], pred))
+        rhos = np.asarray(rhos, dtype=float)
+        # Baseline for a rank score is 0 (no ordering recovered), not the modal share.
+        return {
+            "target_type": target_type,
+            "spearman_mean": round(float(rhos.mean()), 4),
+            "spearman_std": round(float(rhos.std()), 4),
+            "mae_mean": round(float(np.mean(maes)), 4),
+            "primary_score": round(float(rhos.mean()), 4),
+            "primary_metric": "spearmanr",
+            "majority_baseline": round(float(y.value_counts().max() / len(y)), 4),
+            "n_features": len(available),
+            "n_features_requested": len(feature_vars),
+            "n_samples": len(y),
+            "error": None,
+        }
+
     # Encode target — numeric cast first, fall back to label encoding for text targets.
     le = LabelEncoder()
     try:
@@ -114,24 +170,55 @@ def evaluate_feature_set(
 
     # Manual CV avoids sklearn>=1.6 calling is_classifier() on XGBClassifier,
     # which can raise AttributeError with some xgboost / sklearn combinations.
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
-    scores = []
+    # Stratified: the target is multiclass and often mode-dominated, so unstratified
+    # folds could leave a class out of a training fold entirely.
+    kf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    all_labels = np.unique(y)
+    scores, losses = [], []
     for train_idx, test_idx in kf.split(X, y):
         clf = make_clf(nthread=nthread)
         clf.fit(X.iloc[train_idx], y.iloc[train_idx])
-        pred = clf.predict(X.iloc[test_idx])
-        scores.append(accuracy_score(y.iloc[test_idx], pred))
+        y_test = y.iloc[test_idx]
+        scores.append(accuracy_score(y_test, clf.predict(X.iloc[test_idx])))
+        # Log loss is the sensitive metric: on a mode-dominated survey item a genuinely
+        # informative feature often shifts probabilities without flipping any argmax,
+        # which accuracy cannot see at all.
+        proba = clf.predict_proba(X.iloc[test_idx])
+        losses.append(log_loss(y_test, proba, labels=all_labels))
     scores = np.asarray(scores, dtype=float)
+    losses = np.asarray(losses, dtype=float)
 
     return {
+        "target_type": target_type or "classification",
         "accuracy_mean": round(float(scores.mean()), 4),
         "accuracy_std": round(float(scores.std()), 4),
+        "logloss_mean": round(float(losses.mean()), 4),
+        "logloss_std": round(float(losses.std()), 4),
+        # higher-is-better scalar, comparable within a cell across target types
+        "primary_score": round(float(-losses.mean()), 4),
+        "primary_metric": "neg_log_loss",
         "majority_baseline": round(float(majority_baseline), 4),
         "n_features": len(available),
         "n_features_requested": len(feature_vars),
         "n_samples": len(y),
         "error": None,
     }
+
+
+def single_random_draw_result(
+    country_data: pd.DataFrame,
+    target_var: str,
+    all_feature_pool: list[str],
+    k: int,
+    seed: int,
+    nthread: int | None = 1,
+    target_type: str | None = None,
+) -> dict:
+    """One random-k draw evaluated with the same downstream estimator (full result)."""
+    rng = np.random.RandomState(seed)
+    random_vars = list(rng.choice(all_feature_pool, size=min(k, len(all_feature_pool)), replace=False))
+    return evaluate_feature_set(country_data, target_var, random_vars,
+                                nthread=nthread, target_type=target_type)
 
 
 def single_random_draw(
@@ -142,11 +229,10 @@ def single_random_draw(
     seed: int,
     nthread: int | None = 1,
 ) -> float | None:
-    """One random-k draw evaluated with the same downstream classifier."""
-    rng = np.random.RandomState(seed)
-    random_vars = list(rng.choice(all_feature_pool, size=min(k, len(all_feature_pool)), replace=False))
-    r = evaluate_feature_set(country_data, target_var, random_vars, nthread=nthread)
-    return r["accuracy_mean"]
+    """Accuracy of one random-k draw (thin wrapper kept for existing call sites)."""
+    return single_random_draw_result(
+        country_data, target_var, all_feature_pool, k, seed, nthread=nthread
+    )["accuracy_mean"]
 
 
 # Backwards-compatible alias (old name in phase0b_evaluation.py).
