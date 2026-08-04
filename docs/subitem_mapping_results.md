@@ -517,7 +517,12 @@ Cell-level VoR is identical for parent and expanded in **21** / 102 paired cells
 2. **Expansion does change the code set.** Mean k rises by ~3.0 unique codes (~1.31×). Parent↔subitem Jaccard is low (~0.16), and recovery when the parent is none appears in 53 cells — so sub_items sometimes surface variables the parent query missed.
 3. **Capability barely moves.** Natural-k mean Δ VoR is only +0.0052 (sign-mixed across cells). Captured importance rises more (+0.0289) alongside Δk ≈ +2.9, which is the expected **budget** channel.
 4. **Matched-k checks cut against a quality story.** At k=5, Δ captured importance ≈ +0.0004; at k=10, Δ VoR ≈ -0.0013. Equal-budget rows do not show a robust gain from the extra / different codes.
-5. **Paper implication.** Treat this as a **mapping-granularity caveat**: parent-only MiniLM arm-C understates requested specificity and misses some recoverable subconcepts, but expanding for scoring does not justify replacing the headline capability metric. Main results should remain parent-only unless a future protocol change is explicit.
+5. **Paper / main-design implication (updated 2026-07-31).** Pilot continuity numbers
+   stay parent-only MiniLM arm-C. **Confirmatory main locks dual-layer** (score on
+   `expanded_codes`; parent-only = ablation) — see
+   [main_experiment_design.md](main_experiment_design.md) §4 / decision log. Rationale
+   is construct coverage (multi-indicator features), not a VoR lift: expansion recovers
+   specificity the one-to-one mapper collapses, while matched-k capability barely moves.
 
 ## E. Reproducibility
 

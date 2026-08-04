@@ -1,5 +1,13 @@
 # Phase B2 — Selection Alignment & Cross-National Adaptation
 
+> **SUPERSEDED — read before quoting.** These are **JSON-grid** numbers (era 1). The
+> adaptation result here (≈ −0.002, every interval straddling zero — "movement without
+> fit") is **not** the current statement of Test 2: on free text, Kimi is +0.023
+> [0.001, 0.045] while DeepSeek stays null. Both are correct about their own run.
+> The **accuracy-era oracle** these numbers were computed against is archived at `outputs/cache/cells_accuracy_v1/`; the current oracle uses log loss on an honest fit/select/score split. Because Test 2 is scored against oracle rankings the audit shows were largely
+> noise-selected, treat this memo and the free-text result as pending re-computation.
+> See [pipeline_audit_2026-08.md](pipeline_audit_2026-08.md) §A1 and `experiments_index.md` → "Which numbers are current".
+
 *Generated 2026-06-01 from `analysis/alignment_analysis.py --write-tex`.*
 *Per-cell: `outputs/alignment_by_cell.csv` (356 rows). Rollups: `outputs/alignment_summary.json`.*
 *TeX: `paper/generated_current_state/main_alignment_overall.tex`, `main_alignment_metrics.tex`,

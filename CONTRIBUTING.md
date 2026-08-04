@@ -1,7 +1,9 @@
 # Contributing
 
 Thanks for helping out! This document covers the repo conventions that keep the
-pipeline reproducible.
+pipeline reproducible. Before your first change, read
+[`docs/onboarding.md`](docs/onboarding.md) — the concepts, the cache-identity
+discipline, and the sharp edges the rules below exist to protect.
 
 ## Getting set up
 
@@ -55,9 +57,23 @@ Python ≥ 3.9. Survey data access goes through `synthetic_sampling` (pinned in
    for dual-resolved artifact paths.
 8. **`.tmp/` is disposable.** `outputs/.tmp/` holds AutoGluon scratch; delete
    freely between runs.
+9. **Fail loud in library code.** No `try/except` around our own files, formats, or
+   version assumptions — a corrupt cache or broken invariant should crash with a clear
+   message, not fall back silently to a wrong answer. Guards belong only at system
+   boundaries: network calls, process-pool workers, per-cell isolation in sweep
+   drivers, and genuine statistical fallbacks (e.g. stratification on thin classes).
+10. **Comments state the invariant, not the story.** One or two lines saying what must
+   hold, plus a pointer (`docs/onboarding.md §5`, `docs/pipeline_audit_2026-08.md §A1`)
+   for the rationale. Measured numbers, incident history, and design argument live in
+   `docs/`, never inline. One narrative home per module — the top docstring — and
+   pointers everywhere else.
 
 ## Workflow
 
+- **End every workday with `/repo-audit`** (project skill, `.claude/skills/repo-audit/`):
+  it safe-cleans mechanical clutter, checks the rules above on the day's diff, groups
+  the day's work into commits, and hands you a ranked walk-through list for your own
+  review pass. The agent never pushes.
 - Branch from `master`, keep PRs focused and small.
 - Smoke-test entry points you touched, e.g.
   `python scripts/run_main.py --phase gen --limit 1` (needs API keys) or at

@@ -4,6 +4,10 @@
 
 The pipeline asks an LLM (in free text) which respondent features would predict a target survey answer, extracts a typed feature list from the essay, maps each feature to a concrete survey variable via embedding retrieval + LLM disambiguation, and evaluates whether the selected variables actually predict the answer better than matched-size random baselines — against an AutoGluon permutation-importance oracle as the ceiling.
 
+> **New to the repo? Start with [`docs/onboarding.md`](docs/onboarding.md)** — the concepts
+> (oracle contracts, the honest split, cache identity), which numbers are current, and the
+> sharp edges. This README covers setup and layout; that file covers how the system thinks.
+
 ---
 
 ## Repository layout
@@ -205,7 +209,7 @@ The file must contain **all** features considered — evaluation picks its own t
 Standalone oracle run (requires `pip install -e ".[oracle]"`):
 
 ```bash
-python -m survey_features.oracle \
+python scripts/compute_oracle.py \
     --survey wvs --targets Q47 Q57 Q199 Q235 Q164 \
     --countries Germany Nigeria Japan Brazil Egypt \
     --runtime-mode balanced --force

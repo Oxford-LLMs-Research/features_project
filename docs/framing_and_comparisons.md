@@ -1,5 +1,13 @@
 # What we are comparing, and why — a conceptual guide
 
+> **Numbers here are JSON-era; the argument may outlive them.** The claim that the LLM is
+> "weak as an importance estimator" is built on VoR ~0.025 and ~half of cells beating
+> random. Those are **era-1** figures; free text gives 0.054-0.063 and 76-78% at model-k.
+> Two later developments bear on the argument directly: the random null was drawn from a
+> wider pool than the oracle's (so VoR was inflated), and a **textbook demographic
+> baseline** now exists — which is the answer to the "why not just use the oracle?"
+> objection this document raises but could not answer. See [pipeline_audit_2026-08.md](pipeline_audit_2026-08.md) §A2.
+
 *Living document. Plain-language companion to `paper/research_design.tex` (the vision),
 `paper/current_state.tex` (the canonical results doc), and `paper/IIA assumption.tex`
 (the open-world caveat). Written 2026-05-29.*

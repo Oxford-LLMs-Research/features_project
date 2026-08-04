@@ -1,5 +1,10 @@
 # Preliminary multi-survey grid: analysis and summary
 
+> **SUPERSEDED — numbers are not reproducible from disk.** This describes a 5x5
+> single-model run that `RECONCILIATION_PLAN.md` records as overwritten and unrecoverable.
+> Kept for narrative history only. Do not cite these figures.
+> See `experiments_index.md` -> "Which numbers are current".
+
 This document summarises the **first full preliminary run** after the big pipeline update (4 May 2026): six surveys, **five targets × five countries** each, full stack (oracle permutation importance, LLM feature listing, embedding retrieval, disambiguation, XGBoost comparison). Statistics below are computed from `c:\Users\murrn\cursor\features_project\outputs\grid_summary__*.csv` unless noted. A machine-readable digest of the same aggregates is in `c:\Users\murrn\cursor\features_project\outputs\_prelim_stats.json` (regenerate with `python analysis/prelim_results_stats.py > outputs/_prelim_stats.json`).
 
 ---

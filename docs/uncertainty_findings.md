@@ -1,5 +1,12 @@
 # Phase B3 — Uncertainty Quantification
 
+> **SUPERSEDED — read before quoting.** **JSON-grid** numbers (era 1), including the
+> adaptation null. See the note in `alignment_findings.md`: the free-text result differs
+> in sign for Kimi. The **accuracy-era oracle** these numbers were computed against is archived at `outputs/cache/cells_accuracy_v1/`; the current oracle uses log loss on an honest fit/select/score split. Every CI here is computed on that oracle, and
+> `oracle_percentile_mean` carried an order-dependent tie-break at the time (~46 of 239
+> features tied at exactly 0.0 in the median cell), since fixed.
+> See [pipeline_audit_2026-08.md](pipeline_audit_2026-08.md) §A1, §A3.
+
 *Generated 2026-06-01 from `analysis/uncertainty_analysis.py --write-tex`.*
 *Rollups: `outputs/uncertainty_summary.json`. TeX: `paper/generated_current_state/main_uncertainty.tex`,
 `main_ci_captured_importance.tex`. All numbers read back from the generated JSON.*

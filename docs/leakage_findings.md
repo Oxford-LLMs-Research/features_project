@@ -1,5 +1,16 @@
 # Phase B1 — Leakage Audit Findings
 
+> **PARTLY SUPERSEDED.** The 52 genuine / 31 degenerate / 6 leakage split was computed on
+> the accuracy-era oracle, and its `--min-signal` threshold is an *accuracy* lift — under
+> log loss some "degenerate" cells are likely recoverable. Two known defects:
+> (1) the rule `recovery >= 0.90 AND top_importance_share >= 0.80` is a conjunction, so
+> `Q67A x Gabon` was classed **genuine** despite a single feature reproducing the oracle
+> perfectly (recovery 1.0000, share 0.2276);
+> (2) all three `Q67A` cells are contaminated by a skip-pattern follow-up (`Q69`, asked
+> only of respondents who had heard of climate change) that `detect_conditional_leakage`
+> missed because the routing code was positive and survived the old cleaning rule.
+> Re-run this screen after the oracle re-run. See [pipeline_audit_2026-08.md](pipeline_audit_2026-08.md) §A5.
+
 *Generated 2026-05-31 from `analysis/leakage_audit.py`, data-backed run:*
 `python analysis/leakage_audit.py --with-data --write-tex`
 *Per-cell results: `outputs/leakage_audit.csv`. Rollups: `outputs/leakage_audit_summary.json`.*

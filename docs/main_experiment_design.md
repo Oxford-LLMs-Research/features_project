@@ -35,6 +35,12 @@ converts "conditional on mapping quality" into a measured number.
 - **Cheap disambiguator** (Nemotron-3-Nano; large swap moves ≤0.02).
 - **4-way feature typing**; respondent + temporal piped to scoring; methodology +
   base-rate kept as behavioural metadata.
+- **Dual-layer mapping** (parent + `sub_items` when `|S| ≥ 2`) is the locked map
+  protocol for confirmatory runs — see §4. Pilot parent-only MiniLM arm-C remains the
+  continuity baseline / ablation; kimi v1 showed collapse is real (~29% parents bundled,
+  parent↔subitem Jaccard ~0.16, recovery when parent is `none` in ~half of bundled cells)
+  while matched-k VoR barely moves — so expansion is about **faithful construct coverage**,
+  not a secret quality lift ([subitem_mapping_results.md](subitem_mapping_results.md)).
 - **Oracle** = AutoGluon permutation importance (single split, test 0.2, 5 shuffle sets);
   downstream evaluator = fixed XGBoost, 5-fold CV, matched-k.
 - **Leakage + degeneracy screen** runs as a *design-stage* gate (pilot: 6 leakage + 31
@@ -113,15 +119,36 @@ a larger true effect. Both push the realised MDE below 0.019.
   conditions, temperature 0, one generation per cell-condition.
 - **Stability sub-study**: 5% stratified subsample re-generated 3× at t = 0.7 →
   within-model selection variance (cheap; closes a critique).
-- Extraction: Qwen3-235B-Instruct-2507, typed 4-way. **Extractor audit [USER]**: ~10%
-  stratified subsample re-extracted by a second extractor (Kimi-K2.6); report feature
-  count/type/mapped-code agreement. This bounds extractor bias for *all* selectors and
+- Extraction: Qwen3-235B-Instruct-2507, typed 4-way (including `sub_items` under each
+  parent). **Extractor audit [USER]**: ~10% stratified subsample re-extracted by a
+  second extractor (Kimi-K2.6); report feature count/type/mapped-code agreement *and*
+  sub_item-list agreement. This bounds extractor bias for *all* selectors and
   specifically clears the Qwen-family selectors (same-family extraction concern).
-- Retrieval: per-feature top-20, dual-embed (all-MiniLM-L6-v2, cached per survey).
-- Disambiguation: Nemotron-3-Nano (primary). Qwen-235B re-disambiguation on a 10%
-  subsample as a continuing robustness check (pilot says it won't matter; cheap to keep
-  honest).
-- Scoring: matched-k XGBoost (5-fold), captured importance vs oracle, random baselines.
+- **Mapping unit (locked) — dual-layer:** free-text often names a broad *construct*
+  measurable by several survey variables, not one. For each piped parent feature with
+  label `L`, context `C`, sub_items `S`:
+  1. **Parent unit** (always): retrieve + disambiguate on `(L, C)`.
+  2. **Sub_item units** (only if `|S| ≥ 2`): for each `s ∈ S`, retrieve + disambiguate
+     with `feature_label = s` and parent-anchored context
+     `"{C} (sub-measure of {L})"` (fallback `"sub-measure of {L}"` if `C` empty).
+  3. **Score codes** = `expanded_codes` = deduped union of parent + sub_item codes
+     (parents first, then sub_items). Store `parent_codes` / `subitem_codes` for
+     diagnostics and the parent-only ablation.
+  4. Features with `|S| ≤ 1` contribute parent units only (no singleton inflation).
+  Protocol detail and conditional diagnostics:
+  [subitem_mapping.md](subitem_mapping.md). Implementation today lives in
+  `survey_features.subitem_map`; confirmatory `run_main.py` must use this path as the
+  default map (parent-only remains an ablation write, not the headline).
+- Retrieval: per **mapping unit** top-20, dual-embed (all-MiniLM-L6-v2, cached per
+  survey). Call volume ≈ 1.3–1.9× parent-only (kimi v1: ~1.87× if parents remapped;
+  ~0.8× *new* API if parents were copied — production remaps both for a clean
+  checkpoint).
+- Disambiguation: Nemotron-3-Nano (primary), one call per mapping unit. Qwen-235B
+  re-disambiguation on a 10% subsample of units as a continuing robustness check.
+- Scoring: matched-k XGBoost (5-fold) on **`expanded_codes`**, captured importance vs
+  oracle, random baselines. Always report model-k **and** fixed k = 5, 10 (expansion
+  inflates natural k; fixed-k keeps the capability estimate comparable). Parent-only
+  scores are a secondary ablation, not the lead row.
   **Random accuracy draws cut to 5** (pilot used 20/10; the baseline mean is stable and
   this is the scoring-cost driver); random *captured-importance* baseline stays at 200
   draws (oracle-arithmetic, free).
@@ -161,40 +188,49 @@ then the rest. Final zoo pinned in the manifest before launch.
    cross-national-variation score (prediction: adaptation concentrates where variation
    exists). Movement (Jaccard) reported alongside so "movement without fit" stays
    testable.
-3. **T3 complexity calibration** (first run ever): does model-chosen k track target
-   complexity (outcome entropy, oracle ceiling, #features-to-90%-mass)? Free text gives
-   a natural k; this completes the original design.
+3. **T3 complexity calibration** (first run ever): does model-chosen k (on
+   `expanded_codes`) track target complexity (outcome entropy, oracle ceiling,
+   #features-to-90%-mass)? Free text + dual-layer give a natural k; this completes the
+   original design. Report bundling rate and k-inflation alongside.
 4. **Scaling analysis**: T1/T2 metrics vs parameter count / family / reasoning-training /
    open-vs-closed. The pointed question: does selection scale where prediction didn't.
 5. **Behavioural layer**: typed-request rates (base-rate, methodology, temporal) by
    region × theme × model; powered test of the pilot's ESS-vs-ArabBarometer skew.
-6. **Mapping-validation study**: ~300 stratified request→variable pairs (across surveys,
-   selectors, mapped/none), 2–3 human coders, agreement (κ), retrieval recall@20, and
-   the "none" decomposition (coverage gap / retrieval miss / over-caution). Produces the
-   attenuation estimate that turns "lower bound" into "bounded".
+6. **Mapping-validation study**: ~300 stratified **mapping-unit**→variable pairs
+   (parents *and* sub_items; across surveys, selectors, mapped/none), 2–3 human coders,
+   agreement (κ), retrieval recall@20, and the "none" decomposition (coverage gap /
+   retrieval miss / over-caution). Stratify so bundled constructs are not under-sampled.
+   Produces the attenuation estimate that turns "lower bound" into "bounded".
 7. **Cross-instrument replication**: for bridge countries, compare a model's per-theme
    captured importance and request overlap across the two surveys covering the same
    country (Morocco/Tunisia: three). Instrument-robustness of the capability estimate —
    no other design gets this for free.
+8. **Parent-only ablation**: same cells scored on `parent_codes` only — reports how much
+   one-to-one collapse attenuates the dual-layer headline (continuity with pilot arm-C).
 
 Exclusion rules, metric definitions, and CI procedure frozen in the manifest +
 `analysis/main_analysis_plan.md` before wave 1.
 
 ## 7. Infrastructure deltas (build list)
 
-1. **Screening pipeline** (`analysis/target_screening.py`): candidate scoring per theme
+1. **Dual-layer default in `run_main.py`**: map phase calls
+   `map_features_with_subitems` (or equivalent); score on `expanded_codes`; write
+   parent ablation scores under the same run tag. Do not leave dual-layer only in
+   `scripts/run_subitem_mapping.py`.
+2. **Screening pipeline** (`analysis/target_screening.py`): candidate scoring per theme
    slot — cheap-preset oracle on pre-screen countries, signal/leakage/variation stats →
    `prelim/main_manifest.yaml`. (Empirical leakage guard lives here now, upstream.)
-2. **Orchestrator**: generalise `format_pilot.py` (it is already the prototype:
-   multi-selector registry, per-cell checkpoints, retry-hardened) to a manifest-driven
-   `run_main.py` — free-text only, no arms, N selectors, closed-model client wrappers.
-3. **Scoring at scale**: multi-selector single pass with shared per-(cell,k)
-   oracle/random caches (cache hit across selectors, not just arms); random accuracy
-   draws = 5; serial (the Windows joblib lesson stands); incremental flush; resumable.
-4. **Compute budget (this machine, background) [USER]**: screening oracles ~14–18h;
-   final oracles ~600 × 3min ≈ 30h; API phases: days, rate-limit bound, ~$50–150 total
-   incl. closed models; scoring ≈ 600 cells × shared-k baseline (~4 days) + ~5–7h per
-   selector → **~1.5–2 weeks wall-clock background for the full zoo**, in waves.
+3. **Orchestrator**: manifest-driven `run_main.py` — free-text only, dual-layer map,
+   N selectors, closed-model client wrappers, per-cell checkpoints.
+4. **Scoring at scale**: multi-selector single pass with shared per-(cell,k)
+   oracle/random caches (cache hit across selectors); random accuracy draws = 5;
+   incremental flush; resumable. Natural k is larger under expansion — shared caches
+   keyed by sorted code-set hash still apply.
+5. **Compute budget (this machine, background) [USER]**: screening oracles ~14–18h;
+   final oracles ~600 × 3min ≈ 30h; API phases: days, rate-limit bound — dual-layer
+   adds ~0.3–0.9× disambig volume vs parent-only (still dominated by cheap Nemotron);
+   scoring ≈ 600 cells × shared-k baseline (~4 days) + ~5–7h per selector →
+   **~1.5–2 weeks wall-clock background for the full zoo**, in waves.
    Mitigations if painful: drop to draws=3, score wave-1 selectors first, or move
    scoring to a Linux box later (everything is CSV-resumable).
 
@@ -207,20 +243,33 @@ Exclusion rules, metric definitions, and CI procedure frozen in the manifest +
 - **[USER 2026-06-11]** Extractor: keep Qwen fixed, include Qwen selectors, 10%
   dual-extractor audit.
 - **[USER 2026-06-11]** Compute: this machine, background, waves.
+- **[USER 2026-07-31]** Dual-layer mapping (parent + `sub_items` when `|S| ≥ 2`) is the
+  locked map protocol; score on `expanded_codes`; parent-only is ablation. Rationale:
+  elicited features are often multi-indicator constructs, not single survey variables.
 - **[OPEN]** Closed-model keys + budget ceiling.
 - **[OPEN]** Final zoo list + wave assignment (pin in manifest).
 - **[OPEN]** Mapping-validation coders (who annotates besides Maksim?) and timing
-  (recommend: run on wave-1 outputs while later waves generate).
+  (recommend: run on wave-1 outputs while later waves generate; include sub_item units).
 - **[OPEN]** Exact WVS global-spread picks and Afro/ESS non-bridge picks (propose at
   screening time, with support stats in hand).
 
 ## 9. Sequencing
 
-1. Build + run **target screening** → draft manifest (targets, countries, stats).
-2. Review manifest together; freeze it + the analysis plan (pre-registration moment).
-3. Final oracles for the frozen grid (background, ~30h).
-4. Orchestrator + closed-model wrappers; smoke-test 2 cells × 3 selectors end-to-end.
-5. **Wave 1**: anchors (DeepSeek-V3.2, Kimi-K2.5) + DeepSeek-V4-Pro + gemma-3-27b →
-   full T1/T2 on 4 models; mapping-validation annotation starts on these outputs.
-6. Waves 2–3: remaining open + closed models; stability + extractor-audit substudies.
-7. Analysis per the frozen plan; paper v2.
+Ordered cheapest / fastest → hardest (detail in the planning note below the freeze).
+Summary critical path:
+
+1. **Docs + cheap gates** — dual-layer locked (this doc); unit tests; offline
+   similarity CDF; sync experiments_index / cost estimate for dual-layer call volume.
+2. **Wire dual-layer into `run_main.py`** — smoke on 2 genuine cells × 1 selector;
+   parent ablation scores written alongside.
+3. Build + run **target screening** → draft manifest (targets, countries, stats).
+4. Review manifest together; freeze it + `analysis/main_analysis_plan.md`
+   (pre-registration moment; dual-layer + expanded-k metrics named explicitly).
+5. Final oracles for the frozen grid (background, ~30h).
+6. Orchestrator hardening + closed-model wrappers; end-to-end smoke 2 cells × 3
+   selectors (dual-layer map + score).
+7. **Wave 1**: anchors (DeepSeek-V3.2, Kimi-K2.5) + DeepSeek-V4-Pro + gemma-3-27b →
+   full T1/T2 on 4 models; mapping-validation annotation starts on these outputs
+   (parents + sub_items).
+8. Waves 2–3: remaining open + closed models; stability + extractor-audit substudies.
+9. Analysis per the frozen plan; paper v2.
