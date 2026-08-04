@@ -205,8 +205,24 @@ def classify(row: dict, args) -> str:
         sf_lift = sf - (row.get("majority_baseline") or 0)
         recover = (sf_lift / lift) if lift > 0 else 0.0
         row["single_feature_recovery"] = recover
+        # CONCENTRATED leakage: one variable is the label in disguise, and importance
+        # piles onto it (Q263 <- Q266 "country of birth"; rtrd <- mnactic).
         if recover >= args.recover_frac and conc >= args.conc_thresh:
             return "leakage"
+        # DISTRIBUTED leakage: the cell predicts implausibly well with importance SPREAD
+        # thin and no single feature recovering much. That is the signature of a
+        # skip-pattern MODULE — dozens of items each carrying a little of "was this
+        # respondent routed here at all". All three Q67A cells look like this
+        # (oracle_acc 0.987-0.999 against a 0.50-0.70 majority, top share 0.07-0.17,
+        # recovery 0.10-0.26) because the whole climate battery is asked only of
+        # respondents who had heard of climate change. Removing the single worst
+        # offender (Q69) did not help; the accuracy stayed at 0.999.
+        #
+        # Deliberately NOT a high-recovery rule: recovery >= 0.95 fires on the MEDIAN
+        # cell under the log-loss oracle (34/68), because one strong correlate normally
+        # does as much accuracy work as a whole top-k. See docs/pipeline_audit_2026-08.md A5.
+        if row.get("oracle_acc", 0) >= args.implausible_acc:
+            return "leakage_distributed"
         return "genuine"
     # Offline fallback: concentration-only heuristic.
     if conc >= args.conc_thresh and lift >= args.suspect_lift:
@@ -221,7 +237,12 @@ def main() -> None:
     ap.add_argument("--conc-thresh", type=float, default=0.80,
                     help="Top-feature importance share above which a cell is concentration-suspect.")
     ap.add_argument("--recover-frac", type=float, default=0.90,
-                    help="Single-feature recovers >= this fraction of oracle lift -> leakage.")
+                    help="Single-feature recovers >= this fraction of oracle lift -> leakage "
+                         "(only in conjunction with --conc-thresh).")
+    ap.add_argument("--implausible-acc", type=float, default=0.95,
+                    help="Oracle accuracy at or above this, with real lift over majority, "
+                         "is treated as distributed (module/skip-pattern) leakage — no "
+                         "attitude item is predictable this well from other survey items.")
     ap.add_argument("--min-signal", type=float, default=0.03,
                     help="Oracle lift over majority below this -> degenerate (not a leakage case).")
     ap.add_argument("--suspect-lift", type=float, default=0.10,
