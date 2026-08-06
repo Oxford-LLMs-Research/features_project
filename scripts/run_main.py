@@ -8,7 +8,8 @@ Pipeline per selector (the test model whose capability we measure):
   --phase gen     : free-text selection responses, both prompt conditions, cached per cell.
   --phase extract : essay -> typed feature list via the FIXED extractor (Qwen-235B).
   --phase map     : per-feature top-20 retrieval + disambiguation (--disambiguator).
-                    Arms: C = free-text (extracted), B = legacy JSON selections re-mapped.
+                    Arm C = free-text dual-layer (parent + bundled sub_items → expanded_codes).
+                    Arm B = legacy JSON selections, parent-only.
   --phase score   : captured importance + oracle/model/random accuracy at model-chosen k
                     and fixed k=5,10, per arm x disambiguator -> scores_<selector>.csv.
 
@@ -359,6 +360,7 @@ def phase_map(
 ):
     from survey_features.disambig import map_features
     from survey_features.retrieval import make_embed_fn, target_excluded_codes
+    from survey_features.subitem_map import map_features_with_subitems
     from survey_features.timing import TimingLog, default_timing_path
 
     emb_model = embedding_model or DEFAULT_EMBEDDING_MODEL
@@ -380,8 +382,9 @@ def phase_map(
     timing = TimingLog(default_timing_path("map", f"{selector_key}_{disambig_key}"))
     print(
         f"[map] selector={selector_key} disambiguator={disambig_key} arms={arms} "
-        f"cells={len(cells)} embedding={emb_model} map_workers={n_workers}"
-        + (f" -> {map_dir}" if embedding_model else "")
+        f"cells={len(cells)} embedding={emb_model} map_workers={n_workers} "
+        f"mode=dual-layer(C)/parent-only(B)"
+        + (f" -> {map_dir}" if embedding_model or run_tag else "")
     )
 
     with timing.span(
@@ -414,7 +417,7 @@ def phase_map(
                         country=country,
                         condition=cond,
                     ):
-                        cm = map_features(
+                        cm = map_features_with_subitems(
                             f"{target}_{country}", "C_free", feat_by_cond.get(cond, []),
                             emb, vcodes, svars, embed, dgen, mapper_model=dmodel,
                             excluded_codes=excluded, pipe_types=PIPE_TYPES,
@@ -461,18 +464,33 @@ def phase_map(
 
 
 def _save_map(path, survey, target, country, cond, arm, disambig_key, cm, embedding_model=DEFAULT_EMBEDDING_MODEL):
+    """Persist a CellMap or ExpandedCellMap JSON checkpoint."""
+    from survey_features.subitem_map import ExpandedCellMap, expanded_cell_to_record
+
+    if isinstance(cm, ExpandedCellMap):
+        rec = expanded_cell_to_record(
+            survey, target, country, cond, arm, disambig_key, cm, embedding_model,
+            mapped_codes_field="expanded",
+        )
+        path.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
+        return
+
+    status_counts = cm.status_counts() if hasattr(cm, "status_counts") else {}
     rec = {
         "survey": survey, "target": target, "country": country, "condition": cond,
         "arm": arm, "disambiguator": disambig_key, "disambig_model": cm.mapper_model,
         "embedding_model": embedding_model,
+        "mapping_mode": "parent_only",
         "n_features": cm.n_features, "n_piped": cm.n_piped, "n_mapped": cm.n_mapped,
         "n_none": cm.n_none, "n_bundled": cm.n_bundled, "type_counts": cm.type_counts(),
+        "status_counts": status_counts,
         "mapped_codes": cm.mapped_codes,
         "features": [
             {"feature": f.feature_label, "context": f.feature_context, "sub_items": f.sub_items,
              "type": f.ftype, "piped": f.piped,
              "selected_code": f.selected_code, "selected_text": f.selected_text,
-             "n_candidates": len(f.candidates), "disambig_raw": f.disambig_raw[:80]}
+             "map_status": getattr(f, "map_status", ""),
+             "n_candidates": len(f.candidates), "disambig_raw": (f.disambig_raw or "")[:80]}
             for f in cm.features
         ],
     }
@@ -506,6 +524,7 @@ def phase_pipeline(
     from survey_features.elicitation import freetext_messages
     from survey_features.extraction import extract_features
     from survey_features.retrieval import make_embed_fn, target_excluded_codes
+    from survey_features.subitem_map import map_features_with_subitems
     from survey_features.timing import TimingLog, default_timing_path
 
     sel_model = SELECTORS[selector_key]["model"]
@@ -627,7 +646,7 @@ def phase_pipeline(
                     "cell_map", arm="C", survey=survey, target=target,
                     country=country, condition=cond,
                 ):
-                    cm = map_features(
+                    cm = map_features_with_subitems(
                         f"{target}_{country}", "C_free", feat_by_cond.get(cond, []),
                         emb, vcodes, svars, embed, disambig_fn, mapper_model=dmodel,
                         excluded_codes=excluded, pipe_types=PIPE_TYPES, workers=n_map,
@@ -767,12 +786,18 @@ def _arm_A_codes(selector_key, target, country, cond):
 
 
 def _map_codes(map_dir, arm, disambig_key, survey, target, country, cond):
-    """Arm B/C mapped codes from the map file."""
+    """Arm B/C mapped codes from the map file.
+
+    Prefers ``expanded_codes`` (dual-layer headline) when present; else ``mapped_codes``.
+    """
     ctag = cell_tag(survey, target, country)
     p = map_dir / f"{arm}__{disambig_key}__{ctag}__{cond}.json"
     if not p.is_file():
         return None
-    return json.loads(p.read_text(encoding="utf-8")).get("mapped_codes", [])
+    rec = json.loads(p.read_text(encoding="utf-8"))
+    if "expanded_codes" in rec:
+        return rec.get("expanded_codes") or []
+    return rec.get("mapped_codes", [])
 
 
 def phase_score(

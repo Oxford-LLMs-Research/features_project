@@ -174,6 +174,7 @@ def phase_map(selector_key: str, disambig_key: str, arms=("C",), force=False, li
                     )
                     rec = expanded_cell_to_record(
                         survey, target, country, cond, "C", disambig_key, cm, emb_model,
+                        mapped_codes_field="parent",
                     )
                     op.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
 

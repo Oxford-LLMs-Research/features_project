@@ -1,10 +1,9 @@
 """
-Sub-item mapping expansion (experiment): map parent features AND each bundled
-sub_item as its own retrieve+disambiguate unit.
+Dual-layer mapping: map parent features AND each bundled sub_item as its own
+retrieve+disambiguate unit.
 
-This module does NOT replace ``disambig.map_features`` (one-to-one parent path used
-by the main MiniLM arm-C pipeline). Artifacts must be written under
-``outputs/subitem_mapping/`` only — see docs/subitem_mapping.md.
+This is the confirmatory / main-pipeline mapping path (docs/main_experiment_design.md).
+Parent-only ``disambig.map_features`` remains available as an ablation.
 """
 
 from __future__ import annotations
@@ -13,7 +12,11 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from .disambig import FeatureMap, _disambiguate_pool
+from .disambig import (
+    MAP_STATUS_NOT_PIPED,
+    FeatureMap,
+    _disambiguate_pool,
+)
 from .retrieval import retrieve_candidates_batch
 
 # Aligned with CellMap.n_bundled: only expand when extractor listed 2+ sub-measures.
@@ -34,6 +37,7 @@ class MapUnit:
     selected_text: str | None
     candidates: list[dict]
     disambig_raw: str
+    map_status: str = MAP_STATUS_NOT_PIPED
 
 
 @dataclass
@@ -53,8 +57,8 @@ class ExpandedCellMap:
 
     @property
     def mapped_codes(self) -> list[str]:
-        """Alias for parent_codes — same contract as CellMap.mapped_codes."""
-        return self.parent_codes
+        """Headline codes for scoring: dual-layer expanded set."""
+        return self.expanded_codes
 
     @property
     def n_features(self) -> int:
@@ -80,6 +84,14 @@ class ExpandedCellMap:
         out: dict = {}
         for f in self.features:
             out[f.ftype] = out.get(f.ftype, 0) + 1
+        return out
+
+    def status_counts(self, *, units: bool = False) -> dict:
+        """map_status histogram over parent features (default) or all units."""
+        out: dict = {}
+        src = self.units if units else self.features
+        for item in src:
+            out[item.map_status] = out.get(item.map_status, 0) + 1
         return out
 
 
@@ -150,12 +162,14 @@ def map_features_with_subitems(
         if ftype not in pipe:
             cm.features.append(FeatureMap(
                 feature_label=label, feature_context=context, sub_items=sub, ftype=ftype,
-                piped=False, selected_code=None, selected_text=None, candidates=[], disambig_raw="",
+                piped=False, selected_code=None, selected_text=None, candidates=[],
+                disambig_raw="", map_status=MAP_STATUS_NOT_PIPED,
             ))
             cm.units.append(MapUnit(
                 unit_kind="parent", parent_feature=label, unit_label=label,
                 unit_context=context, ftype=ftype, piped=False,
-                selected_code=None, selected_text=None, candidates=[], disambig_raw="",
+                selected_code=None, selected_text=None, candidates=[],
+                disambig_raw="", map_status=MAP_STATUS_NOT_PIPED,
             ))
             continue
 
@@ -182,11 +196,13 @@ def map_features_with_subitems(
         kind, parent_label, unit_label, unit_context, feat_ctx, ftype, sub = meta
         jobs.append((kind, parent_label, unit_label, unit_context, feat_ctx, ftype, sub, pool))
 
-    def _run_job(job: tuple) -> tuple[str | None, str | None, str]:
+    def _run_job(job: tuple) -> tuple[str | None, str | None, str, str]:
         _kind, _parent, unit_label, unit_context, _feat_ctx, _ftype, _sub, pool = job
         return _disambiguate_pool(unit_label, unit_context, pool, disambig_fn)
 
-    results: list[tuple[str | None, str | None, str]] = [(None, None, "")] * len(jobs)
+    results: list[tuple[str | None, str | None, str, str]] = [
+        (None, None, "", MAP_STATUS_NOT_PIPED)
+    ] * len(jobs)
     if n_workers <= 1 or len(jobs) <= 1:
         for i, job in enumerate(jobs):
             results[i] = _run_job(job)
@@ -202,18 +218,18 @@ def map_features_with_subitems(
 
     for i, job in enumerate(jobs):
         kind, parent_label, unit_label, unit_context, feat_ctx, ftype, sub, pool = job
-        sel_code, sel_text, raw = results[i]
+        sel_code, sel_text, raw, status = results[i]
         if kind == "parent":
             cm.features.append(FeatureMap(
                 feature_label=parent_label, feature_context=feat_ctx, sub_items=sub,
                 ftype=ftype, piped=True, selected_code=sel_code, selected_text=sel_text,
-                candidates=pool, disambig_raw=raw,
+                candidates=pool, disambig_raw=raw, map_status=status,
             ))
             cm.units.append(MapUnit(
                 unit_kind="parent", parent_feature=parent_label, unit_label=unit_label,
                 unit_context=feat_ctx, ftype=ftype, piped=True,
                 selected_code=sel_code, selected_text=sel_text,
-                candidates=pool, disambig_raw=raw,
+                candidates=pool, disambig_raw=raw, map_status=status,
             ))
             _append_unique(sel_code, seen_parent, cm.parent_codes)
             _append_unique(sel_code, seen_exp, cm.expanded_codes)
@@ -222,7 +238,7 @@ def map_features_with_subitems(
                 unit_kind="sub_item", parent_feature=parent_label, unit_label=unit_label,
                 unit_context=unit_context, ftype=ftype, piped=True,
                 selected_code=sel_code, selected_text=sel_text,
-                candidates=pool, disambig_raw=raw,
+                candidates=pool, disambig_raw=raw, map_status=status,
             ))
             _append_unique(sel_code, seen_sub, cm.subitem_codes)
             _append_unique(sel_code, seen_exp, cm.expanded_codes)
@@ -239,8 +255,18 @@ def expanded_cell_to_record(
     disambig_key: str,
     cm: ExpandedCellMap,
     embedding_model: str,
+    *,
+    mapped_codes_field: str = "expanded",
 ) -> dict:
-    """JSON-serializable cell record for outputs/subitem_mapping/.../maps/."""
+    """JSON-serializable dual-layer cell record.
+
+    ``mapped_codes_field``: ``expanded`` (default; headline for main) or ``parent``
+    (legacy subitem-experiment alias that kept mapped_codes == parent_codes).
+    """
+    if mapped_codes_field == "parent":
+        mapped = list(cm.parent_codes)
+    else:
+        mapped = list(cm.expanded_codes)
     return {
         "survey": survey,
         "target": target,
@@ -257,10 +283,12 @@ def expanded_cell_to_record(
         "n_none": cm.n_none,
         "n_bundled": cm.n_bundled,
         "type_counts": cm.type_counts(),
+        "status_counts": cm.status_counts(),
+        "unit_status_counts": cm.status_counts(units=True),
         "parent_codes": cm.parent_codes,
         "subitem_codes": cm.subitem_codes,
         "expanded_codes": cm.expanded_codes,
-        "mapped_codes": cm.parent_codes,  # baseline-compatible alias
+        "mapped_codes": mapped,
         "features": [
             {
                 "feature": f.feature_label,
@@ -270,6 +298,7 @@ def expanded_cell_to_record(
                 "piped": f.piped,
                 "selected_code": f.selected_code,
                 "selected_text": f.selected_text,
+                "map_status": f.map_status,
                 "n_candidates": len(f.candidates),
                 "disambig_raw": (f.disambig_raw or "")[:80],
             }
@@ -285,6 +314,7 @@ def expanded_cell_to_record(
                 "piped": u.piped,
                 "selected_code": u.selected_code,
                 "selected_text": u.selected_text,
+                "map_status": u.map_status,
                 "n_candidates": len(u.candidates),
                 "disambig_raw": (u.disambig_raw or "")[:80],
             }

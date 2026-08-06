@@ -46,11 +46,13 @@ List each distinct piece of information the researcher asked for. For each, give
 - "feature": a short label for the information.
 - "context": a brief phrase, copied or paraphrased from the reply, capturing how they described it and why (this preserves their reasoning).
 - "sub_items": if (and only if) the request explicitly bundles several specific sub-measures, list them; otherwise [].
-- "type": classify the request into exactly one of:
-    - "respondent_attribute": a characteristic OF the individual respondent (demographics, attitudes, behaviours, experiences, beliefs, traits) — the things you could ask a person about themselves.
-    - "temporal_contextual": timing or external-context factors (when the survey was taken, recent events the respondent was exposed to, the news cycle, period effects).
-    - "instrument_methodology": commentary about the survey instrument itself rather than the respondent (question wording/phrasing, response-option design, language of the survey, mode of administration, reference period, non-response patterns, survey topic).
-    - "base_rate_prior": appeals to population-level statistics, base rates, modal/average responses, or known distributions rather than information about this individual.
+- "type": classify into exactly one of (use the decision order below):
+    - "respondent_attribute": a characteristic OF this individual (demographics, attitudes, behaviours, beliefs, traits, personal experiences — including recent personal events — and their own location). Things you could ask this person about themselves. Includes geo identifiers and locality covariates tied to where THEY live (region, county, zip/census tract, density or housing costs in their area, distance to services) — even if those are looked up from external tables.
+    - "temporal_contextual": timing or period context of the interview itself (survey date/wave/year, news cycle, elections, scandals, crises, other ambient events at fieldwork time). NOT the respondent's personal history; NOT static country traits; NOT where the respondent lives.
+    - "instrument_methodology": about the survey instrument or method (wording, options, language, mode, reference period, non-response/skip patterns, topic) — not about the respondent or population.
+    - "population_statistic": a population- or country-level rate, distribution, average, prevalence, or similar aggregate used as a fallback when individual information is unavailable (e.g. national sex ratio, modal answer in the population, GDP per capita, national internet penetration). Use this only when there is no person-level referent — not for "their region/country/area" or attributes of the place they live.
+
+Decision rule when unsure: prefer respondent_attribute if the ask is about this person or their location/locality; prefer temporal_contextual only for interview-period ambient context; use population_statistic only for aggregate fallbacks with no individual referent; use instrument_methodology only for questionnaire/method commentary.
 
 Map only what the researcher actually requested; do not add information they did not mention. Classify honestly — do not force everything into "respondent_attribute". Output ONLY a JSON list of such objects."""
 

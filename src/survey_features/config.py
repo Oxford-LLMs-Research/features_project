@@ -85,5 +85,6 @@ TEXTBOOK_CONSTRUCTS: list[tuple[str, str]] = [
 # Feature types that enter retrieve+disambiguate+score. Decision (2026-06-03): include
 # temporal_contextual alongside respondent_attribute — the study is about capability across
 # countries AND time (surveys span waves), so be generous to temporally-framed requests.
-# instrument_methodology and base_rate_prior stay out (unmappable; studied as metadata).
+# instrument_methodology and population_statistic stay out (unmappable; studied as metadata).
+# (population_statistic was formerly named base_rate_prior.)
 PIPE_TYPES = {"respondent_attribute", "temporal_contextual"}

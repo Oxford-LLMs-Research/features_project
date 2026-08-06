@@ -6,10 +6,10 @@ PRE-EXTRACTED typed feature list, retrieves a per-feature top-N pool
 (survey_features.retrieval.retrieve_candidates), and asks the disambiguator model one
 question per feature. Diagnostics showed per-feature retrieval is far sharper than
 whole-response retrieval (targeted query sim ~0.7 vs ~0.38), and pilot-1 "trust -> none"
-failures were mapper weakness, not retrieval. Mapping is ONE-TO-ONE; ``sub_items`` are
-recorded purely for auditing bundling prevalence. For the separate sub-item expansion
-experiment (parent + each bundled sub_item as a map unit), see
-``survey_features.subitem_map`` and ``docs/subitem_mapping.md``.
+failures were mapper weakness, not retrieval.
+
+Main / confirmatory mapping uses dual-layer ``subitem_map.map_features_with_subitems``
+(parent + bundled sub_items). ``map_features`` remains the parent-only ablation path.
 
 LEGACY path (shortlist disambiguation, pilot-1): ``disambiguate_mappings`` picks from the
 batch top-5 shortlist produced by retrieval.map_features_to_variables.
@@ -28,6 +28,14 @@ from .prompts import DISAMBIG_PROMPT, DISAMBIG_PROMPT_LEGACY
 from .retrieval import retrieve_candidates_batch, retrieve_ensemble_candidates_batch
 
 _LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+# Per-unit mapping outcome (decomposes the old binary "none").
+MAP_STATUS_MAPPED = "mapped"
+MAP_STATUS_NOT_PIPED = "not_piped"
+MAP_STATUS_EMPTY_POOL = "empty_pool"      # retrieve+threshold left nothing; LLM not called
+MAP_STATUS_MODEL_NONE = "model_none"      # LLM abstained (explicit none)
+MAP_STATUS_MODEL_EMPTY = "model_empty"    # LLM returned empty / blank
+MAP_STATUS_UNPARSEABLE = "unparseable"    # non-empty reply, no valid letter, not none
 
 
 def candidate_label(i: int) -> str:
@@ -57,6 +65,7 @@ class FeatureMap:
     selected_text: str | None
     candidates: list[dict]          # the top-N pool shown (for audit); [] if not piped
     disambig_raw: str
+    map_status: str = MAP_STATUS_NOT_PIPED  # see MAP_STATUS_* constants
 
 
 @dataclass
@@ -95,6 +104,13 @@ class CellMap:
             out[f.ftype] = out.get(f.ftype, 0) + 1
         return out
 
+    def status_counts(self) -> dict:
+        """Piped/non-piped map_status histogram (diagnostics)."""
+        out: dict = {}
+        for f in self.features:
+            out[f.map_status] = out.get(f.map_status, 0) + 1
+        return out
+
 
 def parse_letter(raw: str, n: int) -> int | None:
     """Parse a per-feature disambiguation reply into a 0-based index, or None for 'none'.
@@ -129,15 +145,25 @@ def parse_letter(raw: str, n: int) -> int | None:
     return None
 
 
+def classify_none_raw(raw: str) -> str:
+    """When parse_letter returned None and the pool was non-empty, why?"""
+    cleaned = (raw or "").strip()
+    if not cleaned:
+        return MAP_STATUS_MODEL_EMPTY
+    if "NONE" in cleaned.upper():
+        return MAP_STATUS_MODEL_NONE
+    return MAP_STATUS_UNPARSEABLE
+
+
 def _disambiguate_pool(
     label: str,
     context: str,
     pool: list[dict],
     disambig_fn,
-) -> tuple[str | None, str | None, str]:
-    """Ask disambiguator for one letter/none; returns (code, text, raw)."""
+) -> tuple[str | None, str | None, str, str]:
+    """Ask disambiguator for one letter/none; returns (code, text, raw, map_status)."""
     if not pool:
-        return None, None, ""
+        return None, None, "", MAP_STATUS_EMPTY_POOL
     block = "\n".join(
         f"{candidate_label(i)}. [{c['var_code']}] {c['question_text']}"
         for i, c in enumerate(pool)
@@ -150,8 +176,8 @@ def _disambiguate_pool(
     ) or ""
     idx = parse_letter(raw, len(pool))
     if idx is None:
-        return None, None, raw
-    return pool[idx]["var_code"], pool[idx]["question_text"], raw
+        return None, None, raw, classify_none_raw(raw)
+    return pool[idx]["var_code"], pool[idx]["question_text"], raw, MAP_STATUS_MAPPED
 
 
 def map_features(
@@ -178,7 +204,7 @@ def map_features(
     mapper-strength arm. `features` items are {feature, context, sub_items, type}.
 
     Only features whose `type` is in `pipe_types` enter retrieval+disambiguation (default:
-    respondent_attribute only). Other features (methodology, base-rate, temporal) are still
+    respondent_attribute only). Other features (methodology, population statistic, temporal) are still
     recorded with piped=False for the behavioral-metadata analysis, but never mapped — so
     they don't inflate k or the none-rate of the capability metric.
 
@@ -208,7 +234,8 @@ def map_features(
         if ftype not in pipe:
             slots.append(FeatureMap(
                 feature_label=label, feature_context=context, sub_items=sub, ftype=ftype,
-                piped=False, selected_code=None, selected_text=None, candidates=[], disambig_raw=""))
+                piped=False, selected_code=None, selected_text=None, candidates=[],
+                disambig_raw="", map_status=MAP_STATUS_NOT_PIPED))
             continue
         slot_idx = len(slots)
         slots.append(None)  # filled after disambig
@@ -225,11 +252,13 @@ def map_features(
         piped_jobs.append((slot_idx, label, context, sub, ftype, pool))
 
     def _fill(slot_idx: int, label: str, context: str, sub: list, ftype: str, pool: list[dict]) -> FeatureMap:
-        sel_code, sel_text, raw = _disambiguate_pool(label, context or label, pool, disambig_fn)
+        sel_code, sel_text, raw, status = _disambiguate_pool(
+            label, context or label, pool, disambig_fn,
+        )
         return FeatureMap(
             feature_label=label, feature_context=context, sub_items=sub, ftype=ftype,
             piped=True, selected_code=sel_code, selected_text=sel_text,
-            candidates=pool, disambig_raw=raw,
+            candidates=pool, disambig_raw=raw, map_status=status,
         )
 
     if n_workers <= 1 or len(piped_jobs) <= 1:
@@ -302,7 +331,8 @@ def map_features_ensemble(
         if ftype not in pipe:
             slots.append(FeatureMap(
                 feature_label=label, feature_context=context, sub_items=sub, ftype=ftype,
-                piped=False, selected_code=None, selected_text=None, candidates=[], disambig_raw=""))
+                piped=False, selected_code=None, selected_text=None, candidates=[],
+                disambig_raw="", map_status=MAP_STATUS_NOT_PIPED))
             continue
         slot_idx = len(slots)
         slots.append(None)
@@ -323,11 +353,13 @@ def map_features_ensemble(
     ]
 
     def _fill(slot_idx: int, label: str, context: str, sub: list, ftype: str, pool: list[dict]) -> FeatureMap:
-        sel_code, sel_text, raw = _disambiguate_pool(label, context or label, pool, disambig_fn)
+        sel_code, sel_text, raw, status = _disambiguate_pool(
+            label, context or label, pool, disambig_fn,
+        )
         return FeatureMap(
             feature_label=label, feature_context=context, sub_items=sub, ftype=ftype,
             piped=True, selected_code=sel_code, selected_text=sel_text,
-            candidates=pool, disambig_raw=raw,
+            candidates=pool, disambig_raw=raw, map_status=status,
         )
 
     t_dis_0 = time.perf_counter()
