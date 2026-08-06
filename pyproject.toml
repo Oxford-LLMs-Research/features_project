@@ -28,8 +28,6 @@ dependencies = [
 # The AutoGluon oracle (survey_features.oracle) is heavy; only needed to (re)compute
 # outputs/cache/cells/*/oracle.csv. Everything else runs against the cached oracle CSVs.
 oracle = ["autogluon"]
-# Pretty tables in some analysis/ digest scripts (not the gitignored paper/ builders).
-analysis = ["tabulate"]
 # Unit tests (pure helpers; no API / survey data required).
 dev = ["pytest"]
 

@@ -1,10 +1,10 @@
 """
-Cell-level free-text scoring helpers (shared by run_main / run_subitem_mapping).
+Cell-level scoring helpers for the free-text pipeline (scripts/run_main.py).
 
 Oracle top-k and random-k baselines depend only on (cell, k), so score_one_cell
-caches them once per k while evaluating each arm/k_mode model feature set.
+caches them once per k while evaluating each condition/disambiguator feature set.
 Model (and oracle) XGB CV results are also cached by ordered code tuple so
-identical feature lists across k_spec / arms share one fit.
+identical feature lists across k_spec share one fit.
 
 Parallelism: ProcessPoolExecutor over cells (not joblib over draws). Score-only
 workers do not load torch/sentence-transformers, so XGB nthread > 1 is safe.

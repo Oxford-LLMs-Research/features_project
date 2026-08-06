@@ -1,28 +1,14 @@
 """
-ALL prompt templates for the pipeline, in one place.
+All prompt templates for the confirmatory free-text pipeline.
 
-CURRENT (paper main text; free-text elicitation):
-  SYSTEM_PROMPT + FREETEXT_UNPROMPTED / FREETEXT_COUNTRY   selection (selector model)
-  EXTRACT_PROMPT                                           essay -> typed feature list (fixed extractor)
-  DISAMBIG_PROMPT                                          per-feature top-N -> one code or "none"
-
-LEGACY (pilot-1 JSON grid; kept for appendix reproducibility via archive/run_grid.py):
-  SYSTEM_PROMPT + PROMPT_UNPROMPTED / PROMPT_COUNTRY       strict-JSON selection
-  DISAMBIG_PROMPT_LEGACY                                   shortlist (top-5) disambiguation
-
-The free-text prompts are the EXACT JSON prompts with only the JSON formatting block
-removed — nothing added, nothing rephrased. This isolates the output-format instruction
-as the single variable between the JSON and free-text arms (validated in the format
-pilot; see paper/memos/format_findings.md).
+  SYSTEM_PROMPT + FREETEXT_*   selector essay (gen)
+  EXTRACT_PROMPT               essay -> typed feature list (fixed extractor)
+  DISAMBIG_PROMPT              per-unit top-N candidates -> one code or "none"
 """
 
 from __future__ import annotations
 
-# Shared system prompt (identical across JSON and free-text arms).
 SYSTEM_PROMPT = "You are a social science researcher."
-
-
-# ── CURRENT: free-text selection prompts ─────────────────────────────────────
 
 FREETEXT_UNPROMPTED = (
     'A survey asks respondents: "{question}"\n\n'
@@ -33,9 +19,6 @@ FREETEXT_COUNTRY = (
     'A survey asks respondents in {country}: "{question}"\n\n'
     "You want to predict how a respondent in {country} will answer. What information about the respondent would you need?"
 )
-
-
-# ── CURRENT: extraction (essay -> typed feature list; FIXED extractor model) ──
 
 EXTRACT_PROMPT = """A researcher was asked what they would want to know about a respondent in order to predict how that respondent answers a survey question. They replied:
 \"\"\"
@@ -56,9 +39,6 @@ Decision rule when unsure: prefer respondent_attribute if the ask is about this 
 
 Map only what the researcher actually requested; do not add information they did not mention. Classify honestly — do not force everything into "respondent_attribute". Output ONLY a JSON list of such objects."""
 
-
-# ── CURRENT: per-feature disambiguation (top-N candidates -> one code / none) ─
-
 DISAMBIG_PROMPT = """You are mapping one requested piece of information to the single best-matching survey question, if any.
 
 The researcher wants to know a respondent's:
@@ -70,42 +50,3 @@ Candidate survey questions:
 
 Pick the ONE candidate that best captures what the researcher is asking for, or answer "none" if none is a genuine match (do not force a weak match).
 Respond with ONLY the candidate letter (A, B, C, …; use AA, AB, … if the list goes past Z) or "none". No explanation."""
-
-
-# ── LEGACY: strict-JSON selection prompts (pilot-1 grid) ─────────────────────
-
-PROMPT_UNPROMPTED = """A survey asks respondents: "{question}"
-
-You want to predict how a respondent will answer. What information about the respondent would you need?
-
-Output a JSON list where each item describes one piece of information you would want to know. Each item should have:
-- "feature": a short label for the information (e.g., "a specific attitude or behaviour")
-- "reasoning": one sentence on why this would help predict the answer
-
-Output ONLY the JSON list, no other text."""
-
-PROMPT_COUNTRY = """A survey asks respondents in {country}: "{question}"
-
-You want to predict how a respondent in {country} will answer. What information about the respondent would you need?
-
-Output a JSON list where each item describes one piece of information you would want to know. Each item should have:
-- "feature": a short label for the information (e.g., "a specific attitude or behaviour")
-- "reasoning": one sentence on why this would help predict the answer
-
-Output ONLY the JSON list, no other text."""
-
-
-# ── LEGACY: shortlist disambiguation (pilot-1 top-5 mapper) ──────────────────
-
-DISAMBIG_PROMPT_LEGACY = """You are helping map abstract feature descriptions to concrete survey questions.
-
-A researcher said they would want to know a respondent's:
-"{feature_label}"
-Reasoning: "{feature_reasoning}"
-
-Below are candidate survey questions that might capture this information. Pick the ONE question that best matches what the researcher is asking for, or respond "none" if no question is a good match.
-
-Candidates:
-{candidates_block}
-
-Respond with ONLY the letter (A, B, C, ...) of the best match, or "none". No explanation."""

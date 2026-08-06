@@ -1,24 +1,14 @@
 """
-Metric arithmetic shared by the pipeline and all analysis scripts — the SINGLE copy.
-
-Previously triplicated across alignment_analysis.py, freetext_main_results.py and
-format_pilot.py (captured importance) and duplicated across uncertainty_analysis.py and
-freetext_main_results.py (cluster bootstrap, random captured baseline).
+Metric arithmetic for selection and scoring — the single owning module.
 
 Definitions:
   captured importance   = sum of SCORE-split oracle importance over the model's codes
                           / sum of SCORE-split importance over the oracle top-k chosen
                           on the SELECT split (matched k). In [0, 1].
-                          When only one importance dict is available (legacy CSV),
-                          rank and score are the same column.
   oracle percentile     = mean oracle-rank percentile of the model's codes
-                          (0..1, top=1; a random matched-k pick ~0.5). Prefer the
-                          select-split ranks when both columns exist.
-  adaptation score      = own-country captured importance - mean cross-country captured
-                          importance (computed in the analysis scripts from these parts).
+                          (0..1, top=1; a random matched-k pick ~0.5).
   cluster bootstrap CI  = percentile 95% CI for a column mean, resampling clusters
-                          (default cluster = survey x target) with replacement, which
-                          propagates the correlation of cells sharing a target.
+                          (default cluster = survey x target) with replacement.
 """
 
 from __future__ import annotations

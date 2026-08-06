@@ -48,12 +48,12 @@ from survey_features.oracle import (  # noqa: E402
     ORACLE_CONTRACT_VERSION,
     ORACLE_EVAL_METRIC,
     _set_local_tmp_dir,
-    build_admin_cols,
     compute_oracle,
     load_similarity_model,
 )
 from survey_features.surveys import (  # noqa: E402
     SURVEY_COUNTRY_COL,
+    build_admin_cols,
     build_country_code_map,
     flatten_metadata,
     load_survey,

@@ -1,26 +1,127 @@
 """
-Dual-layer mapping: map parent features AND each bundled sub_item as its own
-retrieve+disambiguate unit.
+Dual-layer mapping: retrieve + disambiguate parent features and bundled sub_items.
 
-This is the confirmatory / main-pipeline mapping path (docs/main_experiment_design.md).
-Parent-only ``disambig.map_features`` remains available as an ablation.
+Pipeline order: extraction -> mapping -> score.
+Only types in ``pipe_types`` enter retrieve+disambiguate; others are recorded as
+not_piped metadata. Headline codes for scoring are ``expanded_codes`` (parents
+plus sub_item units when |sub_items| >= 2).
 """
 
 from __future__ import annotations
 
+import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 
 import numpy as np
 
-from .disambig import (
-    MAP_STATUS_NOT_PIPED,
-    FeatureMap,
-    _disambiguate_pool,
-)
+from .prompts import DISAMBIG_PROMPT
 from .retrieval import retrieve_candidates_batch
 
-# Aligned with CellMap.n_bundled: only expand when extractor listed 2+ sub-measures.
+_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+# Only expand when the extractor listed 2+ sub-measures (no singleton inflation).
 MIN_SUBITEMS_TO_EXPAND = 2
+
+MAP_STATUS_MAPPED = "mapped"
+MAP_STATUS_NOT_PIPED = "not_piped"
+MAP_STATUS_EMPTY_POOL = "empty_pool"
+MAP_STATUS_MODEL_NONE = "model_none"
+MAP_STATUS_MODEL_EMPTY = "model_empty"
+MAP_STATUS_UNPARSEABLE = "unparseable"
+
+
+def candidate_label(i: int) -> str:
+    """0-based index → A..Z, then AA..AZ, BA.."""
+    if i < 0:
+        raise IndexError(i)
+    if i < 26:
+        return _LETTERS[i]
+    i -= 26
+    return _LETTERS[i // 26] + _LETTERS[i % 26]
+
+
+def candidate_labels(n: int) -> list[str]:
+    return [candidate_label(i) for i in range(n)]
+
+
+def parse_letter(raw: str, n: int) -> int | None:
+    """Parse a disambiguation reply into a 0-based index, or None for 'none'.
+
+    Prefers an exact label token (longest first so AA wins over A); among equal
+    length, the last match so "Not A; I'd choose C" resolves to C.
+    """
+    if not raw:
+        return None
+    cleaned = str(raw).strip().upper()
+    if not cleaned or "NONE" in cleaned:
+        return None
+    label_to_idx = {lab: i for i, lab in enumerate(candidate_labels(n))}
+    tokens = re.findall(r"[A-Z]+", cleaned)
+    matches = [
+        (len(tok), i, label_to_idx[tok])
+        for i, tok in enumerate(tokens)
+        if tok in label_to_idx
+    ]
+    if matches:
+        matches.sort(key=lambda t: (t[0], t[1]))
+        return matches[-1][2]
+    if n <= 26:
+        last = None
+        for ch in cleaned:
+            if ch in label_to_idx:
+                last = label_to_idx[ch]
+        return last
+    return None
+
+
+def classify_none_raw(raw: str) -> str:
+    """When parse_letter returned None and the pool was non-empty, why?"""
+    cleaned = (raw or "").strip()
+    if not cleaned:
+        return MAP_STATUS_MODEL_EMPTY
+    if "NONE" in cleaned.upper():
+        return MAP_STATUS_MODEL_NONE
+    return MAP_STATUS_UNPARSEABLE
+
+
+def _disambiguate_pool(
+    label: str,
+    context: str,
+    pool: list[dict],
+    disambig_fn,
+) -> tuple[str | None, str | None, str, str]:
+    """Ask disambiguator for one letter/none; returns (code, text, raw, map_status)."""
+    if not pool:
+        return None, None, "", MAP_STATUS_EMPTY_POOL
+    block = "\n".join(
+        f"{candidate_label(i)}. [{c['var_code']}] {c['question_text']}"
+        for i, c in enumerate(pool)
+    )
+    # Reasoning models need CoT headroom; do not shrink below 2048.
+    raw = disambig_fn(
+        [{"role": "user", "content": DISAMBIG_PROMPT.format(
+            feature_label=label, feature_context=context or label, candidates_block=block)}],
+        max_tokens=2048, temperature=0.0, usage_phase="disambig",
+    ) or ""
+    idx = parse_letter(raw, len(pool))
+    if idx is None:
+        return None, None, raw, classify_none_raw(raw)
+    return pool[idx]["var_code"], pool[idx]["question_text"], raw, MAP_STATUS_MAPPED
+
+
+@dataclass
+class FeatureMap:
+    feature_label: str
+    feature_context: str
+    sub_items: list[str]
+    ftype: str
+    piped: bool
+    selected_code: str | None
+    selected_text: str | None
+    candidates: list[dict]
+    disambig_raw: str
+    map_status: str = MAP_STATUS_NOT_PIPED
 
 
 @dataclass
@@ -48,7 +149,7 @@ class ExpandedCellMap:
     arm: str
     mapper_model: str
     mapping_mode: str = "parent_plus_subitems"
-    features: list[FeatureMap] = field(default_factory=list)  # parent-level (parity)
+    features: list[FeatureMap] = field(default_factory=list)
     units: list[MapUnit] = field(default_factory=list)
     parent_codes: list[str] = field(default_factory=list)
     subitem_codes: list[str] = field(default_factory=list)
@@ -87,7 +188,6 @@ class ExpandedCellMap:
         return out
 
     def status_counts(self, *, units: bool = False) -> dict:
-        """map_status histogram over parent features (default) or all units."""
         out: dict = {}
         src = self.units if units else self.features
         for item in src:
@@ -133,22 +233,14 @@ def map_features_with_subitems(
 ) -> ExpandedCellMap:
     """Retrieve + disambiguate parents, and optionally each bundled sub_item.
 
-    Parent path mirrors ``disambig.map_features``. Sub_item units use the sub_item
-    string as the query label and a parent-anchored context (see ``subitem_context``).
-
     ``workers`` > 1 parallelizes disambiguation LLM calls after serial retrieval.
     """
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-
     excluded = set(excluded_codes or set())
     pipe = pipe_types or {"respondent_attribute"}
     cm = ExpandedCellMap(cell=cell, arm=arm, mapper_model=mapper_model, extract_raw=extract_raw)
     n_workers = max(1, int(workers))
 
-    # Collect query units, batch-retrieve, then disambig (optionally threaded).
-    # Parent job: (kind, parent_label, unit_label, unit_context, feature_context, ftype, sub, pool)
-    # Sub job:    (kind, parent_label, unit_label, unit_context, "", ftype, [], pool)
-    pending: list[tuple] = []  # job without pool
+    pending: list[tuple] = []
     queries: list[tuple[str, str]] = []
 
     for f in features:
@@ -255,18 +347,8 @@ def expanded_cell_to_record(
     disambig_key: str,
     cm: ExpandedCellMap,
     embedding_model: str,
-    *,
-    mapped_codes_field: str = "expanded",
 ) -> dict:
-    """JSON-serializable dual-layer cell record.
-
-    ``mapped_codes_field``: ``expanded`` (default; headline for main) or ``parent``
-    (legacy subitem-experiment alias that kept mapped_codes == parent_codes).
-    """
-    if mapped_codes_field == "parent":
-        mapped = list(cm.parent_codes)
-    else:
-        mapped = list(cm.expanded_codes)
+    """JSON-serializable dual-layer cell record (headline = expanded_codes)."""
     return {
         "survey": survey,
         "target": target,
@@ -288,7 +370,7 @@ def expanded_cell_to_record(
         "parent_codes": cm.parent_codes,
         "subitem_codes": cm.subitem_codes,
         "expanded_codes": cm.expanded_codes,
-        "mapped_codes": mapped,
+        "mapped_codes": list(cm.expanded_codes),
         "features": [
             {
                 "feature": f.feature_label,

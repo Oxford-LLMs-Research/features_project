@@ -1,9 +1,9 @@
 """
-AutoGluon oracle permutation importances (requires the [oracle] extra: pip install -e .[oracle]).
+AutoGluon oracle permutation importances (requires: pip install -e ".[oracle]").
 
-Computes AutoGluon-based permutation importances for a single (target, country) cell and
-writes outputs in the cache format used by the grid runners so the rest of the pipeline
-can reuse them.
+Computes permutation importances for one (target, country) cell and writes
+cache/cells/<target>_<country>/{oracle.csv, oracle_meta.json} for the rest of the
+pipeline. Contract version: ORACLE_CONTRACT_VERSION (bump if output meaning changes).
 
 Design
 ------

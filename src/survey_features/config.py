@@ -30,45 +30,36 @@ PAPER_DIR = Path(os.environ.get("SURVEY_FEATURES_PAPER") or (ROOT / "paper"))
 # ── Model registry ────────────────────────────────────────────────────────────
 # Selector = the test model whose feature-selection capability we measure.
 # Each selector keeps its artifacts in a separate subdir (selector key) so adding a
-# model never clobbers another's. pilot1_tag = the llm__<tag>/ cache dir of the
-# legacy JSON (pilot-1) run for the same model, used for arms A/B of the format pilot.
+# model never clobbers another's.
 SELECTORS: dict[str, dict[str, str]] = {
-    "deepseek": {"model": "deepseek-ai/DeepSeek-V3.2", "pilot1_tag": "deepseek-ai_DeepSeek-V3.2"},
-    "kimi":     {"model": "moonshotai/Kimi-K2.5",      "pilot1_tag": "moonshotai_Kimi-K2.5"},
+    "deepseek": {"model": "deepseek-ai/DeepSeek-V3.2"},
+    "kimi":     {"model": "moonshotai/Kimi-K2.5"},
 }
 DEFAULT_SELECTOR = "deepseek"
 
-# Extraction (free-text essay -> feature list) is a comprehension task held FIXED across
-# all arms and disambiguators: a small model cannot digest a long essay, and the extracted
-# set defines the model's request, so it must not vary by disambiguator.
+# Extraction (free-text essay -> feature list) is held FIXED across selectors.
 EXTRACTOR_MODEL = "Qwen/Qwen3-235B-A22B-Instruct-2507"
 
-# Disambiguation (feature -> code/none) is the per-feature matching task where
-# small-vs-large is a legitimate comparison. nemotron is the main-experiment choice.
+# Disambiguation (feature -> code/none). nemotron is the main-experiment choice.
 DISAMBIGUATORS: dict[str, str] = {
     "nemotron": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
     "qwen235b": "Qwen/Qwen3-235B-A22B-Instruct-2507",
 }
 
-# Fixed small model used for disambiguation in the legacy JSON grid (archive/run_grid.py).
-# Keeping this constant ensures differences in final mapped variables are attributable
-# only to feature-selection quality, not disambiguation quality.
 DISAMBIG_MODEL = os.environ.get("DISAMBIG_MODEL", "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B")
 DISAMBIG_BASE_URL = os.environ.get("DISAMBIG_BASE_URL") or None  # falls back to LLM_BASE_URL
 DISAMBIG_API_KEY = os.environ.get("DISAMBIG_API_KEY") or None    # falls back to LLM_API_KEY
 
-# Sentence-transformer used for survey-variable retrieval and the oracle's semantic
-# near-duplicate filter. Held fixed across selector runs so mapping differences stay
-# attributable to feature selection; override via --embedding-model for sensitivity.
+# Sentence-transformer for survey-variable retrieval and the oracle's near-duplicate filter.
 DEFAULT_EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 # The two prompt conditions run for every cell.
 CONDITIONS = ["unprompted", "country_provided"]
 
 # ── Textbook baseline ─────────────────────────────────────────────────────────
-# Generic predictors a researcher would list WITHOUT reading the question — the
-# "knows something question-specific" null (pipeline_audit #A2). Frozen; ORDER matters
-# (fixed-k takes the first k). Resolved per survey by scripts/build_textbook_baseline.py.
+# Generic predictors a researcher would list WITHOUT reading the question.
+# Frozen; ORDER matters (fixed-k takes the first k). Resolved per survey by
+# scripts/build_textbook_baseline.py.
 TEXTBOOK_CONSTRUCTS: list[tuple[str, str]] = [
     ("age", "how old the respondent is, in years"),
     ("gender", "whether the respondent is male or female"),
@@ -82,9 +73,6 @@ TEXTBOOK_CONSTRUCTS: list[tuple[str, str]] = [
     ("ethnicity or language group", "the respondent's ethnic group, language or nationality"),
 ]
 
-# Feature types that enter retrieve+disambiguate+score. Decision (2026-06-03): include
-# temporal_contextual alongside respondent_attribute — the study is about capability across
-# countries AND time (surveys span waves), so be generous to temporally-framed requests.
-# instrument_methodology and population_statistic stay out (unmappable; studied as metadata).
-# (population_statistic was formerly named base_rate_prior.)
+# Feature types that enter retrieve+disambiguate+score.
+# instrument_methodology and population_statistic stay out (unmappable; metadata only).
 PIPE_TYPES = {"respondent_attribute", "temporal_contextual"}

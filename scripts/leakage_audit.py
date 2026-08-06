@@ -71,9 +71,11 @@ OUT = OUTPUTS_DIR
 
 
 def load_target_detail() -> dict[str, dict]:
+    """Target catalog from data/targets.yaml (survey, bucket, section, topic)."""
     import yaml
 
-    doc = yaml.safe_load((ROOT / "prelim" / "target_selection_detail.yaml").read_text(encoding="utf-8")) or {}
+    path = ROOT / "data" / "targets.yaml"
+    doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     out: dict[str, dict] = {}
     for blk in doc.get("surveys") or []:
         sid = blk.get("survey_id")
@@ -99,11 +101,7 @@ def iter_oracle_cells() -> list[tuple[str, str, Path]]:
     known = sorted(detail.keys(), key=len, reverse=True)
     cells = []
     seen: set[tuple[str, str]] = set()
-    search_roots = [
-        cache_cells_dir(OUT),
-        OUT,
-        OUT / "grid" / "cells",
-    ]
+    search_roots = [cache_cells_dir(OUT)]
     for root in search_roots:
         if not root.is_dir():
             continue

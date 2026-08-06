@@ -1,13 +1,9 @@
 """
-Downstream prediction evaluation.
-Compare XGBoost performance using oracle, model-selected, textbook and random feature
-sets (matched-k, 5-fold CV). Shared by the current free-text pipeline and the legacy grid.
+Matched-k XGBoost CV: oracle vs model vs random vs textbook feature sets.
 
-The target's MEASUREMENT LEVEL selects estimator and score, mirroring the oracle
-(oracle.TARGET_TYPE_PROBLEM); why: pipeline_audit_2026-08.md §A11. Every result carries
-`primary_score`, higher-is-better and comparable WITHIN a cell only (neg log loss for
-classification, Spearman rho for regression) — all the metrics need, since every
-contrast is matched-k within a cell.
+The target's measurement level selects estimator and score, mirroring the oracle
+(oracle.TARGET_TYPE_PROBLEM; docs/pipeline_audit_2026-08.md §A11). Results carry
+`primary_score` (higher-is-better, comparable within a cell only).
 """
 
 from __future__ import annotations

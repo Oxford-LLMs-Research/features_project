@@ -2,7 +2,7 @@
 LLM generation wrapper — the ONE client used everywhere in the pipeline.
 
 Returns a generate_fn(messages, max_tokens, temperature, *, usage_phase=...) -> str
-compatible with all pipeline modules (elicitation, extraction, disambig).
+compatible with all pipeline modules (elicitation, extraction, mapping).
 
 Backed by an OpenAI-compatible API, so it works with:
   - SGLang local server  (LLM_BASE_URL=http://localhost:30000/v1, LLM_API_KEY=EMPTY)
