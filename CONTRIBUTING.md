@@ -40,9 +40,9 @@ cp .env.example .env
 2. **Isolate exploratory runs** with `--run-tag` (map/score under `main/runs/<tag>/`)
    or `outputs/experiments/<name>/`.
 3. **Register every experiment** in [`docs/experiments_registry.md`](docs/experiments_registry.md)
-   *before* the first artifact write: rationale (≤3 sentences), code + commit, dates,
-   compute, input/output paths. Fill **Result** (≤3 sentences) when the run finishes.
-   No silent experiments.
+   *before* the first artifact write: **Stage** (pipeline locus), rationale (≤3 sentences),
+   code + commit, dates, compute, input/output paths. Fill **Result** (≤3 sentences) when
+   the run finishes. No silent experiments.
 4. **No result drift.** Refactors that touch scoring/metrics must re-check numbers against existing artifacts.
 5. **Keep model roles fixed.** Register new selectors in `config.SELECTORS`; don't change extractor/disambiguator for a selector comparison.
 6. **Python 3.9 compatibility.** `from __future__ import annotations` in every module.
