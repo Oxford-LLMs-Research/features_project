@@ -46,7 +46,12 @@ def parse_json_list(raw: str) -> list:
     return v if isinstance(v, list) else []
 
 
-def extract_features(response_text: str, generate_fn) -> tuple[list[dict], str]:
+def extract_features(
+    response_text: str,
+    generate_fn,
+    *,
+    max_tokens: int = 4096,
+) -> tuple[list[dict], str]:
     """Extract typed features from one selection response.
 
     Returns (features, raw). Each feature: {feature, context, sub_items, type}.
@@ -57,7 +62,7 @@ def extract_features(response_text: str, generate_fn) -> tuple[list[dict], str]:
         return [], ""
     raw = generate_fn(
         [{"role": "user", "content": EXTRACT_PROMPT.format(response_text=response_text.strip())}],
-        max_tokens=4096, temperature=0.0, usage_phase="extract",
+        max_tokens=max(512, int(max_tokens)), temperature=0.0, usage_phase="extract",
     ) or ""
     out = []
     for it in parse_json_list(raw):

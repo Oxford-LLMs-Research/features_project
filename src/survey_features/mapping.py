@@ -90,6 +90,8 @@ def _disambiguate_pool(
     context: str,
     pool: list[dict],
     disambig_fn,
+    *,
+    max_tokens: int = 2048,
 ) -> tuple[str | None, str | None, str, str]:
     """Ask disambiguator for one letter/none; returns (code, text, raw, map_status)."""
     if not pool:
@@ -98,11 +100,11 @@ def _disambiguate_pool(
         f"{candidate_label(i)}. [{c['var_code']}] {c['question_text']}"
         for i, c in enumerate(pool)
     )
-    # Reasoning models need CoT headroom; do not shrink below 2048.
+    # Reasoning models need CoT headroom; Flash/V4 often need >2048.
     raw = disambig_fn(
         [{"role": "user", "content": DISAMBIG_PROMPT.format(
             feature_label=label, feature_context=context or label, candidates_block=block)}],
-        max_tokens=2048, temperature=0.0, usage_phase="disambig",
+        max_tokens=max(256, int(max_tokens)), temperature=0.0, usage_phase="disambig",
     ) or ""
     idx = parse_letter(raw, len(pool))
     if idx is None:
@@ -230,16 +232,18 @@ def map_features_with_subitems(
     pipe_types: set[str] | None = None,
     expand_subitems: bool = True,
     workers: int = 1,
+    disambig_max_tokens: int = 2048,
 ) -> ExpandedCellMap:
     """Retrieve + disambiguate parents, and optionally each bundled sub_item.
 
     ``workers`` > 1 parallelizes disambiguation LLM calls after serial retrieval.
+    ``disambig_max_tokens`` raises CoT budget for reasoning disambiguators (e.g. Flash).
     """
     excluded = set(excluded_codes or set())
     pipe = pipe_types or {"respondent_attribute"}
     cm = ExpandedCellMap(cell=cell, arm=arm, mapper_model=mapper_model, extract_raw=extract_raw)
     n_workers = max(1, int(workers))
-
+    d_max = max(256, int(disambig_max_tokens))
     pending: list[tuple] = []
     queries: list[tuple[str, str]] = []
 
@@ -290,7 +294,9 @@ def map_features_with_subitems(
 
     def _run_job(job: tuple) -> tuple[str | None, str | None, str, str]:
         _kind, _parent, unit_label, unit_context, _feat_ctx, _ftype, _sub, pool = job
-        return _disambiguate_pool(unit_label, unit_context, pool, disambig_fn)
+        return _disambiguate_pool(
+            unit_label, unit_context, pool, disambig_fn, max_tokens=d_max,
+        )
 
     results: list[tuple[str | None, str | None, str, str]] = [
         (None, None, "", MAP_STATUS_NOT_PIPED)

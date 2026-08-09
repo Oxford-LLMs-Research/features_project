@@ -10,6 +10,15 @@ from __future__ import annotations
 
 SYSTEM_PROMPT = "You are a social science researcher."
 
+# Named arms for prompt-sensitivity (and confirmatory default = social_scientist).
+# Value None means omit the system message entirely.
+PROMPT_ARMS: dict[str, str | None] = {
+    "social_scientist": SYSTEM_PROMPT,
+    "none": None,
+    "helpful": "You are a helpful assistant.",
+}
+DEFAULT_PROMPT_ARM = "social_scientist"
+
 FREETEXT_UNPROMPTED = (
     'A survey asks respondents: "{question}"\n\n'
     "You want to predict how a respondent will answer. What information about the respondent would you need?"

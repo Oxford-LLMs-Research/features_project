@@ -1,0 +1,16 @@
+# Frozen 12-cell subsample for the prompt-sensitivity experiment.
+# Stratified: 2 genuine cells per survey family; seed=42 over leakage_audit.csv.
+# Do not expand without a registry note — cost scales with cells × arms × selectors.
+cells:
+  - {survey: afrobarometer, target: Q15, country: Angola}
+  - {survey: afrobarometer, target: Q93B, country: Mali}
+  - {survey: arabbarometer, target: Q501E_2, country: Mauritania}
+  - {survey: arabbarometer, target: Q534_2, country: Kuwait}
+  - {survey: asianbarometer, target: SE14a, country: Indonesia}
+  - {survey: asianbarometer, target: level, country: Indonesia}
+  - {survey: ess_wave_11, target: bctprd, country: France}
+  - {survey: ess_wave_11, target: eqparlv, country: Austria}
+  - {survey: latinobarometer, target: SEXO, country: Colombia}
+  - {survey: latinobarometer, target: SEXO, country: Guatemala}
+  - {survey: wvs, target: Q205, country: Andorra}
+  - {survey: wvs, target: Q263, country: "Macao SAR"}

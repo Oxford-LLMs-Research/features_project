@@ -32,11 +32,18 @@ PAPER_DIR = Path(os.environ.get("SURVEY_FEATURES_PAPER") or (ROOT / "paper"))
 # Each selector keeps its artifacts in a separate subdir (selector key) so adding a
 # model never clobbers another's.
 SELECTORS: dict[str, dict[str, str]] = {
-    # IDs must match the configured LLM endpoint catalog (Nebius Studio).
+    # IDs must match the configured LLM endpoint catalog (Nebius Studio / Token Factory).
     "deepseek": {"model": "deepseek-ai/DeepSeek-V4-Pro"},
     "kimi":     {"model": "moonshotai/Kimi-K2.6"},
 }
 DEFAULT_SELECTOR = "deepseek"
+
+# Selectors used by experiments (may add keys without changing confirmatory zoo semantics).
+# deepseek_v4 aliases the live V4-Pro ID for prompt-sensitivity artifacts.
+EXPERIMENT_SELECTORS: dict[str, dict[str, str]] = {
+    **SELECTORS,
+    "deepseek_v4": {"model": "deepseek-ai/DeepSeek-V4-Pro"},
+}
 
 # Extraction (free-text essay -> feature list) is held FIXED across selectors.
 EXTRACTOR_MODEL = "Qwen/Qwen3-235B-A22B-Instruct-2507"
@@ -45,7 +52,13 @@ EXTRACTOR_MODEL = "Qwen/Qwen3-235B-A22B-Instruct-2507"
 DISAMBIGUATORS: dict[str, str] = {
     "nemotron": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
     "qwen235b": "Qwen/Qwen3-235B-A22B-Instruct-2507",
+    # pipeline-role-swap candidate (not confirmatory default)
+    "flash": "deepseek-ai/DeepSeek-V4-Flash",
 }
+
+# Extractor candidate for pipeline-role-swap (confirmatory default stays EXTRACTOR_MODEL).
+ROLE_SWAP_EXTRACTOR = "MiniMaxAI/MiniMax-M3"
+ROLE_SWAP_DISAMBIG_KEY = "flash"
 
 DISAMBIG_MODEL = os.environ.get("DISAMBIG_MODEL", "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B")
 DISAMBIG_BASE_URL = os.environ.get("DISAMBIG_BASE_URL") or None  # falls back to LLM_BASE_URL

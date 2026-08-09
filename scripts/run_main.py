@@ -56,20 +56,21 @@ OUT = OUTPUTS_DIR
 FIXED_KS = [5, 10]
 
 
-def selector_generate_fn(selector_model: str):
+def selector_generate_fn(selector_model: str, usage_log=None):
     """Selector client; transient errors -> '' (keeps sweeps alive)."""
     from survey_features.llm import make_generate_fn
-    fn, _ = make_generate_fn(model=selector_model, on_error="empty")
+    fn, _ = make_generate_fn(model=selector_model, usage_log=usage_log, on_error="empty")
     return fn
 
 
-def mapper_generate_fn(mapper_model: str):
+def mapper_generate_fn(mapper_model: str, usage_log=None):
     """Extractor/disambiguator client (DISAMBIG_* endpoint, else LLM endpoint)."""
     from survey_features.llm import make_generate_fn
     fn, _ = make_generate_fn(
         base_url=os.environ.get("DISAMBIG_BASE_URL") or None,
         api_key=os.environ.get("DISAMBIG_API_KEY") or None,
         model=mapper_model,
+        usage_log=usage_log,
         on_error="empty",
     )
     return fn
@@ -95,12 +96,14 @@ def survey_assets(survey_id, embedding_model: str = DEFAULT_EMBEDDING_MODEL):
 
 def phase_gen(selector_key, force=False, limit=None, api_workers: int = 1):
     from survey_features.elicitation import freetext_messages
+    from survey_features.llm import TokenUsageLog, default_usage_path
     from survey_features.timing import TimingLog, default_timing_path
 
     sel_model = SELECTORS[selector_key]["model"]
     gen_dir, _, _ = selector_dirs(selector_key)
     gen_dir.mkdir(parents=True, exist_ok=True)
-    gen = selector_generate_fn(sel_model)
+    usage = TokenUsageLog(default_usage_path("gen", selector_key))
+    gen = selector_generate_fn(sel_model, usage_log=usage)
     cells = genuine_cells(OUT)
     if limit:
         cells = cells[:limit]
@@ -166,14 +169,17 @@ def phase_gen(selector_key, force=False, limit=None, api_workers: int = 1):
 
     print(f"[gen] done. wrote={done} skipped(existing)={skipped} -> {gen_dir}")
     timing.print_summary()
+    usage.print_summary()
 
 
 def phase_extract(selector_key, force=False, limit=None, api_workers: int = 1):
     """Essay -> typed feature list via the FIXED extractor."""
     from survey_features.extraction import extract_features
+    from survey_features.llm import TokenUsageLog, default_usage_path
     from survey_features.timing import TimingLog, default_timing_path
 
-    egen = mapper_generate_fn(EXTRACTOR_MODEL)
+    usage = TokenUsageLog(default_usage_path("extract", selector_key))
+    egen = mapper_generate_fn(EXTRACTOR_MODEL, usage_log=usage)
     gen_dir, extract_dir, _ = selector_dirs(selector_key)
     cells = genuine_cells(OUT)
     if limit:
@@ -238,6 +244,7 @@ def phase_extract(selector_key, force=False, limit=None, api_workers: int = 1):
 
     print(f"[extract] done. wrote={done} skipped={skipped} -> {extract_dir}")
     timing.print_summary()
+    usage.print_summary()
 
 
 def _save_map(path, survey, target, country, cond, disambig_key, cm, embedding_model):
@@ -258,13 +265,15 @@ def phase_map(
     map_workers: int = 1,
 ):
     """Dual-layer map for Arm C; writes C__<disambig>__<cell>__<cond>.json."""
+    from survey_features.llm import TokenUsageLog, default_usage_path
     from survey_features.mapping import map_features_with_subitems
     from survey_features.retrieval import make_embed_fn, target_excluded_codes
     from survey_features.timing import TimingLog, default_timing_path
 
     emb_model = DEFAULT_EMBEDDING_MODEL
     dmodel = DISAMBIGUATORS[disambig_key]
-    dgen = mapper_generate_fn(dmodel)
+    usage = TokenUsageLog(default_usage_path("map", f"{selector_key}_{disambig_key}"))
+    dgen = mapper_generate_fn(dmodel, usage_log=usage)
     embed = make_embed_fn(emb_model)
     _, extract_dir, map_dir = selector_dirs(selector_key, run_tag=run_tag)
     cells = genuine_cells(OUT)
@@ -315,6 +324,7 @@ def phase_map(
             print(f"  [{i+1}/{len(cells)}] {survey} {target} {country} mapped ({disambig_key})")
     print(f"[map] done -> {map_dir}")
     timing.print_summary()
+    usage.print_summary()
 
 
 def phase_pipeline(
@@ -332,6 +342,7 @@ def phase_pipeline(
     """gen → extract → map per cell; optional score after all maps."""
     from survey_features.elicitation import freetext_messages
     from survey_features.extraction import extract_features
+    from survey_features.llm import TokenUsageLog, default_usage_path
     from survey_features.mapping import map_features_with_subitems
     from survey_features.retrieval import make_embed_fn, target_excluded_codes
     from survey_features.timing import TimingLog, default_timing_path
@@ -354,10 +365,11 @@ def phase_pipeline(
     n_pipe = max(1, int(pipeline_workers))
     n_map = max(1, int(map_workers))
     timing = TimingLog(default_timing_path("pipeline", f"{selector_key}_{disambig_key}"))
+    usage = TokenUsageLog(default_usage_path("pipeline", f"{selector_key}_{disambig_key}"))
 
-    gen_fn = selector_generate_fn(sel_model)
-    extract_fn = mapper_generate_fn(EXTRACTOR_MODEL)
-    disambig_fn = mapper_generate_fn(dmodel)
+    gen_fn = selector_generate_fn(sel_model, usage_log=usage)
+    extract_fn = mapper_generate_fn(EXTRACTOR_MODEL, usage_log=usage)
+    disambig_fn = mapper_generate_fn(dmodel, usage_log=usage)
     _raw_embed = make_embed_fn(emb_model)
     _embed_lock = threading.Lock()
 
@@ -519,6 +531,7 @@ def phase_pipeline(
         f"errors={counts['errors']} -> {map_dir}"
     )
     timing.print_summary()
+    usage.print_summary()
 
     if with_score:
         phase_score(

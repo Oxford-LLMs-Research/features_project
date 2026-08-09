@@ -71,8 +71,10 @@ Sorted by **Stage**, then status.
 | end-to-end | [`main-freetext`](#main-freetext--confirmatory-free-text-arm-c) | complete | Free-text + dual-layer map is the confirmatory instrument | `outputs/main/` |
 | end-to-end | [`confirmatory-zoo`](#confirmatory-zoo--multi-selector-lock) | design | Not run | — |
 | end-to-end | [`prelim-json-grid`](#prelim-json-grid--strict-json-appendix) | superseded | JSON-era magnitudes are a floor, not the estimate | snapshots / `outputs/grid/` |
+| elicitation | [`prompt-sensitivity`](#prompt-sensitivity--selector-system-message) | complete (artifacts; analysis pending) | System-prompt arms on kimi + V4-Pro (12-cell subsample) | `outputs/experiments/prompt_sensitivity/` |
 | extraction | [`extract-type-pilot`](#extract-type-pilot--type-taxonomy-wording) | complete (pilot) | Type-prompt wording pilot | `outputs/experiments/extract_type_pilot*` |
 | grid | [`leakage-audit`](#leakage-audit--genuine-cell-screen) | complete | Drop leakage / degenerate cells from the grid | `outputs/cache/audits/leakage_audit.csv` |
+| mapping | [`pipeline-role-swap`](#pipeline-role-swap--minimax-extract--flash-disambig) | complete (artifacts; analysis pending) | Faster extract/disambig vs Qwen+Nemotron | `outputs/experiments/pipeline_role_swap/` |
 | mapping | [`subitem-mapping`](#subitem-mapping--dual-layer-pilot) | complete → promoted | Dual-layer locked into main | `outputs/experiments/subitem_mapping/` |
 | oracle | [`oracle-v3`](#oracle-v3--measurement-level-honest-split) | complete | Era-3 oracle is the current ground truth | `outputs/cache/cells/` |
 | retrieval | [`embedding-sensitivity`](#embedding-sensitivity--sentence-transformer-swap) | complete | Embedder swap moves maps more than scores | `outputs/experiments/embedding_sensitivity/` |
@@ -84,6 +86,44 @@ Sorted by **Stage**, then status.
 ---
 
 ## Active / complete
+
+### `prompt-sensitivity` — selector system message
+
+| Field | Value |
+|-------|-------|
+| **Status** | complete (artifacts; analysis pending) |
+| **Stage** | elicitation |
+| **Dates** | designed 2026-08-09; ran 2026-08-09 (full factorial ~39 min wall) |
+| **Code** | [`scripts/run_prompt_sensitivity.py`](../scripts/run_prompt_sensitivity.py); arms in [`prompts.py`](../src/survey_features/prompts.py) / [`elicitation.py`](../src/survey_features/elicitation.py); cells [`data/prompt_sensitivity_cells.yaml`](../data/prompt_sensitivity_cells.yaml) |
+| **Commit** | record SHA when artifacts are written |
+| **Compute** | LLM: Nebius — selectors `moonshotai/Kimi-K2.6` + `deepseek-ai/DeepSeek-V4-Pro`; fixed Qwen extract + Nemotron disambig. Concurrent defaults: pipeline_workers=4, map_workers=8 (+ score ProcessPool). Local CPU for score. Token/cost via `TokenUsageLog` + [`data/nebius_pricing.json`](../data/nebius_pricing.json). |
+| **Inputs** | [`data/prompt_sensitivity_cells.yaml`](../data/prompt_sensitivity_cells.yaml) (12 genuine cells); era-3 oracles; leakage genuine grid |
+| **Outputs** | `outputs/experiments/prompt_sensitivity/<selector>/<arm>/{freetext,extracted,maps}/`; `scores_<selector>_<arm>.csv`; `outputs/logs/token_usage_*.jsonl` |
+
+**Rationale.** To test whether the confirmatory system message (“You are a social science researcher.”) constrains selector feature essays relative to no system message or a neutral “helpful assistant,” holding extractor/disambiguator fixed.
+
+**Result.** Full 2×3×12 grid wrote under `outputs/experiments/prompt_sensitivity/` (12/12 cells × 2 conds × maps per arm; scores CSVs present). Concurrent pipeline held (~3–4× cell-sum/wall). Scientific arm comparison not yet summarized — fill after score/intermediate analysis. A few gen cells hit `finish_reason=length` empties (re-force with max_tokens=8192 if needed).
+
+---
+
+### `pipeline-role-swap` — MiniMax extract + Flash disambig
+
+| Field | Value |
+|-------|-------|
+| **Status** | complete (artifacts; analysis pending) |
+| **Stage** | mapping |
+| **Dates** | designed 2026-08-09; ran 2026-08-09 (v2 after Flash/MiniMax token + reasoning-content fixes) |
+| **Code** | [`scripts/run_pipeline_role_swap.py`](../scripts/run_pipeline_role_swap.py); models `ROLE_SWAP_EXTRACTOR` / `DISAMBIGUATORS["flash"]` in [`config.py`](../src/survey_features/config.py) |
+| **Commit** | record SHA when artifacts land |
+| **Compute** | LLM: Nebius [MiniMax-M3](https://tokenfactory.nebius.com/endpoints?modals=endpoint-details&model-id=MiniMaxAI/MiniMax-M3) extract + [DeepSeek-V4-Flash](https://tokenfactory.nebius.com/endpoints?modals=endpoint-details&model-id=deepseek-ai/DeepSeek-V4-Flash) disambig; concurrent pipeline_workers=4 / map_workers=8; local score. Token/cost via `TokenUsageLog`. |
+| **Inputs** | gen essays from `outputs/experiments/prompt_sensitivity/kimi/social_scientist/freetext/` (default); [`data/prompt_sensitivity_cells.yaml`](../data/prompt_sensitivity_cells.yaml) |
+| **Outputs** | `outputs/experiments/pipeline_role_swap/minimax_flash/{extracted,maps}/`; `scores_minimax_flash.csv`; `source_meta.json` |
+
+**Rationale.** To test whether faster/cheaper extract and disambig models cut wall time without material damage to mapped codes or downstream scores, freeing Qwen-family capacity for selector work.
+
+**Result.** Artifacts for kimi/social_scientist gen → MiniMax extract + Flash disambig on 12 cells under `pipeline_role_swap/minimax_flash/` (66 score rows; 2 empty extract conds from empty upstream gens). Flash needed reasoning-content fallback + 8k token budgets; wall/latency not clearly better than Nemotron on this path (high reasoning completion tokens). Compare scores to `prompt_sensitivity/scores_kimi_social_scientist.csv` before promoting.
+
+---
 
 ### `main-freetext` — confirmatory free-text Arm C
 

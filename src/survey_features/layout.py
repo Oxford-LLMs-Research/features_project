@@ -83,6 +83,54 @@ def main_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
     return outputs_dir / "main"
 
 
+def experiments_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    return outputs_dir / "experiments"
+
+
+def prompt_sensitivity_root(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    """outputs/experiments/prompt_sensitivity/"""
+    return experiments_dir(outputs_dir) / "prompt_sensitivity"
+
+
+def prompt_sensitivity_dirs(
+    selector_key: str,
+    arm: str,
+    outputs_dir: Path = OUTPUTS_DIR,
+) -> tuple[Path, Path, Path]:
+    """(freetext, extracted, maps) under prompt_sensitivity/<selector>/<arm>/."""
+    base = prompt_sensitivity_root(outputs_dir) / selector_key / arm
+    return base / "freetext", base / "extracted", base / "maps"
+
+
+def prompt_sensitivity_scores_path(
+    selector_key: str,
+    arm: str,
+    outputs_dir: Path = OUTPUTS_DIR,
+) -> Path:
+    return prompt_sensitivity_root(outputs_dir) / f"scores_{selector_key}_{arm}.csv"
+
+
+def pipeline_role_swap_root(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    """outputs/experiments/pipeline_role_swap/"""
+    return experiments_dir(outputs_dir) / "pipeline_role_swap"
+
+
+def pipeline_role_swap_dirs(
+    run_key: str,
+    outputs_dir: Path = OUTPUTS_DIR,
+) -> tuple[Path, Path]:
+    """(extracted, maps) under pipeline_role_swap/<run_key>/."""
+    base = pipeline_role_swap_root(outputs_dir) / run_key
+    return base / "extracted", base / "maps"
+
+
+def pipeline_role_swap_scores_path(
+    run_key: str,
+    outputs_dir: Path = OUTPUTS_DIR,
+) -> Path:
+    return pipeline_role_swap_root(outputs_dir) / f"scores_{run_key}.csv"
+
+
 # ── Cell / oracle cache ───────────────────────────────────────────────────────
 
 def cell_dir(target: str, country: str, outputs_dir: Path = OUTPUTS_DIR) -> Path:
