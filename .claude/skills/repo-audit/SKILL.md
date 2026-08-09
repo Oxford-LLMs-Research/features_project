@@ -87,7 +87,10 @@ In `audit` mode: write the exact move commands into Actions PROPOSED; take no de
 
 Run on the **WIP under review** (`git diff` + untracked files in scope):
 
-1. **Cache identity (onboarding §4):** new caches without an identity field.
+1. **Experiment registry:** new or changed writes under `outputs/experiments/` or
+   confirmatory number-changing runs without a matching entry / Result update in
+   `docs/experiments_registry.md` → violation.
+2. **Cache identity (onboarding §4):** new caches without an identity field.
 2. **Fail-loud:** new `try/except` in `src/` that swallows errors around our own
    files/formats. Boundary guards (network, process pools, per-cell isolation) are allowed.
 3. **Comment discipline:** new comment blocks >3 lines without a `docs/` pointer

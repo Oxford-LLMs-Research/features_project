@@ -30,19 +30,25 @@ cp .env.example .env
   `mapping.py`.
 - **`scripts/`** — thin orchestration only (`run_main.py`, leakage, oracle, textbook).
 - **`tests/`** — pure helpers (`pytest`).
-- **`docs/`** — onboarding + load-bearing audit record.
+- **`docs/`** — onboarding, load-bearing audit record, and the
+  [**experiment registry**](docs/experiments_registry.md) (every past and future run).
 
 ## Ground rules
 
 1. **Do not break cached-artifact contracts.** Paths under `outputs/` go through
    `layout.py` / `OUTPUTS_DIR`. Existing era-3 oracles and `main/` artifacts must keep resolving.
-2. **Isolate exploratory runs** with `--run-tag` (map/score under `main/runs/<tag>/`).
-3. **No result drift.** Refactors that touch scoring/metrics must re-check numbers against existing artifacts.
-4. **Keep model roles fixed.** Register new selectors in `config.SELECTORS`; don't change extractor/disambiguator for a selector comparison.
-5. **Python 3.9 compatibility.** `from __future__ import annotations` in every module.
-6. **`.tmp/` is disposable.** Logs go under `outputs/logs/<context>/`.
-7. **Fail loud in library code.** No silent fallbacks around our own files/formats/versions. Guards only at system boundaries (network, process pools, per-cell sweep isolation).
-8. **Comments state the invariant**, with a `docs/` pointer for rationale. One narrative home per module — the top docstring.
+2. **Isolate exploratory runs** with `--run-tag` (map/score under `main/runs/<tag>/`)
+   or `outputs/experiments/<name>/`.
+3. **Register every experiment** in [`docs/experiments_registry.md`](docs/experiments_registry.md)
+   *before* the first artifact write: rationale (≤3 sentences), code + commit, dates,
+   compute, input/output paths. Fill **Result** (≤3 sentences) when the run finishes.
+   No silent experiments.
+4. **No result drift.** Refactors that touch scoring/metrics must re-check numbers against existing artifacts.
+5. **Keep model roles fixed.** Register new selectors in `config.SELECTORS`; don't change extractor/disambiguator for a selector comparison.
+6. **Python 3.9 compatibility.** `from __future__ import annotations` in every module.
+7. **`.tmp/` is disposable.** Logs go under `outputs/logs/<context>/`.
+8. **Fail loud in library code.** No silent fallbacks around our own files/formats/versions. Guards only at system boundaries (network, process pools, per-cell sweep isolation).
+9. **Comments state the invariant**, with a `docs/` pointer for rationale. One narrative home per module — the top docstring.
 
 ## Workflow
 

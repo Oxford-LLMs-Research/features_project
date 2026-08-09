@@ -59,7 +59,9 @@ Constant: `ORACLE_CONTRACT_VERSION` in `src/survey_features/oracle.py`.
 row here. Full audit: `docs/pipeline_audit_2026-08.md`.
 
 **Which numbers are current on this branch:** era-3 oracles under `outputs/cache/cells/`,
-and free-text Arm C artifacts under `outputs/main/`.
+and free-text Arm C artifacts under `outputs/main/`. Experiment-by-experiment claims
+live in [`docs/experiments_registry.md`](experiments_registry.md) — register every run
+there before writing artifacts.
 
 ## 4. Cache identity
 

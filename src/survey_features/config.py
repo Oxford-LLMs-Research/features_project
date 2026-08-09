@@ -32,8 +32,9 @@ PAPER_DIR = Path(os.environ.get("SURVEY_FEATURES_PAPER") or (ROOT / "paper"))
 # Each selector keeps its artifacts in a separate subdir (selector key) so adding a
 # model never clobbers another's.
 SELECTORS: dict[str, dict[str, str]] = {
-    "deepseek": {"model": "deepseek-ai/DeepSeek-V3.2"},
-    "kimi":     {"model": "moonshotai/Kimi-K2.5"},
+    # IDs must match the configured LLM endpoint catalog (Nebius Studio).
+    "deepseek": {"model": "deepseek-ai/DeepSeek-V4-Pro"},
+    "kimi":     {"model": "moonshotai/Kimi-K2.6"},
 }
 DEFAULT_SELECTOR = "deepseek"
 

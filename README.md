@@ -5,6 +5,7 @@
 The confirmatory pipeline: free-text essay → typed feature list → dual-layer map to survey codes → score against an AutoGluon permutation-importance oracle.
 
 > **New here?** Start with [`docs/onboarding.md`](docs/onboarding.md).
+> **Running or citing an experiment?** Register it in [`docs/experiments_registry.md`](docs/experiments_registry.md).
 
 ---
 
@@ -32,7 +33,7 @@ scripts/
   build_textbook_baseline.py
 data/                    survey metadata JSONs + targets.yaml
 tests/                   pytest (no API / data required for unit tests)
-docs/                    onboarding + pipeline_audit_2026-08.md
+docs/                    onboarding, pipeline_audit, experiments_registry
 ```
 
 ---
