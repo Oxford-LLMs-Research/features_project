@@ -17,8 +17,24 @@ not the code tree.
 4. Record the **git commit** (or tag) that *produced* the artifacts — not “whatever HEAD was when you wrote the memo”.
 5. Link **inputs** and **outputs** as paths under `outputs/` (or snapshot restore commands). Prefer concrete files over directory-only pointers when a headline file exists.
 6. Add a one-line row to the **Index** table (keep the index sorted by Stage, then status).
+7. When **Result** rests on a paired contrast (treatment vs baseline), add a **Contrast detail** block — do not stop at mean Δ alone.
 
 **Status vocabulary:** `design` → `running` → `complete` | `abandoned` | `superseded`.
+
+**Contrast reporting** (required for complete contrast experiments; use for past/present/future so claims stay comparable):
+
+Means cancel cell-level heterogeneity. Every paired contrast Result must report, at the analysis `k_spec` (usually `model`):
+
+| Piece | Why |
+|-------|-----|
+| Mean **and** median Δ | median resists cancelation / outliers |
+| Share Δ>0 and Δ<0 | directionality without magnitude |
+| Sign concordance (PI & VoR): both+ / both− / conflict | joint-endpoint honesty |
+| By condition (e.g. `country_provided` vs `unprompted`) | stratum cancelation |
+| By survey (mean Δ + +/- counts) | survey cancelation |
+| Survey-level share with mean Δ>0 | avoids overweighting multi-k cells |
+
+Paste tables under **Contrast detail** (or regenerate via `scripts/analyze_stack_experiments.py` → `outputs/experiments/_analysis/registry_contrast_blocks.md` for stack experiments). Older entries without reconstructable pairs: keep the ≤3-sentence Result and add `Contrast detail: not reconstructed (pre-convention).`
 
 **Stage vocabulary** (pick one — the stage you *changed*):
 
@@ -58,6 +74,8 @@ score run locally (CPU). Record both when relevant.
 
 **Result.** ≤3 sentences. “X does / does not improve Y. Caveats: …”
 Or `—` while `design` / `running`.
+
+**Contrast detail.** (When Result is a paired contrast.) Mean | median | share Δ>0; PI↔VoR concordance; by condition; by survey. Else omit or `not reconstructed`.
 ```
 
 ---
@@ -71,10 +89,11 @@ Sorted by **Stage**, then status.
 | end-to-end | [`main-freetext`](#main-freetext--confirmatory-free-text-arm-c) | complete | Free-text + dual-layer map is the confirmatory instrument | `outputs/main/` |
 | end-to-end | [`confirmatory-zoo`](#confirmatory-zoo--multi-selector-lock) | design | Not run | — |
 | end-to-end | [`prelim-json-grid`](#prelim-json-grid--strict-json-appendix) | superseded | JSON-era magnitudes are a floor, not the estimate | snapshots / `outputs/grid/` |
-| elicitation | [`prompt-sensitivity`](#prompt-sensitivity--selector-system-message) | complete (artifacts; analysis pending) | System-prompt arms on kimi + V4-Pro (12-cell subsample) | `outputs/experiments/prompt_sensitivity/` |
+| elicitation | [`prompt-sensitivity`](#prompt-sensitivity--selector-system-message) | complete | Keep confirmatory social_scientist system prompt | `outputs/experiments/prompt_sensitivity/` |
+| extraction | [`extract-swap-minimax`](#extract-swap-minimax--minimax-extract--nemotron-disambig) | complete | MiniMax extract ≈ Qwen on PI/VoR; dearer — keep Qwen default | `outputs/experiments/pipeline_role_swap/minimax_nemotron/` |
 | extraction | [`extract-type-pilot`](#extract-type-pilot--type-taxonomy-wording) | complete (pilot) | Type-prompt wording pilot | `outputs/experiments/extract_type_pilot*` |
 | grid | [`leakage-audit`](#leakage-audit--genuine-cell-screen) | complete | Drop leakage / degenerate cells from the grid | `outputs/cache/audits/leakage_audit.csv` |
-| mapping | [`pipeline-role-swap`](#pipeline-role-swap--minimax-extract--flash-disambig) | complete (artifacts; analysis pending) | Faster extract/disambig vs Qwen+Nemotron | `outputs/experiments/pipeline_role_swap/` |
+| mapping | [`pipeline-role-swap`](#pipeline-role-swap--minimax-extract--flash-disambig) | complete | Joint MiniMax+Flash rejected; Flash-as-disambig not followed up | `outputs/experiments/pipeline_role_swap/minimax_flash/` |
 | mapping | [`subitem-mapping`](#subitem-mapping--dual-layer-pilot) | complete → promoted | Dual-layer locked into main | `outputs/experiments/subitem_mapping/` |
 | oracle | [`oracle-v3`](#oracle-v3--measurement-level-honest-split) | complete | Era-3 oracle is the current ground truth | `outputs/cache/cells/` |
 | retrieval | [`embedding-sensitivity`](#embedding-sensitivity--sentence-transformer-swap) | complete | Embedder swap moves maps more than scores | `outputs/experiments/embedding_sensitivity/` |
@@ -91,10 +110,10 @@ Sorted by **Stage**, then status.
 
 | Field | Value |
 |-------|-------|
-| **Status** | complete (artifacts; analysis pending) |
+| **Status** | complete |
 | **Stage** | elicitation |
-| **Dates** | designed 2026-08-09; ran 2026-08-09 (full factorial ~39 min wall) |
-| **Code** | [`scripts/run_prompt_sensitivity.py`](../scripts/run_prompt_sensitivity.py); arms in [`prompts.py`](../src/survey_features/prompts.py) / [`elicitation.py`](../src/survey_features/elicitation.py); cells [`data/prompt_sensitivity_cells.yaml`](../data/prompt_sensitivity_cells.yaml) |
+| **Dates** | designed 2026-08-09; ran 2026-08-09; analyzed 2026-08-11 |
+| **Code** | [`scripts/run_prompt_sensitivity.py`](../scripts/run_prompt_sensitivity.py); analysis [`scripts/analyze_stack_experiments.py`](../scripts/analyze_stack_experiments.py); arms in [`prompts.py`](../src/survey_features/prompts.py) / [`elicitation.py`](../src/survey_features/elicitation.py); cells [`data/prompt_sensitivity_cells.yaml`](../data/prompt_sensitivity_cells.yaml) |
 | **Commit** | record SHA when artifacts are written |
 | **Compute** | LLM: Nebius — selectors `moonshotai/Kimi-K2.6` + `deepseek-ai/DeepSeek-V4-Pro`; fixed Qwen extract + Nemotron disambig. Concurrent defaults: pipeline_workers=4, map_workers=8 (+ score ProcessPool). Local CPU for score. Token/cost via `TokenUsageLog` + [`data/nebius_pricing.json`](../data/nebius_pricing.json). |
 | **Inputs** | [`data/prompt_sensitivity_cells.yaml`](../data/prompt_sensitivity_cells.yaml) (12 genuine cells); era-3 oracles; leakage genuine grid |
@@ -102,7 +121,52 @@ Sorted by **Stage**, then status.
 
 **Rationale.** To test whether the confirmatory system message (“You are a social science researcher.”) constrains selector feature essays relative to no system message or a neutral “helpful assistant,” holding extractor/disambiguator fixed.
 
-**Result.** Full 2×3×12 grid wrote under `outputs/experiments/prompt_sensitivity/` (12/12 cells × 2 conds × maps per arm; scores CSVs present). Concurrent pipeline held (~3–4× cell-sum/wall). Scientific arm comparison not yet summarized — fill after score/intermediate analysis. A few gen cells hit `finish_reason=length` empties (re-force with max_tokens=8192 if needed).
+**Result.** Keep confirmatory `social_scientist`. At `k_spec=model`, kimi `helpful` lifts mean PI/VoR vs scientist, but deepseek_v4 `helpful` loses PI (−0.045) — not consistent across selectors. `none` does not win both endpoints. Digests: `scripts/analyze_stack_experiments.py` → `outputs/experiments/_analysis/` (incl. `registry_contrast_blocks.md`).
+
+**Contrast detail** (vs `social_scientist`; `k_spec=model`).
+
+`kimi` / `none` (n=20): PI mean −0.059 | med +0.008 | >0 55%; VoR mean −0.003 | med −0.000 | >0 50%; both+/both−/conflict = 8/7/5. By condition: `country_provided` PI −0.166 (40%>0), `unprompted` PI +0.047 (70%>0). Surveys mean PI>0: 1/5 (WVS alone strongly positive).
+
+| Survey | n | PI mean | VoR mean |
+|--------|---|---------|----------|
+| afrobarometer | 4 | −0.021 | −0.017 |
+| arabbarometer | 4 | −0.076 | +0.025 |
+| asianbarometer | 4 | −0.226 | −0.021 |
+| ess_wave_11 | 4 | −0.107 | −0.012 |
+| wvs | 4 | +0.134 | +0.011 |
+
+`kimi` / `helpful` (n=20): PI mean +0.055 | med +0.039 | >0 80%; VoR mean +0.014 | med +0.011 | >0 65%; both+/both−/conflict = 10/1/9 (many PI↑ with VoR conflict). Surveys mean PI>0: 4/6.
+
+| Survey | n | PI mean | VoR mean |
+|--------|---|---------|----------|
+| afrobarometer | 4 | +0.087 | −0.018 |
+| arabbarometer | 4 | −0.057 | +0.047 |
+| asianbarometer | 4 | +0.097 | +0.017 |
+| ess_wave_11 | 4 | −0.045 | +0.004 |
+| latinobarometer | 1 | +0.027 | +0.087 |
+| wvs | 3 | +0.249 | +0.000 |
+
+`deepseek_v4` / `none` (n=23): PI mean −0.010 | med +0.003 | >0 52%; VoR mean +0.011 | med +0.000 | >0 48%; both+/both−/conflict = 8/7/7. By condition: `country_provided` PI +0.055, `unprompted` PI −0.069. ESS alone drives large negative PI (−0.553).
+
+| Survey | n | PI mean | VoR mean |
+|--------|---|---------|----------|
+| afrobarometer | 4 | +0.163 | +0.000 |
+| arabbarometer | 4 | −0.011 | +0.033 |
+| asianbarometer | 4 | +0.160 | +0.019 |
+| ess_wave_11 | 4 | −0.553 | −0.028 |
+| latinobarometer | 3 | −0.006 | +0.044 |
+| wvs | 4 | +0.191 | +0.006 |
+
+`deepseek_v4` / `helpful` (n=23): PI mean −0.045 | med −0.004 | >0 43%; VoR mean +0.004 | med −0.008 | >0 39%; both+/both−/conflict = 5/9/9. By condition: `country_provided` PI +0.015, `unprompted` PI −0.110.
+
+| Survey | n | PI mean | VoR mean |
+|--------|---|---------|----------|
+| afrobarometer | 4 | +0.064 | +0.004 |
+| arabbarometer | 4 | −0.201 | −0.063 |
+| asianbarometer | 4 | +0.113 | +0.005 |
+| ess_wave_11 | 4 | −0.482 | −0.030 |
+| latinobarometer | 3 | +0.044 | +0.102 |
+| wvs | 4 | +0.215 | +0.028 |
 
 ---
 
@@ -110,9 +174,9 @@ Sorted by **Stage**, then status.
 
 | Field | Value |
 |-------|-------|
-| **Status** | complete (artifacts; analysis pending) |
+| **Status** | complete |
 | **Stage** | mapping |
-| **Dates** | designed 2026-08-09; ran 2026-08-09 (v2 after Flash/MiniMax token + reasoning-content fixes) |
+| **Dates** | designed 2026-08-09; ran 2026-08-09; analyzed 2026-08-11 |
 | **Code** | [`scripts/run_pipeline_role_swap.py`](../scripts/run_pipeline_role_swap.py); models `ROLE_SWAP_EXTRACTOR` / `DISAMBIGUATORS["flash"]` in [`config.py`](../src/survey_features/config.py) |
 | **Commit** | record SHA when artifacts land |
 | **Compute** | LLM: Nebius [MiniMax-M3](https://tokenfactory.nebius.com/endpoints?modals=endpoint-details&model-id=MiniMaxAI/MiniMax-M3) extract + [DeepSeek-V4-Flash](https://tokenfactory.nebius.com/endpoints?modals=endpoint-details&model-id=deepseek-ai/DeepSeek-V4-Flash) disambig; concurrent pipeline_workers=4 / map_workers=8; local score. Token/cost via `TokenUsageLog`. |
@@ -121,7 +185,64 @@ Sorted by **Stage**, then status.
 
 **Rationale.** To test whether faster/cheaper extract and disambig models cut wall time without material damage to mapped codes or downstream scores, freeing Qwen-family capacity for selector work.
 
-**Result.** Artifacts for kimi/social_scientist gen → MiniMax extract + Flash disambig on 12 cells under `pipeline_role_swap/minimax_flash/` (66 score rows; 2 empty extract conds from empty upstream gens). Flash needed reasoning-content fallback + 8k token budgets; wall/latency not clearly better than Nemotron on this path (high reasoning completion tokens). Compare scores to `prompt_sensitivity/scores_kimi_social_scientist.csv` before promoting.
+**Result.** Joint MiniMax+Flash rejected: hurts model-k mean PI (−0.096) and VoR (−0.018); Flash disambig is slow/costly via reasoning tokens. **Do not** follow up with Qwen+Flash. Extract-only follow-up: [`extract-swap-minimax`](#extract-swap-minimax--minimax-extract--nemotron-disambig).
+
+**Contrast detail** (`minimax_flash` − Qwen+Nemotron baseline on kimi/`social_scientist` gens; `k_spec=model`; n=21).
+
+| Metric | Mean Δ | Median Δ | Share Δ>0 | Share Δ<0 |
+|--------|--------|----------|-----------|-----------|
+| PI | −0.096 | +0.000 | 52% | 48% |
+| VoR | −0.018 | +0.003 | 52% | 48% |
+| VoT | −0.023 | +0.000 | 48% | 48% |
+
+Sign concordance (PI & VoR): both+=8, both−=7, conflict=6. By condition: `country_provided` PI −0.171 (36%>0); `unprompted` PI −0.015 (70%>0). Surveys mean PI>0: 2/6. Map Jaccard vs baseline Nemotron maps: mean 0.436 (n=24).
+
+| Survey | n | PI mean | VoR mean |
+|--------|---|---------|----------|
+| afrobarometer | 4 | −0.182 | −0.050 |
+| arabbarometer | 4 | −0.221 | −0.053 |
+| asianbarometer | 4 | +0.161 | +0.018 |
+| ess_wave_11 | 4 | −0.279 | −0.006 |
+| latinobarometer | 1 | −0.004 | −0.015 |
+| wvs | 4 | +0.015 | −0.003 |
+
+---
+
+### `extract-swap-minimax` — MiniMax extract + Nemotron disambig
+
+| Field | Value |
+|-------|-------|
+| **Status** | complete |
+| **Stage** | extraction |
+| **Dates** | designed 2026-08-11; ran 2026-08-11 |
+| **Code** | [`scripts/run_pipeline_role_swap.py`](../scripts/run_pipeline_role_swap.py) `--extractor MiniMaxAI/MiniMax-M3 --disambiguator nemotron --run-key minimax_nemotron` |
+| **Commit** | record SHA when artifacts land |
+| **Compute** | LLM: Nebius MiniMax-M3 extract + Nemotron disambig (Qwen replaced only); concurrent pipeline_workers=4 / map_workers=8; local score. |
+| **Inputs** | same gens as joint swap: `outputs/experiments/prompt_sensitivity/kimi/social_scientist/freetext/`; [`data/prompt_sensitivity_cells.yaml`](../data/prompt_sensitivity_cells.yaml) |
+| **Outputs** | `outputs/experiments/pipeline_role_swap/minimax_nemotron/{extracted,maps}/`; `scores_minimax_nemotron.csv` |
+
+**Rationale.** To test whether swapping only the extractor to MiniMax (keeping Nemotron disambig) preserves PI/VoR while freeing Qwen — isolating extract quality from Flash’s disambig cost/latency failure in `pipeline-role-swap`.
+
+**Result.** Keep Qwen as confirmatory default. Mean Δ looks ~tied with Qwen+Nemotron (PI +0.013, VoR ≈0, VoT −0.003), but cell/survey cancelation is large (only 42% of pairs PI>0). Nemotron latency restored (~3.5 s mean). Extract $ still higher (~$0.13 vs ~$0.02 for Qwen on this grid). Viable capacity alternate if Qwen is saturated; not a cost win.
+
+**Contrast detail** (`minimax_nemotron` − Qwen+Nemotron extract-only; `k_spec=model`; n=19).
+
+| Metric | Mean Δ | Median Δ | Share Δ>0 | Share Δ<0 |
+|--------|--------|----------|-----------|-----------|
+| PI | +0.013 | +0.000 | 42% | 47% |
+| VoR | −0.000 | +0.004 | 63% | 32% |
+| VoT | −0.003 | +0.004 | 58% | 37% |
+
+Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `country_provided` PI +0.034 (55%>0); `unprompted` PI −0.017 (25%>0). Surveys mean PI>0: 2/6 (WVS +0.281 pulls the mean). Map Jaccard vs baseline Nemotron maps: mean 0.519 (n=24).
+
+| Survey | n | PI mean | VoR mean |
+|--------|---|---------|----------|
+| afrobarometer | 3 | −0.244 | −0.074 |
+| arabbarometer | 4 | −0.067 | +0.022 |
+| asianbarometer | 4 | +0.100 | +0.008 |
+| ess_wave_11 | 4 | −0.001 | +0.010 |
+| latinobarometer | 1 | +0.000 | +0.000 |
+| wvs | 3 | +0.281 | +0.021 |
 
 ---
 
@@ -218,6 +339,8 @@ Sorted by **Stage**, then status.
 
 **Result.** Maps move more than scores under the embedders tested; MiniLM remains the main default. Not a reason to change the confirmatory stack without a new registered run.
 
+**Contrast detail.** not reconstructed (pre-convention). Re-run analyzer against embedding_sensitivity digests if this claim is reopened for a stack change.
+
 ---
 
 ### `underscore-label-embed` — feature-label tokenization
@@ -256,6 +379,8 @@ Sorted by **Stage**, then status.
 
 **Result.** Jaccard lift and a modest VoR gain at small latency cost; **not** promoted to the confirmatory default (see pipeline audit / ensemble memo verdict).
 
+**Contrast detail.** not reconstructed (pre-convention).
+
 ---
 
 ### `subitem-mapping` — dual-layer pilot
@@ -274,6 +399,8 @@ Sorted by **Stage**, then status.
 **Rationale.** To test whether mapping each bundled `sub_item` as its own retrieve+disambiguate unit (dual-layer) improves captured importance / predictive score versus parent-only mapping.
 
 **Result.** Dual-layer locked for confirmatory main (`expanded_codes` is the headline). Parent-only remains an ablation on the full research branch, not on `rewrite/minimal-core`.
+
+**Contrast detail.** not reconstructed (pre-convention); promotion decision predates this reporting standard.
 
 ---
 
