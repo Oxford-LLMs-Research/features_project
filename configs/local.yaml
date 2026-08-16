@@ -1,4 +1,0 @@
-paths:
-  raw_data: ./data
-  metadata: ./data
-  output: ./outputs

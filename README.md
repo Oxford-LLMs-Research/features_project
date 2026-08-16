@@ -31,7 +31,7 @@ scripts/
   compute_oracle.py      fit one cell's oracle
   rerun_oracles.py       recompute oracles (process pool)
   build_textbook_baseline.py
-data/                    survey metadata JSONs + targets.yaml
+data/                    targets.yaml, pricing, experiment cell lists
 tests/                   pytest (no API / data required for unit tests)
 docs/                    onboarding, pipeline_audit, experiments_registry
 ```
@@ -47,7 +47,7 @@ pip install -e ".[dev]"         # + pytest
 cp .env.example .env            # fill API keys and DATA_CONFIG_PATH
 ```
 
-Python ≥ 3.9. Survey microdata comes via pinned `synthetic_sampling` (see `pyproject.toml`). Prefer the conda interpreter with the scientific stack if `.venv` lacks AutoGluon.
+Python ≥ 3.9. Survey microdata and codebook metadata come via pinned `synthetic_sampling` (see `pyproject.toml` and `DATA_CONFIG_PATH` in `.env.example`). Prefer the conda interpreter with the scientific stack if `.venv` lacks AutoGluon.
 
 ---
 
