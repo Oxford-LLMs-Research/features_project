@@ -18,9 +18,20 @@ ROOT = Path(os.environ.get("SURVEY_FEATURES_ROOT") or Path(__file__).resolve().p
 # .env at the repo root holds LLM endpoints/keys and DATA_CONFIG_PATH (see .env.example).
 load_dotenv(ROOT / ".env")
 
-# Outputs root: overridable so the artifact tree can live outside the checkout.
-# One .env line relocates everything; default is the historical in-repo location.
-OUTPUTS_DIR = Path(os.environ.get("SURVEY_FEATURES_OUTPUTS") or (ROOT / "outputs"))
+# Live artifact root: shared Dropbox folder `features_project/outputs`, set by
+# SURVEY_FEATURES_OUTPUTS in gitignored .env. The <repo>/outputs fallback is only
+# for a checkout that has not been pointed at Dropbox.
+# Fail loud on the .env.example placeholder: a copied-but-unedited .env would
+# otherwise resolve to a garbage drive-relative path and writers would silently
+# mkdir + populate it.
+_outputs_env = os.environ.get("SURVEY_FEATURES_OUTPUTS")
+if _outputs_env and "path/to" in _outputs_env.replace("\\", "/").lower():
+    raise RuntimeError(
+        "SURVEY_FEATURES_OUTPUTS in .env still holds the .env.example placeholder "
+        f"({_outputs_env!r}). Edit .env to point at the shared Dropbox outputs "
+        "folder (README § Outputs), or remove the line to fall back to <repo>/outputs."
+    )
+OUTPUTS_DIR = Path(_outputs_env or (ROOT / "outputs"))
 
 # Paper / writing workspace (gitignored): LaTeX, figures, memos, local builders.
 # Mirrors OUTPUTS_DIR — local-only zone under the project folder by default.
@@ -35,6 +46,10 @@ SELECTORS: dict[str, dict[str, str]] = {
     # IDs must match the configured LLM endpoint catalog (Nebius Studio / Token Factory).
     "deepseek": {"model": "deepseek-ai/DeepSeek-V4-Pro"},
     "kimi":     {"model": "moonshotai/Kimi-K2.6"},
+    # Phase-A pilot onboarding (2026-08): cheap zoo entries exercising the
+    # new-selector path. IDs reused from DISAMBIGUATORS / ROLE_SWAP_EXTRACTOR.
+    "flash":    {"model": "deepseek-ai/DeepSeek-V4-Flash"},
+    "minimax":  {"model": "MiniMaxAI/MiniMax-M3"},
 }
 DEFAULT_SELECTOR = "deepseek"
 
