@@ -97,6 +97,11 @@ def experiments_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
     return outputs_dir / "experiments"
 
 
+def experiments_analysis_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    """outputs/experiments/_analysis/ — digests from registered experiments."""
+    return experiments_dir(outputs_dir) / "_analysis"
+
+
 def analysis_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
     """One-off diagnostic CSVs that are not a registered experiment."""
     return outputs_dir / "analysis"
