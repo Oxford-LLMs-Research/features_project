@@ -1,8 +1,11 @@
 # Experiment registry
 
 One place to find every experiment: **why it was run, which code produced it, where the
-artifacts live, and what the result was**. Add an entry **before** the first write to
-`outputs/`; fill **Result** when the run finishes (or mark `status: abandoned`).
+artifacts live, and what the result was**. Paths below are relative to the Dropbox
+outputs root (`SURVEY_FEATURES_OUTPUTS`). **When** to add an entry is in
+[`CONTRIBUTING.md`](../CONTRIBUTING.md) (named `experiments/` writes, citable
+`--run-tag` sweeps, and anything that can change confirmatory numbers). Fill
+**Result** when the run finishes (or mark `status: abandoned`).
 
 Past runs on other branches / snapshots still belong here — the registry is the map,
 not the code tree.
@@ -11,7 +14,7 @@ not the code tree.
 
 ## How to register
 
-1. Copy the **Entry template** below into a new section (newest experiments at the top of Active / Complete).
+1. Copy the **Entry template** below into a new section (newest experiments at the top of Active / Complete). Folder name and slug follow [`CONTRIBUTING.md`](../CONTRIBUTING.md) (Experiment names and storage).
 2. Set **Stage** to exactly one pipeline tag from the vocabulary below (primary locus of the manipulation).
 3. Fill **Rationale** and **Result** in ≤3 short sentences each (“to test if X improves Y” / “X does not improve Y; caveat …”).
 4. Record the **git commit** (or tag) that *produced* the artifacts — not “whatever HEAD was when you wrote the memo”.
@@ -486,7 +489,9 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 
 ## Rules (short)
 
-1. **No silent experiments.** If it writes under `outputs/experiments/<name>/` or changes confirmatory numbers, it has a registry entry.
+1. **No silent experiments.** Register before the first write when CONTRIBUTING
+   requires it (`experiments/<name>/`, a `--run-tag` you will cite, or a run that
+   can change confirmatory `cache/` / canonical `main/` numbers).
 2. **Commit identity.** The SHA in the entry must match the code that wrote the artifacts.
 3. **Result is mandatory at completion.** Status may not sit at `complete` with Result `—`.
 4. **Supersession is explicit.** Move claims into **Result** / status `superseded`; do not leave stale “current” language in old entries.

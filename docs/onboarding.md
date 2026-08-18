@@ -1,7 +1,8 @@
 # Onboarding — read this first
 
-The short path into this repo. README covers setup; CONTRIBUTING covers conventions;
-this covers **how the system thinks**.
+The short path into this repo. README covers setup and where the Dropbox
+outputs tree lives; CONTRIBUTING covers where a run should write; this covers
+**how the system thinks**.
 
 ---
 
@@ -59,9 +60,10 @@ Constant: `ORACLE_CONTRACT_VERSION` in `src/survey_features/oracle.py`.
 row here. Full audit: `docs/pipeline_audit_2026-08.md`.
 
 **Which numbers are current on this branch:** era-3 oracles under `outputs/cache/cells/`,
-and free-text Arm C artifacts under `outputs/main/`. Experiment-by-experiment claims
-live in [`docs/experiments_registry.md`](experiments_registry.md) — register every run
-there before writing artifacts.
+and free-text Arm C artifacts under `outputs/main/`. Those paths resolve under the
+shared Dropbox root (`SURVEY_FEATURES_OUTPUTS`). Experiment-by-experiment claims
+live in [`docs/experiments_registry.md`](experiments_registry.md) — register before
+writing when CONTRIBUTING says to.
 
 ## 4. Cache identity
 
@@ -84,6 +86,11 @@ If you add a cache, give it an identity field.
 7. Windows: Ray disabled in oracle fit; spawned workers need `_ensure_src_on_pythonpath`.
 8. Prefer conda `miniconda3` if `.venv` lacks AutoGluon.
 9. Baselines are model-independent and cached per (cell, k).
+10. The live `outputs/` tree is the shared Dropbox folder `features_project/outputs`,
+    via `SURVEY_FEATURES_OUTPUTS` in gitignored `.env`. Confirm `OUTPUTS_DIR` before
+    a run. Dropbox may briefly lock files mid-sync; if a heavy run hits a spurious
+    `PermissionError` on write, pause syncing for the run. One writer machine
+    only — collaborators read.
 
 ## 6. Running things
 
@@ -102,7 +109,7 @@ End workdays with `/repo-audit` (see CONTRIBUTING).
 
 ## 7. Suggested first week
 
-1. This file → README → skim `docs/pipeline_audit_2026-08.md` (§A1 + honest split).
+1. This file → README § Outputs → CONTRIBUTING (where to write) → skim `docs/pipeline_audit_2026-08.md` (§A1 + honest split).
 2. Top docstrings of `oracle.py`, `surveys.py`, `mapping.py`, `score_cell.py`, `metrics.py`.
 3. Open one cell under `outputs/cache/cells/` and match files to the diagram in §1.
 4. `pytest tests/` and optionally `--limit 1` on a phase.

@@ -17,7 +17,7 @@ Module map (pipeline order):
     evaluation  matched-k XGBoost CV scoring
     metrics     captured importance, jaccard, bootstrap CIs
     score_cell  cell-level scoring + scores schema + baseline caches
-    layout      outputs/ path contracts (cache/ + main/)
+    layout      Dropbox outputs/ path contracts (see README § Outputs)
 
 Entry points: scripts/run_main.py, leakage_audit.py, compute_oracle.py,
 rerun_oracles.py, build_textbook_baseline.py.

@@ -1,22 +1,32 @@
 """
-Path contracts for outputs/ — single source of truth for cache/ and main/.
+Path contracts for the artifact tree.
 
-  outputs/
-    cache/
+Live root is the shared Dropbox folder `features_project/outputs`, via
+SURVEY_FEATURES_OUTPUTS in gitignored .env. Fallback <repo>/outputs is not
+the current setup. Human map: README § Outputs. Where to write / how to
+name experiments: CONTRIBUTING.md.
+
+  outputs/                              # OUTPUTS_DIR (Dropbox)
+    cache/                              # confirmatory prerequisites
       cells/<target>_<country>/oracle.csv (+ oracle_meta.json)
       embeddings/survey_embeddings__<survey>__<model>.npz
-      audits/leakage_audit.csv
+      audits/leakage_audit.csv          # pipeline leakage — not repo-audit
       baselines/textbook__<survey>.json
-    main/
+    main/                               # confirmatory Arm C
       <selector>/{freetext,extracted,maps}/
       scores_<selector>.csv
-      runs/<run_tag>/…             # optional tagged map/score writes
-    logs/
-    .tmp/                          # AutoGluon scratch; safe to delete
+      runs/<run_tag>/…                  # --run-tag: map/score only
+    experiments/<name>/                 # named studies (register first)
+      _analysis/                        # digests from registered experiments
+    analysis/                           # one-off screens, not a named experiment
+    logs/                               # flat token_usage_*.jsonl, timing_*.jsonl
+    audits/                             # housekeeping reports (repo-audit)
+    .tmp/                               # AutoGluon scratch; safe to delete
+    .trash/                             # repo-audit soft-deletes
 
-Writers always use these helpers. Readers resolve the canonical path (and, for a few
-historical filenames, a one-step fallback listed inline). Experiment / grid /
-format_pilot dual-resolve paths are gone on this branch.
+Writers always use these helpers. Readers resolve the canonical path (and, for a
+few historical filenames, a one-step fallback listed inline). Old experiment /
+grid / format_pilot dual-resolve fallbacks are gone; experiments/ itself is live.
 """
 
 from __future__ import annotations
@@ -85,6 +95,21 @@ def main_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
 
 def experiments_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
     return outputs_dir / "experiments"
+
+
+def analysis_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    """One-off diagnostic CSVs that are not a registered experiment."""
+    return outputs_dir / "analysis"
+
+
+def housekeeping_audits_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    """outputs/audits/ — repo-audit reports. Leakage stays in cache/audits/."""
+    return outputs_dir / "audits"
+
+
+def trash_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    """outputs/.trash/ — repo-audit soft-deletes."""
+    return outputs_dir / ".trash"
 
 
 def prompt_sensitivity_root(outputs_dir: Path = OUTPUTS_DIR) -> Path:

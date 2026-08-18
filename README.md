@@ -5,7 +5,8 @@
 The confirmatory pipeline: free-text essay → typed feature list → dual-layer map to survey codes → score against an AutoGluon permutation-importance oracle.
 
 > **New here?** Start with [`docs/onboarding.md`](docs/onboarding.md).
-> **Running or citing an experiment?** Register it in [`docs/experiments_registry.md`](docs/experiments_registry.md).
+> **Where should a run write?** [`CONTRIBUTING.md`](CONTRIBUTING.md).
+> **Citing an experiment?** [`docs/experiments_registry.md`](docs/experiments_registry.md).
 
 ---
 
@@ -14,8 +15,13 @@ The confirmatory pipeline: free-text essay → typed feature list → dual-layer
 | Zone | Role | In git? |
 |------|------|---------|
 | **Pipeline** | `src/`, `scripts/`, `tests/`, slim `docs/`, `data/` | Yes |
-| **`outputs/`** | Run artifacts and caches (`SURVEY_FEATURES_OUTPUTS`) | No |
+| **`outputs/`** | Run artifacts and caches — **shared Dropbox folder**, not the checkout | No |
 | **`paper/`** | Writing workspace (`SURVEY_FEATURES_PAPER`) | No |
+
+The live outputs root is the shared Dropbox folder set by `SURVEY_FEATURES_OUTPUTS`
+in `.env` — see [Outputs](#outputs-dropbox-not-git). Path helpers:
+[`src/survey_features/layout.py`](src/survey_features/layout.py). Where to write:
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 This branch is the **minimal core** (Arm C free-text loop + oracle/leakage/textbook prereqs). Legacy JSON arms, side experiments, and archive live on other branches / snapshots.
 
@@ -44,7 +50,7 @@ docs/                    onboarding, pipeline_audit, experiments_registry
 pip install -e .                # core library
 pip install -e ".[oracle]"      # + autogluon (recompute oracles)
 pip install -e ".[dev]"         # + pytest
-cp .env.example .env            # fill API keys and DATA_CONFIG_PATH
+cp .env.example .env            # API keys, DATA_CONFIG_PATH, SURVEY_FEATURES_OUTPUTS
 ```
 
 Python ≥ 3.9. Survey microdata and codebook metadata come via pinned `synthetic_sampling` (see `pyproject.toml` and `DATA_CONFIG_PATH` in `.env.example`). Prefer the conda interpreter with the scientific stack if `.venv` lacks AutoGluon.
@@ -74,27 +80,54 @@ python scripts/run_main.py --phase pipeline --selector deepseek --disambiguator 
     --pipeline-workers 4 --map-workers 8 --with-score
 ```
 
-Use `--run-tag <name>` on map/score/pipeline to write under `main/runs/<name>/` without clobbering the canonical baseline. Gen/extract always stay under `main/<selector>/`.
+Use `--run-tag <name>` on map/score/pipeline to write under `main/runs/<name>/`
+without clobbering the canonical baseline. Gen/extract always stay under
+`main/<selector>/`. Named studies (different prompt, models, or script) go under
+`outputs/experiments/<name>/` — see CONTRIBUTING for which bucket to use.
 
 ---
 
-## Outputs (canonical)
+## Outputs (Dropbox, not git)
+
+The live artifact root is a **shared Dropbox folder** (`features_project/outputs`
+after Dropbox syncs). The local path goes in `.env` as `SURVEY_FEATURES_OUTPUTS`
+(gitignored — do not commit a machine path). Confirm:
+
+```bash
+python -c "from survey_features.config import OUTPUTS_DIR; print(OUTPUTS_DIR)"
+```
+
+Without the env var, code falls back to `<repo>/outputs` — that is **not** the
+current setup. Path helpers live in `survey_features.layout`; never hard-code
+`ROOT / "outputs"`. One writer machine; collaborators read via Dropbox. If a
+heavy run hits a spurious `PermissionError`, pause Dropbox sync for the run.
+
+The Dropbox folder may also hold a frozen July-2026 pre-rewrite snapshot at the
+root (flat files, `format_pilot/`). Do not treat that as live cache.
 
 ```
-outputs/
-  cache/
+outputs/                              # OUTPUTS_DIR — Dropbox share
+  cache/                              # confirmatory prerequisites
     cells/<target>_<country>/oracle.csv
     embeddings/
-    audits/leakage_audit.csv
+    audits/leakage_audit.csv          # pipeline leakage (not repo-audit)
     baselines/textbook__<survey>.json
-  main/
+  main/                               # confirmatory Arm C
     <selector>/{freetext,extracted,maps}/
     scores_<selector>.csv
-  logs/
-  .tmp/                  # AutoGluon scratch; safe to delete
+    runs/<run_tag>/                   # --run-tag map/score only
+  experiments/<name>/                 # named studies (register first)
+    _analysis/                        # digests from registered experiments
+  analysis/                           # one-off screens, not a named experiment
+  logs/                               # flat token_usage_*.jsonl, timing_*.jsonl
+  audits/                             # housekeeping reports (repo-audit)
+  .tmp/                               # AutoGluon scratch; safe to delete
+  .trash/                             # repo-audit soft-deletes
 ```
 
-Path helpers live in `survey_features.layout` — never hard-code `ROOT / "outputs"` in scripts.
+**Where to write** ( `--run-tag` vs `experiments/`, when to register):
+[`CONTRIBUTING.md`](CONTRIBUTING.md). **What caches mean:**
+[`docs/onboarding.md`](docs/onboarding.md) §3–4.
 
 ---
 

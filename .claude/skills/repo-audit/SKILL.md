@@ -16,8 +16,10 @@ The failure mode you exist to prevent: layered edits, new files, logs and caches
 faster than a human can track, and the sediment then distorts what both the user and
 future agents attend to.
 
-**Division of labour:** you enforce the repo's *written* policy — `CONTRIBUTING.md`
-and `docs/onboarding.md` §3–4 (contracts, cache identity) — you do not invent taste.
+**Division of labour:** you enforce the repo's *written* policy —
+`CONTRIBUTING.md` (where to write, when to register), `docs/onboarding.md` §3–4
+(oracle era, cache identity), and the Dropbox tree in `README.md` § Outputs /
+`src/survey_features/layout.py`. Do not invent folders or taste.
 Default is **propose**; irreversible actions need an explicit apply mode (below).
 The user reviews the report before any commits.
 
@@ -35,6 +37,18 @@ Never upgrade the mode yourself. If the user says only `/repo-audit`, stay on `a
 `/c/Users/murrn/miniconda3/python` (Git Bash). Do not use `.venv` — it lacks the
 scientific stack. Verify with `python -c "import autogluon"` / the conda path before
 pytest if unsure.
+
+**Outputs location:** the live tree is the shared Dropbox folder
+`features_project/outputs`, not the checkout. Every `outputs/…` path below
+resolves under `SURVEY_FEATURES_OUTPUTS` in gitignored `.env`. Confirm with
+`python -c "from survey_features.config import OUTPUTS_DIR; print(OUTPUTS_DIR)"`.
+If that print is `<repo>/outputs`, STOP — the session is not pointed at Dropbox.
+Do not write machine-local paths into tracked docs.
+The Dropbox root also holds a stale July-2026 pre-rewrite snapshot (flat root files,
+`format_pilot/`, root-level cell dirs) — treat as frozen history, not audit-cleanable
+clutter, until the user disposes of it. An in-repo `outputs_pre_dropbox/` quarantine
+copy may exist temporarily; ignore it. Folder meanings: README § Outputs / CONTRIBUTING
+(do not invent new top-level buckets).
 
 ## Phase 0 — Preconditions (fail closed)
 
@@ -72,8 +86,10 @@ Targets (same set in every mode):
   **Never hard-delete.** Soft-delete only if the basename is **not** mentioned in any
   `docs/**/*.md` or root `*.md`. If ambiguous → propose.
 - Logs sitting outside `outputs/logs/` (e.g. next to `main/` data): propose
-  relocation to `outputs/logs/<context>/`.
-- `outputs/audits/`: reports beyond the newest 14 → soft-delete (keep today's draft).
+  relocation to `outputs/logs/` (flat `token_usage_*.jsonl` / `timing_*.jsonl`,
+  context in the filename — not a per-context subfolder).
+- `outputs/audits/`: housekeeping reports beyond the newest 14 → soft-delete
+  (keep today's draft). This is **not** `outputs/cache/audits/` (leakage).
 
 **Soft-delete procedure** (`apply-clean` / `apply-all`):
 
@@ -87,20 +103,21 @@ In `audit` mode: write the exact move commands into Actions PROPOSED; take no de
 
 Run on the **WIP under review** (`git diff` + untracked files in scope):
 
-1. **Experiment registry:** new or changed writes under `outputs/experiments/` or
-   confirmatory number-changing runs without a matching entry / Result update in
-   `docs/experiments_registry.md` → violation.
+1. **Experiment registry:** missing entry when CONTRIBUTING requires one —
+   writes under `outputs/experiments/`, a citable `--run-tag` under
+   `outputs/main/runs/`, or a run that can change confirmatory `cache/` /
+   canonical `main/` numbers — → violation.
 2. **Cache identity (onboarding §4):** new caches without an identity field.
-2. **Fail-loud:** new `try/except` in `src/` that swallows errors around our own
+3. **Fail-loud:** new `try/except` in `src/` that swallows errors around our own
    files/formats. Boundary guards (network, process pools, per-cell isolation) are allowed.
-3. **Comment discipline:** new comment blocks >3 lines without a `docs/` pointer
+4. **Comment discipline:** new comment blocks >3 lines without a `docs/` pointer
    (skip module/file top docstrings).
-4. **Reuse & duplication:** for new/changed `def` names in `src/` and `scripts/`,
+5. **Reuse & duplication:** for new/changed `def` names in `src/` and `scripts/`,
    grep for duplicates; semantic review by primitives. Housing rule: every non-orchestration
    behaviour has ONE owning module (CONTRIBUTING → Where code goes).
-5. **Oracle contract:** if `oracle.py` changed meaning, verify `ORACLE_CONTRACT_VERSION`
+6. **Oracle contract:** if `oracle.py` changed meaning, verify `ORACLE_CONTRACT_VERSION`
    was bumped and `docs/onboarding.md` §3 matches.
-6. **Health gates:**
+7. **Health gates:**
    - `py_compile` every touched `.py`
    - conda python: `pytest tests/ -q`
    - `PYTHONPATH=src` + conda: `scripts/rerun_oracles.py --dry-run` → expect 0 cells
