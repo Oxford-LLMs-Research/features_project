@@ -7,7 +7,8 @@ Main free-text pipeline — confirmatory Arm C loop.
   --phase score     XGB vs oracle / random / textbook -> scores_<selector>.csv
   --phase pipeline  gen -> extract -> map per cell (optional --with-score)
 
-Grid = genuine cells from scripts/leakage_audit.py.
+Grid = genuine cells from scripts/leakage_audit.py, unless --cells CSV
+(survey,target,country) supplies an explicit grid (pilot / frame-sampled runs).
 Use --run-tag to write map/score under main/runs/<tag>/ without clobbering baseline.
 Gen/extract always stay under main/<selector>/.
 
@@ -54,6 +55,29 @@ from survey_features.layout import (  # noqa: E402
 
 OUT = OUTPUTS_DIR
 FIXED_KS = [5, 10]
+
+# --cells override: module-level so every phase resolves the same grid without
+# threading one more parameter through five signatures.
+_CELLS_CSV: Path | None = None
+
+
+def grid_cells(outputs_dir: Path = OUT) -> list[tuple[str, str, str]]:
+    """The run's (survey, target, country) grid.
+
+    Default = genuine cells from the leakage audit (the legacy era-3 grid).
+    --cells CSV (columns survey,target,country) overrides it — pilot and
+    frame-sampled grids are defined by an explicit cell list, not by the audit.
+    """
+    if _CELLS_CSV is None:
+        return genuine_cells(outputs_dir)
+    import csv as _csv
+
+    with open(_CELLS_CSV, newline="", encoding="utf-8") as f:
+        rows = list(_csv.DictReader(f))
+    required = {"survey", "target", "country"}
+    if rows and not required.issubset(rows[0]):
+        raise SystemExit(f"--cells CSV needs columns {sorted(required)}")
+    return [(r["survey"], r["target"], r["country"]) for r in rows]
 
 
 def selector_generate_fn(selector_model: str, usage_log=None):
@@ -104,7 +128,7 @@ def phase_gen(selector_key, force=False, limit=None, api_workers: int = 1):
     gen_dir.mkdir(parents=True, exist_ok=True)
     usage = TokenUsageLog(default_usage_path("gen", selector_key))
     gen = selector_generate_fn(sel_model, usage_log=usage)
-    cells = genuine_cells(OUT)
+    cells = grid_cells(OUT)
     if limit:
         cells = cells[:limit]
     n_workers = max(1, int(api_workers))
@@ -181,7 +205,7 @@ def phase_extract(selector_key, force=False, limit=None, api_workers: int = 1):
     usage = TokenUsageLog(default_usage_path("extract", selector_key))
     egen = mapper_generate_fn(EXTRACTOR_MODEL, usage_log=usage)
     gen_dir, extract_dir, _ = selector_dirs(selector_key)
-    cells = genuine_cells(OUT)
+    cells = grid_cells(OUT)
     if limit:
         cells = cells[:limit]
     extract_dir.mkdir(parents=True, exist_ok=True)
@@ -276,7 +300,7 @@ def phase_map(
     dgen = mapper_generate_fn(dmodel, usage_log=usage)
     embed = make_embed_fn(emb_model)
     _, extract_dir, map_dir = selector_dirs(selector_key, run_tag=run_tag)
-    cells = genuine_cells(OUT)
+    cells = grid_cells(OUT)
     if limit:
         cells = cells[:limit]
     map_dir.mkdir(parents=True, exist_ok=True)
@@ -359,7 +383,7 @@ def phase_pipeline(
     extract_dir.mkdir(parents=True, exist_ok=True)
     map_dir.mkdir(parents=True, exist_ok=True)
 
-    cells = genuine_cells(OUT)
+    cells = grid_cells(OUT)
     if limit:
         cells = cells[:limit]
     n_pipe = max(1, int(pipeline_workers))
@@ -586,7 +610,7 @@ def phase_score(
     out_csv.parent.mkdir(parents=True, exist_ok=True)
     emb_label = DEFAULT_EMBEDDING_MODEL
 
-    cells = genuine_cells(OUT)
+    cells = grid_cells(OUT)
     if limit:
         cells = cells[:limit]
     cols = score_cols()
@@ -608,6 +632,8 @@ def phase_score(
             "evals": evals,
             "n_draws": n_draws, "nthread": nthread, "fixed_ks": list(FIXED_KS),
             "outputs_dir": str(OUT),
+            # Explicit grid so scoring works for cells outside the leakage audit.
+            "grid_cells": [list(c) for c in cells],
         })
 
     print(
@@ -647,6 +673,13 @@ def main():
         metavar="TAG",
         help="Write map/score under main/runs/<TAG>/ (gen/extract stay shared)",
     )
+    ap.add_argument(
+        "--cells",
+        type=Path,
+        default=None,
+        metavar="CSV",
+        help="explicit grid CSV (survey,target,country); default = leakage-audit genuine cells",
+    )
     ap.add_argument("--force", action="store_true", help="recompute cells already on disk")
     ap.add_argument("--limit", type=int, default=None, help="only the first N cells (smoke test)")
     ap.add_argument(
@@ -671,6 +704,12 @@ def main():
         help="XGBoost nthread per fit (default: SCORE_XGB_NTHREAD or cpus // workers)",
     )
     args = ap.parse_args()
+
+    if args.cells is not None:
+        if not args.cells.is_file():
+            ap.error(f"--cells file not found: {args.cells}")
+        global _CELLS_CSV
+        _CELLS_CSV = args.cells
 
     from survey_features.timing import resolve_workers
 

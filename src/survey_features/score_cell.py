@@ -26,7 +26,11 @@ import numpy as np
 import pandas as pd
 
 from survey_features.config import OUTPUTS_DIR, ROOT
-from survey_features.evaluation import evaluate_feature_set, single_random_draw_result
+from survey_features.evaluation import (
+    REGRESSION_TYPES,
+    evaluate_feature_set,
+    single_random_draw_result,
+)
 from survey_features.layout import cell_dir, genuine_cells, oracle_csv_path
 from survey_features.metrics import (
     captured_importance_df,
@@ -47,7 +51,7 @@ FIXED_KS_DEFAULT = (5, 10)
 # via score_cols(); keeping one definition stops the three runners drifting apart.
 SCORE_COLS: list[str] = [
     "survey", "target", "country", "condition", "arm", "disambiguator",
-    "embedding_model", "k_spec", "k",
+    "embedding_model", "k_spec", "k", "target_type",
     # selection-alignment metrics (pure arithmetic on the cached oracle)
     "captured_importance", "textbook_captured", "textbook_k",
     # accuracy layer
@@ -56,6 +60,14 @@ SCORE_COLS: list[str] = [
     # log-loss layer (lower is better; the *_ll deltas are signed so + = model better)
     "oracle_ll", "model_ll", "random_ll", "textbook_ll",
     "value_over_random_ll", "value_over_textbook_ll", "cost_of_imperfect_ll",
+    # rank layer (Spearman rho of an XGB regressor; higher is better).
+    # VALUATION IS TYPE-MATCHED (user decision 2026-08-18): binary/nominal cells
+    # fill the accuracy + log-loss columns, ordinal/continuous cells fill ONLY the
+    # rho columns — one fit family per cell, two reporting families across a grid,
+    # never pooled into a single mean. (Before this, ordinal cells were silently
+    # valued as unordered classification — pilot report 2026-08.)
+    "oracle_rho", "model_rho", "random_rho", "textbook_rho",
+    "value_over_random_rho", "value_over_textbook_rho", "cost_of_imperfect_rho",
     "error",
 ]
 
@@ -105,6 +117,21 @@ def cell_feature_pool(
     )
 
 
+def cell_target_type(target: str, country: str,
+                     outputs_dir: Path = OUTPUTS_DIR) -> str | None:
+    """The cell's measurement level from oracle_meta.json (None if absent).
+
+    This is what routes ordinal/continuous cells into the type-matched (Spearman)
+    valuation alongside the common-currency classification metrics. It comes from
+    the oracle meta rather than re-detection so scoring and ranking always agree
+    on what the target IS.
+    """
+    p = cell_dir(target, country, outputs_dir) / "oracle_meta.json"
+    if not p.is_file():
+        return None
+    return json.loads(p.read_text(encoding="utf-8")).get("target_type")
+
+
 def _baselines_path(target: str, country: str, outputs_dir: Path = OUTPUTS_DIR) -> Path:
     return cell_dir(target, country, outputs_dir) / "baselines.json"
 
@@ -114,10 +141,14 @@ def baseline_fingerprint(
     textbook: list[str],
     n_draws: int,
     train_index: list | None = None,
+    target_type: str | None = None,
 ) -> str:
     """Identity of the inputs a cached baseline depends on.
 
     Anything that changes what a baseline MEANS belongs in here (onboarding.md #4).
+    target_type enters the key only for ordinal/continuous cells: their baselines
+    gained the rho fields, so pre-existing caches must invalidate; classification
+    cells' cached baselines are unchanged and stay valid.
     """
     if train_index:
         train_fp = hashlib.blake2b(
@@ -126,13 +157,16 @@ def baseline_fingerprint(
         train_key = f"train={len(train_index)}:{train_fp}"
     else:
         train_key = "train=none"
-    key = "|".join([
+    parts = [
         str(len(pool)),
         ",".join(sorted(pool)[:64]),   # pool identity; prefix is enough with the length
         ",".join(textbook),            # order matters: fixed-k takes a prefix
         f"draws={n_draws}",
         train_key,
-    ])
+    ]
+    if target_type in REGRESSION_TYPES:
+        parts.append(f"ttype={target_type}")
+    key = "|".join(parts)
     return hashlib.blake2b(key.encode("utf-8"), digest_size=8).hexdigest()
 
 
@@ -232,16 +266,21 @@ def _survey_data(survey: str):
     return _data_cache[survey]
 
 
-def _oracle_table(survey: str, outputs_dir: Path):
-    """Oracle importances for one survey: (df, country_col, name->code map)."""
-    if survey in _oracle_cache:
-        return _oracle_cache[survey]
+def _oracle_table(survey: str, outputs_dir: Path, cells=None):
+    """Oracle importances for one survey: (df, country_col, name->code map).
+
+    ``cells`` (list of (survey, target, country)) overrides the leakage-audit
+    grid — required for pilot / frame-sampled runs whose cells the audit never saw.
+    """
+    cache_key = (survey, tuple(map(tuple, cells)) if cells else "audit")
+    if cache_key in _oracle_cache:
+        return _oracle_cache[cache_key]
     _, meta = _survey_data(survey)
     ccol = SURVEY_COUNTRY_COL.get(survey)
     data, _ = _survey_data(survey)
     cmap = build_country_code_map(meta, ccol, data) if ccol else {}
     rows = []
-    for s, t, c in genuine_cells(outputs_dir):
+    for s, t, c in (cells if cells is not None else genuine_cells(outputs_dir)):
         if s != survey:
             continue
         p = oracle_csv_path(t, c, outputs_dir)
@@ -262,7 +301,7 @@ def _oracle_table(survey: str, outputs_dir: Path):
                 "importance_score": r["importance_score"] if has_score else mean_v,
             })
     result = (pd.DataFrame(rows), ccol, cmap)
-    _oracle_cache[survey] = result
+    _oracle_cache[cache_key] = result
     return result
 
 
@@ -287,7 +326,9 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
     if not evals:
         return []
 
-    oracle_df, ccol, cmap = _oracle_table(survey, outputs_dir)
+    oracle_df, ccol, cmap = _oracle_table(
+        survey, outputs_dir, cells=spec.get("grid_cells")
+    )
     data, _ = _survey_data(survey)
     code = cmap.get(country, country)
     country_data = data[data[ccol] == code].copy()
@@ -301,6 +342,12 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
 
     # Fit-split labels: confine every arm's CV to rows the oracle ranking never saw.
     train_index = load_oracle_train_index(target, country, outputs_dir)
+
+    # Measurement level, from the oracle meta. Ordinal/continuous cells get the
+    # type-matched (Spearman) valuation IN ADDITION to the common-currency
+    # classification metrics — both always computed, never a silent default.
+    ttype = cell_target_type(target, country, outputs_dir)
+    typed = ttype in REGRESSION_TYPES
 
     def oracle_topk(t, country_code, k):
         sub = oracle_df[
@@ -319,7 +366,9 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
     # they are cached on disk and shared across every selector in the zoo. They DO
     # depend on the oracle ranking, the random pool, the textbook set, and the eval
     # row regime (train_index), so the cache carries a fingerprint of those.
-    fingerprint = baseline_fingerprint(pool, textbook, n_draws, train_index=train_index)
+    fingerprint = baseline_fingerprint(
+        pool, textbook, n_draws, train_index=train_index, target_type=ttype
+    )
     baselines = load_cell_baselines(target, country, outputs_dir)
     if baselines.get("_fingerprint") != fingerprint:
         baselines = {"_fingerprint": fingerprint}
@@ -330,12 +379,18 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
     rows: list[dict] = []
 
     def cached_eval(feature_codes: list[str]) -> dict:
+        """Type-matched valuation of one feature set — ONE fit family per cell.
+
+        binary/nominal -> classifier (accuracy + log loss); ordinal/continuous ->
+        Spearman regressor only. The two families are reported side by side across
+        a grid and never pooled into one mean.
+        """
         key = tuple(feature_codes)
         hit = eval_cache.get(key)
         if hit is None:
             hit = evaluate_feature_set(
                 country_data, target, feature_codes, nthread=nthread,
-                row_index=train_index,
+                row_index=train_index, target_type=ttype if typed else None,
             )
             eval_cache[key] = hit
         return hit
@@ -351,15 +406,18 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
 
         # One fixed draw set per (cell, k), shared across models: cheaper, and it takes
         # the baseline's own Monte-Carlo noise out of every model-vs-model comparison.
+        # Draws use the cell's own fit family (same seeds either way).
         draws = [
             single_random_draw_result(
                 country_data, target, pool, k, stable_seed(target, country, k, i),
                 nthread=nthread, row_index=train_index,
+                target_type=ttype if typed else None,
             )
             for i in range(n_draws)
         ]
         r_acc = [d["accuracy_mean"] for d in draws if d.get("accuracy_mean") is not None]
         r_ll = [d["logloss_mean"] for d in draws if d.get("logloss_mean") is not None]
+        r_rho = [d["spearman_mean"] for d in draws if d.get("spearman_mean") is not None]
 
         tb_codes = [c for c in textbook if c in country_data.columns][:k]
         tres = cached_eval(tb_codes) if tb_codes else {}
@@ -371,6 +429,9 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
             "random_ll": round(float(np.mean(r_ll)), 4) if r_ll else None,
             "textbook_acc": tres.get("accuracy_mean"),
             "textbook_ll": tres.get("logloss_mean"),
+            "oracle_rho": ores.get("spearman_mean"),
+            "random_rho": round(float(np.mean(r_rho)), 4) if r_rho else None,
+            "textbook_rho": tres.get("spearman_mean"),
             "textbook_k": len(tb_codes),
             "textbook_captured": captured_importance_df(
                 tb_codes, target, code, oracle_df, k=None
@@ -427,9 +488,13 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
                 continue
             o, r, tb = bl["oracle_acc"], bl["random_acc"], bl["textbook_acc"]
             o_ll, r_ll, tb_ll = bl["oracle_ll"], bl["random_ll"], bl["textbook_ll"]
+            m_rho = mres.get("spearman_mean")
+            o_rho, r_rho = bl.get("oracle_rho"), bl.get("random_rho")
+            tb_rho = bl.get("textbook_rho")
             rows.append({
                 **base,
                 "k": k,
+                "target_type": ttype or "",
                 "captured_importance": round(ci, 4) if ci is not None else "",
                 "oracle_acc": o,
                 "model_acc": m,
@@ -448,6 +513,15 @@ def score_one_cell(spec: dict[str, Any]) -> list[dict]:
                 "value_over_random_ll": diff(r_ll, m_ll),
                 "value_over_textbook_ll": diff(tb_ll, m_ll),
                 "cost_of_imperfect_ll": diff(m_ll, o_ll),
+                # rho is higher-is-better, so these are model-minus-baseline
+                # (positive = model better), matching the sign convention above.
+                "model_rho": m_rho if m_rho is not None else "",
+                "oracle_rho": o_rho if o_rho is not None else "",
+                "random_rho": r_rho if r_rho is not None else "",
+                "textbook_rho": tb_rho if tb_rho is not None else "",
+                "value_over_random_rho": diff(m_rho, r_rho),
+                "value_over_textbook_rho": diff(m_rho, tb_rho),
+                "cost_of_imperfect_rho": diff(o_rho, m_rho),
                 "textbook_captured": (
                     round(bl["textbook_captured"], 4)
                     if bl["textbook_captured"] is not None else ""
