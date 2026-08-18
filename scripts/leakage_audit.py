@@ -36,6 +36,12 @@ Each cell is classified:
                        data-backed single-feature test was not run
   - genuine          : real, distributed predictive structure
 
+Confirmatory grid (2026-08-16): do **not** use this accuracy-vs-majority degenerate
+rule (tiny positive lift, or oracle acc below the mode) to drop target×country cells.
+Keep dropping unestimable-PI cells (minority too thin on the honest V1/V2 split) and
+leakage. See docs/pre_paper_run_decisions.md “Grid screen”. This script still emits
+the old labels until the screen is re-implemented.
+
 Outputs:
   outputs/cache/audits/leakage_audit.csv         one row per unique (survey, target, country)
   outputs/cache/audits/leakage_audit_summary.json rollups by survey / bucket / class
@@ -196,6 +202,8 @@ def single_feature_test(
 
 def classify(row: dict, args) -> str:
     lift = (row.get("oracle_acc") or 0) - (row.get("majority_baseline") or 0)
+    # Accuracy-vs-majority “degenerate” (min_signal). Confirmatory cell selection
+    # no longer uses this as a drop rule — see docs/pre_paper_run_decisions.md.
     if pd.isna(row.get("oracle_acc")) or lift < args.min_signal:
         return "degenerate"
     conc = row.get("top_importance_share") or 0

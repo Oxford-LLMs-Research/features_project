@@ -45,10 +45,26 @@ Map Jaccard vs scientist maps ≈0.35 (arms rewrite feature sets substantially).
 
 ---
 
+## Grid screen: which (target × country) cells to keep
+
+Decided 2026-08-16. Era-3 oracle ranks on **log-loss** (binary/nominal) or **Spearman** (ordinal). The live leakage audit’s `degenerate` label is **accuracy lift vs majority** (`oracle_acc − majority_baseline < 0.03` in [`scripts/leakage_audit.py`](../scripts/leakage_audit.py)). Those are different claims. For confirmatory cell selection:
+
+| Keep / drop | Name | What it is | Decision |
+|-------------|------|------------|----------|
+| **Keep as a drop rule** | Type 1 — unestimable PI | Minority class too thin for the honest 60/20/20 split (V1 ranks, V2 values). Modal share alone is not the test (`majority ≥ 0.80` was tried and retracted in [`pipeline_audit_2026-08.md`](pipeline_audit_2026-08.md) §A10 — Q43A is 84–91% majority with the largest log-loss signal in the discard pile). | **Drop** the cell. Floor in code today is only `MIN_CLASS_COUNT = 5` on the *full* cell (~1 minority row on V2). Tighten to minority support **on V1 and V2** (rule of thumb: ≥10 on V2 ⇒ ~50 in the cell). After the oracle, `oracle_ceiling@k` is the check that the ranking replicates; low ceiling (Q141 Andorra `ceiling@5 ≈ 0.24`) means compromised PI. |
+| **Do not use** | Type 2 — tiny accuracy lift | Oracle top-k XGB accuracy beats the mode by less than `--min-signal` (0.03), e.g. Q104 Mauritania +0.029, Q43A Angola +0.003. | **Not a reason to drop.** Argmax can sit on the mode while log-loss PI is real (Q43A Angola: 124/206 positive features, `ceiling@10 = 0.69`). |
+| **Do not use** | Type 3 — accuracy below the mode | Downstream XGB accuracy of the oracle top-k *loses* to majority, typical of high-cardinality ordinals (P16ST, P61ST). | **Not a reason to drop.** Spearman PI can still rank (P16ST Colombia: 86 positive features, `ceiling@10 = 0.85`). Accuracy-vs-mode is the wrong metric for an ordinal oracle. |
+
+Still drop **leakage** (concentrated near-duplicate; distributed skip-pattern / `Q67A`). Do not drop on accuracy-vs-majority.
+
+**Consequence.** Live `leakage_audit.csv` genuine=42 is an *accuracy-screen* remainder, not the confirmatory lock. Re-grid before the zoo: keep type-1 + leakage drops; restore type-2/3 cells that pass support / ceiling. Do not mix a new grid with the old 42/47 score files.
+
+---
+
 ## Ranked backlog before the confirmatory paper run
 
-1. **Freeze genuine grid (42 vs ~47)**  
-   Live `outputs/cache/audits/leakage_audit.csv`: genuine=42, degenerate=34, leakage=10, leakage_distributed=3. Older docs cite ~47. Either re-run `scripts/leakage_audit.py` after confirming era-3 oracle coverage, or explicitly accept **42** as the confirmatory grid and update onboarding/audit notes so zoo sweeps do not mix stories.
+1. **Re-grid on type-1 + leakage, not accuracy-vs-majority**  
+   Live audit genuine=42 used type 2/3 as “degenerate.” Implement the screen above (minority support on V1/V2, then leakage, then `oracle_ceiling` as a PI-quality check). Older docs/scores still say 47. Do not freeze 42.
 
 2. **Lock the selector zoo**  
    `config.SELECTORS` today is only `deepseek` (V4-Pro) + `kimi` (K2.6). Registry `confirmatory-zoo` is still design-only. Decide the locked list (IDs on Nebius Studio / Token Factory), register keys in `config.SELECTORS`, then sweep with fixed Qwen+Nemotron + `social_scientist`.

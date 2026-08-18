@@ -30,14 +30,17 @@ for _p in (str(ROOT / "src"), str(ROOT)):
 from survey_features.config import OUTPUTS_DIR  # noqa: E402
 from survey_features.layout import (  # noqa: E402
     cell_tag,
+    experiments_analysis_dir,
     pipeline_role_swap_dirs,
+    pipeline_role_swap_root,
     prompt_sensitivity_dirs,
+    prompt_sensitivity_root,
 )
 
 OUT = OUTPUTS_DIR
-PS_ROOT = OUT / "experiments" / "prompt_sensitivity"
-RS_ROOT = OUT / "experiments" / "pipeline_role_swap"
-ANALYSIS_DIR = OUT / "experiments" / "_analysis"
+PS_ROOT = prompt_sensitivity_root(OUT)
+RS_ROOT = pipeline_role_swap_root(OUT)
+ANALYSIS_DIR = experiments_analysis_dir(OUT)
 
 SELECTORS = ("kimi", "deepseek_v4")
 ARMS = ("social_scientist", "none", "helpful")
