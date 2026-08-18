@@ -150,6 +150,16 @@ ORACLE_EVAL_METRIC = "log_loss"
 # rerun_oracles resumes on it. Version log: docs/onboarding.md #3.
 ORACLE_CONTRACT_VERSION = 3
 
+# Contract 4 = cv_folds >= 2: k-fold CV ranking + disjoint valuation holdout +
+# dedicated downstream-eval reserve (see _cv_split). v3 caches stay valid; the two
+# contracts differ in split geometry and in what train_index MEANS (v3: fit rows;
+# v4: reserve rows no oracle fit or importance pass ever touched).
+ORACLE_CONTRACT_VERSION_CV = 4
+
+# v4 default share of rows reserved for the downstream evaluator (train_index).
+# The remaining 1 - test_size - EVAL_RESERVE is the CV ranking region.
+EVAL_RESERVE = 0.3
+
 # Measurement level -> (problem_type, importance metric). Ordinal = regression +
 # Spearman (rank-based, no spacing assumption, one fit). Units differ per cell by
 # design: captured importance is a within-cell ratio. Why: pipeline_audit #A11.
@@ -559,6 +569,198 @@ def _assemble_outputs(fi_select, fi_score, *, target_var, country_code,
     return oracle_df, feature_pool, meta_out
 
 
+# == contract v4: CV ranking =================================================
+# The v3 honest split answers "is the denominator unbiased?" but measures ranking
+# on ONE fit and ONE thin 20% holdout: two honest reads of a cell agree on only
+# ~1/3 of their top ten, and that noise floor caps every rank-based comparison.
+# v4 keeps the valuation holdout untouched and spends the saved rows on ranking:
+#
+#     one country-cell
+#     +-- 50%  R   cv       k-fold CV: each fold fits on R\fold, ranks on fold
+#     +-- 30%  D   eval     downstream evaluator reserve -> train_index
+#     +-- 20%  V2  score    values the picks; sees no fit and no ranking pass
+#
+# importance_select = mean over folds of fold-holdout importance (refit noise AND
+# eval-row noise both average out); importance_score = mean over the fold models'
+# importance on V2 (row-disjoint from every ranking pass, so the winner's-curse
+# argument of the v3 docstring still holds exactly). Per-fold vectors are kept in
+# oracle.csv and the between-fold agreement lands in meta["reliability"] — the
+# per-cell noise floor comes free instead of needing replicate oracle runs.
+#
+# train_index changes meaning: v3 hands the evaluator the FIT rows; v4 hands it D,
+# which no fit and no importance pass ever touched. The evaluator's CV shrinks from
+# 60% to 30% of rows; paired arm contrasts (VoR/VoT) share eval rows, so the extra
+# noise largely cancels. The pilot measures both sides of this trade (plan
+# i-am-having-doubts-clever-spring, Phase A).
+
+
+def _cv_split(y: pd.Series, *, cv_folds: int, score_size: float, eval_reserve: float,
+              random_state: int, stratify: bool):
+    """v4 split: CV region / eval reserve / score holdout (default 50 / 30 / 20).
+
+    Returns (fold_pairs, eval_idx, score_idx); fold_pairs is a list of
+    (fit_idx, holdout_idx) positional-index pairs covering the CV region.
+    """
+    idx = np.arange(len(y))
+    strat = y if stratify else None
+    rest_idx, score_idx = train_test_split(
+        idx, test_size=score_size, random_state=random_state, stratify=strat,
+    )
+    y_rest = y.iloc[rest_idx]
+    try:
+        cv_idx, eval_idx = train_test_split(
+            rest_idx, test_size=eval_reserve / (1.0 - score_size),
+            random_state=random_state, stratify=y_rest if stratify else None,
+        )
+    except ValueError:
+        # Thin classes: an unstratified carve still gives a clean reserve.
+        cv_idx, eval_idx = train_test_split(
+            rest_idx, test_size=eval_reserve / (1.0 - score_size),
+            random_state=random_state,
+        )
+
+    from sklearn.model_selection import KFold, StratifiedKFold
+
+    y_cv = y.iloc[cv_idx]
+    fold_pairs = []
+    try:
+        if not stratify:
+            raise ValueError("regression target: plain KFold")
+        splitter = StratifiedKFold(n_splits=cv_folds, shuffle=True,
+                                   random_state=random_state)
+        for fit_pos, hold_pos in splitter.split(np.zeros(len(y_cv)), y_cv):
+            fold_pairs.append((cv_idx[fit_pos], cv_idx[hold_pos]))
+    except ValueError:
+        splitter = KFold(n_splits=cv_folds, shuffle=True, random_state=random_state)
+        fold_pairs = [(cv_idx[f], cv_idx[h])
+                      for f, h in splitter.split(np.zeros(len(y_cv)))]
+    return fold_pairs, eval_idx, score_idx
+
+
+def _merge_fold_importances(frames: list[pd.DataFrame], suffix: str) -> pd.DataFrame:
+    """Outer-merge per-fold importance frames into fold columns + mean + between-fold std.
+
+    Columns out: feature_variable, importance_<suffix>, importance_<suffix>_std,
+    importance_<suffix>_fold<i>. The _std is the BETWEEN-FOLD std (refit + eval-row
+    noise), not v3's within-pass shuffle std — meta records which contract wrote it.
+    """
+    merged: pd.DataFrame | None = None
+    fold_cols = []
+    for i, fi in enumerate(frames, start=1):
+        col = f"importance_{suffix}_fold{i}"
+        part = fi[["feature_variable", f"importance_{suffix}"]].rename(
+            columns={f"importance_{suffix}": col}
+        )
+        fold_cols.append(col)
+        merged = part if merged is None else merged.merge(
+            part, on="feature_variable", how="outer"
+        )
+    for col in fold_cols:
+        merged[col] = pd.to_numeric(merged[col], errors="coerce").fillna(0.0)
+    merged[f"importance_{suffix}"] = merged[fold_cols].mean(axis=1)
+    merged[f"importance_{suffix}_std"] = merged[fold_cols].std(axis=1, ddof=1)
+    return merged
+
+
+def _fold_reliability(merged: pd.DataFrame, suffix: str, k: int = 10) -> dict:
+    """Between-fold agreement of one importance side (the per-cell noise floor).
+
+    pairwise_jaccard@k / pairwise_spearman: mean agreement of SINGLE folds — compare
+    against the v3 select-vs-score floor (~0.33 Jaccard@10). spearman_of_mean is the
+    Spearman–Brown projection m*r / (1 + (m-1)*r): the reliability the AVERAGED
+    ranking actually has, which is what v4 ranks on.
+    """
+    from itertools import combinations
+
+    from scipy.stats import spearmanr
+
+    fold_cols = [c for c in merged.columns if c.startswith(f"importance_{suffix}_fold")]
+    m = len(fold_cols)
+    if m < 2:
+        return {}
+    jac, rho = [], []
+    for a, b in combinations(fold_cols, 2):
+        top_a = set(merged.nlargest(k, a)["feature_variable"])
+        top_b = set(merged.nlargest(k, b)["feature_variable"])
+        union = top_a | top_b
+        if union:
+            jac.append(len(top_a & top_b) / len(union))
+        r = spearmanr(merged[a], merged[b]).statistic
+        if not np.isnan(r):
+            rho.append(r)
+    r1 = float(np.mean(rho)) if rho else None
+    return {
+        "n_folds": m,
+        f"pairwise_jaccard{k}": round(float(np.mean(jac)), 4) if jac else None,
+        "pairwise_spearman": round(r1, 4) if r1 is not None else None,
+        "spearman_of_mean": (
+            round(m * r1 / (1.0 + (m - 1) * r1), 4)
+            if r1 is not None and (1.0 + (m - 1) * r1) > 0 else None
+        ),
+    }
+
+
+def _assemble_outputs_cv(select_merged, score_merged, *, target_var, country_code,
+                         majority_baseline, resolved_metric, problem_type, ttype,
+                         cv_folds, fold_sizes, n_eval, n_score, y, eval_idx):
+    """v4 counterpart of _assemble_outputs: fold columns kept, aliases preserved,
+    reliability block added, train_index = the untouched eval reserve D."""
+    oracle_df = select_merged.merge(score_merged, on="feature_variable", how="outer")
+    num_cols = [c for c in oracle_df.columns if c != "feature_variable"]
+    for col in num_cols:
+        oracle_df[col] = pd.to_numeric(oracle_df[col], errors="coerce").fillna(0.0)
+
+    oracle_df["importance_mean"] = oracle_df["importance_score"]
+    oracle_df["importance_std"] = oracle_df["importance_score_std"]
+    oracle_df.insert(0, "country", country_code)
+    oracle_df.insert(0, "target_variable", target_var)
+    oracle_df["majority_baseline"] = round(float(majority_baseline), 4)
+    oracle_df = oracle_df.sort_values(
+        "importance_select", ascending=False
+    ).reset_index(drop=True)
+
+    sel = oracle_df.set_index("feature_variable")["importance_select"]
+    sco = oracle_df.set_index("feature_variable")["importance_score"]
+
+    # v3-comparable honest agreement: averaged ranking vs disjoint valuation.
+    top_sel = set(sel.nlargest(10).index)
+    top_sco = set(sco.nlargest(10).index)
+    select_score_j10 = (
+        round(len(top_sel & top_sco) / len(top_sel | top_sco), 4)
+        if (top_sel | top_sco) else None
+    )
+
+    meta_out = {
+        "target_variable": target_var,
+        "country": country_code,
+        "contract_version": ORACLE_CONTRACT_VERSION_CV,
+        "eval_metric": resolved_metric,
+        "problem_type": problem_type,
+        "target_type": ttype,
+        "cv_folds": int(cv_folds),
+        "fold_fit_sizes": [int(n) for n in fold_sizes],
+        "n_eval_reserve": int(n_eval),
+        "n_score": int(n_score),
+        "n_features": int(len(oracle_df)),
+        "n_positive_score": int((oracle_df["importance_score"] > 0).sum()),
+        "majority_baseline": round(float(majority_baseline), 4),
+        "oracle_ceiling": {str(k): oracle_ceiling(sel, sco, k) for k in CEILING_KS},
+        "reliability": {
+            "select": _fold_reliability(select_merged, "select"),
+            "score": _fold_reliability(score_merged, "score"),
+            "select_score_jaccard10": select_score_j10,
+        },
+        # v4 SEMANTIC CHANGE: these are the eval-RESERVE rows (D) — no oracle fit and
+        # no importance pass ever saw them — not the fit rows v3 stored. Downstream
+        # consumers (score_cell row_index) use them identically.
+        "train_index": [int(i) if isinstance(i, (int, np.integer)) else str(i)
+                        for i in y.index[eval_idx]],
+    }
+
+    feature_pool = oracle_df["feature_variable"].astype(str).tolist()
+    return oracle_df, feature_pool, meta_out
+
+
 def compute_oracle(
     data: pd.DataFrame,
     metadata: dict,
@@ -586,6 +788,8 @@ def compute_oracle(
     eval_metric: str | None = None,
     target_type: str | None = None,
     survey_id: str | None = None,
+    cv_folds: int = 0,
+    eval_reserve: float = EVAL_RESERVE,
 ) -> tuple[pd.DataFrame, list[str], dict]:
     """
     Compute AutoGluon permutation importances for one target-country cell.
@@ -594,6 +798,11 @@ def compute_oracle(
     (rank on the select holdout) and `importance_score` (value on a disjoint score
     holdout), with `importance_mean`/`importance_std` kept as aliases of the score
     columns so existing readers are unaffected.
+
+    cv_folds >= 2 switches to contract v4 (see "contract v4: CV ranking" above):
+    k-fold CV ranking over a 1 - test_size - eval_reserve region, valuation on the
+    test_size score holdout, and train_index = the eval_reserve rows. cv_folds
+    in {0, 1} keeps the v3 honest split byte-identical to before.
 
     Note: n_splits is kept for drop-in compatibility with earlier oracle scripts but
     is not used by AutoGluon here (a single fit on the train split).
@@ -634,6 +843,50 @@ def compute_oracle(
     )
     is_regression = problem_type == "regression"
 
+    preset, time_limit = resolve_runtime_config(runtime_mode, autogluon_time_limit)
+    if tmp_root is None:
+        tmp_root = tmp_dir(OUTPUTS_DIR)
+
+    if cv_folds >= 2:
+        # 4-6 (contract v4). CV region ranks, D is reserved, V2 values.
+        fold_pairs, eval_idx, score_idx = _cv_split(
+            y, cv_folds=cv_folds, score_size=test_size, eval_reserve=eval_reserve,
+            random_state=random_state, stratify=not is_regression,
+        )
+        fi_selects, fi_scores, fold_sizes = [], [], []
+        with _gpu_scope(num_gpus) as resolved_gpus, _tmp_scope(tmp_root) as tmp_root:
+            for fold_i, (fit_idx, hold_idx) in enumerate(fold_pairs, start=1):
+                train_data, select_data, score_data = _labelled_frames(
+                    X, y, fit_idx, hold_idx, score_idx, is_regression
+                )
+                fold_sizes.append(len(train_data))
+                run_output_dir = Path(tempfile.mkdtemp(
+                    prefix=f"autogluon_oracle_f{fold_i}_", dir=str(tmp_root)
+                ))
+                try:
+                    fi_sel, fi_sco = _fit_and_rank(
+                        train_data, select_data, score_data, run_output_dir,
+                        problem_type=problem_type, resolved_metric=resolved_metric,
+                        preset=preset, time_limit=time_limit,
+                        num_gpus=resolved_gpus, num_cpus=num_cpus,
+                        n_repeats=n_repeats, ag_verbosity=ag_verbosity,
+                    )
+                finally:
+                    shutil.rmtree(run_output_dir, ignore_errors=True)
+                fi_selects.append(fi_sel)
+                fi_scores.append(fi_sco)
+
+        return _assemble_outputs_cv(
+            _merge_fold_importances(fi_selects, "select"),
+            _merge_fold_importances(fi_scores, "score"),
+            target_var=target_var, country_code=country_code,
+            majority_baseline=majority_baseline, resolved_metric=resolved_metric,
+            problem_type=problem_type, ttype=ttype,
+            cv_folds=cv_folds, fold_sizes=fold_sizes,
+            n_eval=len(eval_idx), n_score=len(score_idx),
+            y=y, eval_idx=eval_idx,
+        )
+
     # 4. The honest split: fit on T (60%), rank on V1 (20%), value on V2 (20%).
     #    (Stratification is meaningless for a continuous target.)
     train_idx, select_idx, score_idx = _three_way_split(
@@ -644,9 +897,6 @@ def compute_oracle(
     )
 
     # 5. One fit, two importance passes. (Temp dir avoids file locks on synced folders.)
-    preset, time_limit = resolve_runtime_config(runtime_mode, autogluon_time_limit)
-    if tmp_root is None:
-        tmp_root = tmp_dir(OUTPUTS_DIR)
     with _gpu_scope(num_gpus) as resolved_gpus, _tmp_scope(tmp_root) as tmp_root:
         run_output_dir = Path(tempfile.mkdtemp(prefix="autogluon_oracle_", dir=str(tmp_root)))
         try:
