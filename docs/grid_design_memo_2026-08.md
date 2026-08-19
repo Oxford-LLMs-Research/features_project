@@ -105,8 +105,11 @@ Three anchors, all from data:
 late) the detectable effect drifts to ~0.044 — still under the +0.05 bar. Draw is
 type-stratified within survey (proportional to the frame with a floor of 2 per answer
 type, so every type is reportable and the log-loss/rank metric families stay balanced),
-demographics on, skip items off, leakage- and minimum-signal-excluded, with 3 pre-listed
-spare questions per survey and a registered replacement rule (same survey, same type).
+**demographics excluded as targets** (decision 2026-08-19, `pre_paper_run_decisions.md`
+— they stay as features and as the textbook baseline), skip items off,
+leakage-flagged targets excluded (the retired accuracy min-signal rule is NOT a frame
+filter), with 3 pre-listed spare questions per survey and a registered replacement
+rule (same survey, same type).
 
 ## Q2 — Transportability stratum: how many screened questions × countries?
 
@@ -259,8 +262,10 @@ leaves the short boundary-paper exit open).
 
 ## The grid to approve
 
-1. **Frame:** type-1 targets, demographics on, skip items off (~1,525 questions);
-   leakage- and minimum-signal-excluded.
+1. **Frame:** type-1-passing targets, **demographics excluded as targets** (features
+   and textbook baseline only — see `pre_paper_run_decisions.md` stack locks), skip
+   items off, leakage-flagged excluded: **1,233 questions** (1,133 with ≥3
+   draw-eligible countries; was ~1,525 with demographics in).
 2. **Confirmatory stratum:** 15 questions per survey × 6 surveys, type-stratified
    within survey (proportional with floor 2 per answer type), × 3 countries drawn
    uniformly from each question's eligible countries, registered seed = **270 cells**;
