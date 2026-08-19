@@ -267,9 +267,14 @@ leaves the short boundary-paper exit open).
    items off, leakage-flagged excluded: **1,233 questions** (1,133 with ≥3
    draw-eligible countries; was ~1,525 with demographics in).
 2. **Confirmatory stratum:** 15 questions per survey × 6 surveys, type-stratified
-   within survey (proportional with floor 2 per answer type), × 3 countries drawn
-   uniformly from each question's eligible countries, registered seed = **270 cells**;
-   3 spares per survey with a same-survey-same-type replacement rule.
+   within survey (proportional with floor 2 per answer type **where the survey
+   fields ≥ 2 eligible questions of that type; else take all it has** — on the
+   demographics-free frame only ESS fields continuous at all, exactly 2, and
+   binary pools are thin in Afrobarometer (6) and Arab Barometer (4), so those
+   floor strata are near-censuses, not samples — checked 2026-08-19), × 3 countries
+   drawn uniformly from each question's eligible countries, registered seed =
+   **270 cells**; 3 spares per survey with a same-survey-same-type replacement rule
+   (spares must exist for a type to use its floor; continuous has no spares).
 3. **Transportability stratum:** 30 of those 90 questions by measured heterogeneity —
    12 high / 8 mid / 10 low (negative controls; low-bin membership additionally
    requires within-country oracle reliability at or above the 90-question median,
