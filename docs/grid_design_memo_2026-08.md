@@ -157,6 +157,36 @@ Two honesty notes, both consequential for registration:
 - Swaps exist only in the country-named condition, so this stratum's claims are
   condition-specific by construction.
 
+### Scope: what "cross-country" means in this design (made explicit 2026-08-19)
+
+Every heterogeneity and adaptation measurement here holds the **instrument
+constant**: oracle importance structures are only comparable across countries that
+answered the *same questionnaire*, so heterogeneity, the low/high bins, and the swap
+contrast are all defined **within a survey**. Because the surveys are regional
+(Latinobarometro = Latin America, Afrobarometer = Africa, Arab Barometer = MENA,
+Asian Barometer = Asia, ESS = Europe), within-survey country variation is mostly
+**within-region** variation. Three consequences to state and act on:
+
+1. **Claims wording.** The adaptation result is about within-region country
+   variation with the instrument fixed. "Universal" (low bin) means *no measurable
+   variation across that survey's country span* — a target can be universal within
+   Latin America and still vary globally. Do not write "models adapt across the
+   world's diversity" from this design; within-region spans compress true
+   heterogeneity, which also makes the test conservative.
+2. **WVS is the one cross-region instrument.** Only WVS asks the same battery
+   globally, so WVS questions are the only cells where wide (cross-region)
+   heterogeneity is directly testable with the instrument held constant.
+   **Rule added to the draw:** for WVS questions in the transportability stratum,
+   the 6 countries are drawn region-stratified (no two from the same region until
+   all represented regions are covered), so the one instrument that can span
+   regions actually does. Report het distributions per survey, with WVS flagged as
+   the wide-span anchor.
+3. **Cross-survey generalization is a different test, deliberately deferred.**
+   Comparing the *same concept* asked *differently* across surveys (trust,
+   religiosity, …) requires construct-level mapping, not variable-level importance
+   — that is the registered post-first-run item (Test-2 / construct-level
+   importance in `pre_paper_run_decisions.md`), not something this grid claims.
+
 ## Q3 — Selector zoo: how many models, and what about DeepSeek-V4-Flash?
 
 **Keep 9 of the 10; drop Flash from the confirmatory zoo.**
