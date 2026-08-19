@@ -1,0 +1,15 @@
+---
+description: No naked jargon — every project shorthand gets a plain-language reminder
+alwaysApply: true
+---
+
+When you use a project shorthand in text addressed to a human — "confirmatory run",
+"Arm C", "selector", "oracle contract/era", "genuine/unestimable cell", "Phase A/B/C",
+"VoR/CoI", or any name you coin — accompany its FIRST use in that message or document
+with a one-to-two-sentence plain reminder covering: what it means, why it exists, how
+it fits the project, and the immediate implication it carries.
+
+Canonical definitions live in `docs/glossary.md` (four-part format: what / why / where
+it fits / what it implies). If you introduce a new name, add it there in the same
+format. Never assume the reader holds the insider context — the humans on this project
+have said they keep getting confused by invented names used without reminders.

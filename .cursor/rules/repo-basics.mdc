@@ -1,0 +1,19 @@
+---
+description: Operational basics — interpreter, path contract, contract versions, typed scoring
+alwaysApply: true
+---
+
+- Interpreter: `C:\Users\murrn\miniconda3\python.exe`. Never `.venv` (lacks the
+  scientific stack).
+- Outputs live on Dropbox, not in the repo: every artifact path resolves through
+  `src/survey_features/layout.py` helpers under `SURVEY_FEATURES_OUTPUTS` (gitignored
+  `.env`). NEVER hard-code an absolute or machine-local path in a tracked file; never
+  write artifacts into the repo tree.
+- Oracle contract v4 is current; v3 is a deprecated development byproduct. Do not
+  build on v3-era artifacts; check `contract_version` in a cell's `oracle_meta.json`
+  before trusting a cached number.
+- No untyped scoring anywhere: ordinal/continuous targets are scored by Spearman rank
+  correlation (regression path), never as multiclass accuracy. Always pass
+  `target_type` to `survey_features.evaluation.evaluate_feature_set`.
+- Where to write runs/experiments and when to register them: `CONTRIBUTING.md`.
+  Repo + outputs map: `docs/project_layout.md`. Terms: `docs/glossary.md`.
