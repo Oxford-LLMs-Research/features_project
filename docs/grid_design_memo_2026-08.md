@@ -31,6 +31,33 @@ the cell-to-cell spread (SD ≈ 0.19–0.20 in value-over-textbook, log loss) in
 Measured on the last full run's 47 clean cells (23 questions, both selectors pooled);
 the pilot's 26 cells give the same picture.
 
+**Robustness — is the between-question share just a scale artifact?** (checked
+2026-08-19 after the objection that questions sit on different scales — log-loss
+differences grow with a question's class count/entropy, so raw-unit spread between
+questions could reflect units, not substance.) Four cuts on the same data say no:
+
+1. *Rescale each question by its own scale* (`value_over_textbook_ll / |textbook_ll|`,
+   i.e. proportional improvement): between-question share 70.5% — unchanged from the
+   raw 70.6%.
+2. *Hold scale constant*: binary-only questions (identical 2-class family) show the
+   **highest** between-question share of all, 89.7% (7 questions, 4 multi-country).
+3. *Typed, contract-v4 evidence*: the Phase A pilot's ordinal cells scored the
+   type-matched way (`value_over_textbook_rho`, a bounded Spearman difference —
+   comparable across questions by construction) give 84% between-question (6
+   questions × 2 countries).
+4. Scale correlates with effect *magnitudes* (corr ≈ 0.56 with |question mean|) but
+   explains almost none of the signed question means (R² ≈ 0.02) — questions differ
+   in direction and substance, not just units.
+
+A sign-only version (`VoT > 0`) drops to ~45% between-question, but binarizing
+discards magnitude and mechanically pumps Bernoulli noise into the within term — it
+does not support the scale story. Caveats that stand: cluster counts are small
+(4–16 multi-country questions per cut), so the exact 72/28 is imprecise even though
+every cut points the same way; and the headline numbers are era-3-derived — restate
+this decomposition from typed v4 scores once the sampled grid's first cells exist,
+and define the paper's estimand per target type (log-loss VoT for binary/nominal,
+Spearman VoT for ordinal) rather than pooling raw log-loss units across class counts.
+
 Consequence: **adding countries to a question barely adds information about the average
 effect; adding questions does.** Two cells of the same question are ~72% redundant. So
 for the same budget, a wide-and-shallow grid beats the square 5×5 preset:
