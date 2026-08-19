@@ -7,7 +7,8 @@ Main free-text pipeline — confirmatory Arm C loop.
   --phase score     XGB vs oracle / random / textbook -> scores_<selector>.csv
   --phase pipeline  gen -> extract -> map per cell (optional --with-score)
 
-Grid = genuine cells from scripts/leakage_audit.py, unless --cells CSV
+Grid = genuine cells from scripts/leakage_audit.py (type-1 + leakage screen;
+accuracy-vs-majority is not a drop), unless --cells CSV
 (survey,target,country) supplies an explicit grid (pilot / frame-sampled runs).
 Use --run-tag to write map/score under main/runs/<tag>/ without clobbering baseline.
 Gen/extract always stay under main/<selector>/.
@@ -64,7 +65,7 @@ _CELLS_CSV: Path | None = None
 def grid_cells(outputs_dir: Path = OUT) -> list[tuple[str, str, str]]:
     """The run's (survey, target, country) grid.
 
-    Default = genuine cells from the leakage audit (the legacy era-3 grid).
+    Default = genuine cells from the leakage audit (type-1 + leakage only).
     --cells CSV (columns survey,target,country) overrides it — pilot and
     frame-sampled grids are defined by an explicit cell list, not by the audit.
     """
@@ -678,7 +679,7 @@ def main():
         type=Path,
         default=None,
         metavar="CSV",
-        help="explicit grid CSV (survey,target,country); default = leakage-audit genuine cells",
+        help="explicit grid CSV (survey,target,country); default = type-1+leakage genuine cells",
     )
     ap.add_argument("--force", action="store_true", help="recompute cells already on disk")
     ap.add_argument("--limit", type=int, default=None, help="only the first N cells (smoke test)")

@@ -95,7 +95,7 @@ Sorted by **Stage**, then status.
 | elicitation | [`prompt-sensitivity`](#prompt-sensitivity--selector-system-message) | complete | Keep confirmatory social_scientist system prompt | `outputs/experiments/prompt_sensitivity/` |
 | extraction | [`extract-swap-minimax`](#extract-swap-minimax--minimax-extract--nemotron-disambig) | complete | MiniMax extract ≈ Qwen on PI/VoR; dearer — keep Qwen default | `outputs/experiments/pipeline_role_swap/minimax_nemotron/` |
 | extraction | [`extract-type-pilot`](#extract-type-pilot--type-taxonomy-wording) | complete (pilot) | Type-prompt wording pilot | `outputs/experiments/extract_type_pilot*` |
-| grid | [`leakage-audit`](#leakage-audit--genuine-cell-screen) | complete | Drop leakage / degenerate cells from the grid | `outputs/cache/audits/leakage_audit.csv` |
+| grid | [`leakage-audit`](#leakage-audit--genuine-cell-screen) | complete | Drop type-1 / leakage only; keep type-2/3 signal | `outputs/cache/audits/leakage_audit.csv` |
 | mapping | [`pipeline-role-swap`](#pipeline-role-swap--minimax-extract--flash-disambig) | complete | Joint MiniMax+Flash rejected; Flash-as-disambig not followed up | `outputs/experiments/pipeline_role_swap/minimax_flash/` |
 | mapping | [`subitem-mapping`](#subitem-mapping--dual-layer-pilot) | complete → promoted | Dual-layer locked into main | `outputs/experiments/subitem_mapping/` |
 | oracle | [`oracle-v3`](#oracle-v3--measurement-level-honest-split) | complete | Era-3 oracle is the current ground truth | `outputs/cache/cells/` |
@@ -275,15 +275,15 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 | **Status** | complete |
 | **Stage** | grid |
 | **Dates** | 2026 (re-run after any oracle contract change) |
-| **Code** | [`scripts/leakage_audit.py`](../scripts/leakage_audit.py); target catalog [`data/targets.yaml`](../data/targets.yaml) |
+| **Code** | [`scripts/leakage_audit.py`](../scripts/leakage_audit.py); classifier [`src/survey_features/grid_screen.py`](../src/survey_features/grid_screen.py); target catalog [`data/targets.yaml`](../data/targets.yaml) |
 | **Commit** | record the SHA used for each audit refresh; logic landed with oracle rebuild era (`21c780d` lineage on `main`) |
 | **Compute** | local CPU (+ optional `--with-data` single-feature XGB); no LLM |
 | **Inputs** | `outputs/cache/cells/*/oracle.csv`; survey microdata via `DATA_CONFIG_PATH` when `--with-data` |
 | **Outputs** | `outputs/cache/audits/leakage_audit.csv`; `leakage_audit_summary.json` |
 
-**Rationale.** To test which (survey, target, country) cells have real distributed predictive structure versus leakage (near-deterministic single-column recovery) or degeneracy (oracle cannot beat the marginal).
+**Rationale.** To test which (survey, target, country) cells have estimable, non-leaked PI versus leakage (near-deterministic single-column recovery / skip-pattern modules) or type-1 unestimable splits (thin minority on V1/V2, or low `oracle_ceiling@5`).
 
-**Result.** Only `leakage_class == genuine` cells enter the confirmatory grid (`layout.genuine_cells()`). Re-run after oracle contract bumps; do not mix eras in one audit file without noting it.
+**Result.** Default confirmatory grid is `leakage_class == genuine` (`layout.genuine_cells()`). That class includes type-2/3 accuracy-vs-majority cells; it excludes `unestimable` and leakage. Re-run after oracle contract bumps or screen-rule changes; do not mix eras in one audit file without noting it. The retired `degenerate` label was accuracy lift < 0.03 and is no longer emitted.
 
 ---
 

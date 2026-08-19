@@ -21,8 +21,9 @@ outputs tree lives; CONTRIBUTING covers where a run should write; this covers
   + XGBoost: model picks vs random-k vs textbook demographics
 ```
 
-A **cell** = (survey, target question, country). The grid is cells that survived the
-leakage screen (`layout.genuine_cells()`).
+A **cell** = (survey, target question, country). The default grid is cells that
+survived type-1 (unestimable PI) and leakage (`layout.genuine_cells()`). Tiny
+accuracy lift vs majority is **not** a drop — see `grid_screen.py`.
 
 Three model roles (never mixed): **selector** (under test), **extractor** (fixed),
 **disambiguator** (fixed). Mapping is dual-layer: parents plus bundled `sub_items`
@@ -41,7 +42,7 @@ research branch / snapshots if you need them.
 | captured importance | Σ oracle importance of model picks ÷ Σ oracle top-k (matched k) |
 | value_over_random / _textbook | predictive score minus matched-k random / textbook demographics |
 | k | number of variables the model's requests mapped to (model-chosen k is part of the measurand) |
-| genuine / degenerate / leakage | leakage-audit verdict per cell |
+| genuine / unestimable / leakage | grid-screen verdict per cell (type-1 + leakage; not accuracy-vs-majority) |
 | target type | binary / nominal / ordinal / continuous — drives oracle + evaluator |
 
 ## 3. Where truth lives — oracle eras
@@ -96,7 +97,7 @@ If you add a cache, give it an identity field.
 
 ```bash
 python scripts/rerun_oracles.py --processes 3   # after oracle contract changes
-python scripts/leakage_audit.py --with-data     # after ANY oracle change
+python scripts/leakage_audit.py --with-data     # after ANY oracle change; default grid = genuine
 python scripts/build_textbook_baseline.py
 
 python scripts/run_main.py --phase gen|extract|map|score --selector deepseek

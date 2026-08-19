@@ -10,7 +10,7 @@ name experiments: CONTRIBUTING.md.
     cache/                              # confirmatory prerequisites
       cells/<target>_<country>/oracle.csv (+ oracle_meta.json)
       embeddings/survey_embeddings__<survey>__<model>.npz
-      audits/leakage_audit.csv          # pipeline leakage — not repo-audit
+      audits/leakage_audit.csv          # grid screen (type-1 + leakage)
       baselines/textbook__<survey>.json
     main/                               # confirmatory Arm C
       <selector>/{freetext,extracted,maps}/
@@ -36,6 +36,7 @@ import re
 from pathlib import Path
 
 from .config import OUTPUTS_DIR
+from .grid_screen import KEEP_CLASSES
 
 
 def sanitize_model_slug(model_name: str, max_len: int = 96) -> str:
@@ -287,13 +288,17 @@ def cell_tag(survey: str, target: str, country: str) -> str:
 
 
 def genuine_cells(outputs_dir: Path = OUTPUTS_DIR) -> list[tuple[str, str, str]]:
-    """(survey, target, country) cells classified 'genuine' by the leakage audit."""
+    """Default confirmatory grid: leakage_class in KEEP_CLASSES (genuine).
+
+    That class is type-1 + leakage survivors, including cells with no accuracy
+    lift over majority. See survey_features.grid_screen.
+    """
     path = leakage_audit_csv_path(outputs_dir)
     if not path.is_file():
         raise FileNotFoundError(f"leakage audit not found: {path}")
     out = []
     with open(path, encoding="utf-8") as f:
         for r in csv.DictReader(f):
-            if r["leakage_class"] == "genuine":
+            if r["leakage_class"] in KEEP_CLASSES:
                 out.append((r["survey"], r["target"], r["country"]))
     return out

@@ -28,19 +28,18 @@ This script flags such cells with two complementary, code-grounded signals:
       interesting leakage cases are LOW lexical similarity but HIGH predictive
       recoverability (semantic/empirical duplicates the cosine filter missed).
 
-Each cell is classified:
-  - degenerate       : oracle lift over majority < --min-signal (nothing to predict)
-  - leakage          : single-feature acc recovers >= --recover-frac of oracle lift
-                       AND top-importance share >= --conc-thresh
-  - leakage_suspect  : (offline only) high concentration + high oracle lift, but the
-                       data-backed single-feature test was not run
-  - genuine          : real, distributed predictive structure
+Each cell is classified (docs/pre_paper_run_decisions.md “Grid screen”, 2026-08-16):
+  - unestimable         : type-1 — minority too thin on V1/V2, or oracle_ceiling@5
+                          below the compromised-PI floor. Accuracy-vs-majority is
+                          NOT this class.
+  - leakage             : single-feature acc recovers >= --recover-frac of oracle lift
+                          AND top-importance share >= --conc-thresh
+  - leakage_distributed : implausible accuracy with spread importance (skip-pattern)
+  - leakage_suspect     : (offline only) high concentration + high oracle lift, but the
+                          data-backed single-feature test was not run
+  - genuine             : keep, including type-2/3 (tiny accuracy lift / acc below mode)
 
-Confirmatory grid (2026-08-16): do **not** use this accuracy-vs-majority degenerate
-rule (tiny positive lift, or oracle acc below the mode) to drop target×country cells.
-Keep dropping unestimable-PI cells (minority too thin on the honest V1/V2 split) and
-leakage. See docs/pre_paper_run_decisions.md “Grid screen”. This script still emits
-the old labels until the screen is re-implemented.
+Default grid = leakage_class == genuine (`layout.genuine_cells()`).
 
 Outputs:
   outputs/cache/audits/leakage_audit.csv         one row per unique (survey, target, country)
@@ -68,8 +67,17 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 from survey_features.config import OUTPUTS_DIR, PAPER_DIR  # noqa: E402
+from survey_features.grid_screen import (  # noqa: E402
+    ScreenThresholds,
+    TYPE1_MIN_CEILING_AT_5,
+    TYPE1_MIN_V2_MINORITY,
+    classify_cell,
+    estimated_minority,
+    type1_reason,
+)
 from survey_features.layout import (  # noqa: E402
     cache_cells_dir,
+    leakage_audit_csv_path,
     leakage_audit_write_paths,
 )
 
@@ -148,14 +156,27 @@ def concentration_signal(oracle_csv: Path) -> dict:
 
 
 def add_oracle_acc(rows: pd.DataFrame) -> pd.DataFrame:
-    """Attach oracle_acc from the grid summaries (model-independent; take the max
-    available across model CSVs per cell to be robust to a missing model)."""
-    from survey_features.layout import collect_all_grid_summaries
+    """Attach oracle_acc from the previous audit and any scores CSVs (max per cell)."""
+    from survey_features.layout import main_dir
 
     frames = []
-    for p, sid, _tag in collect_all_grid_summaries(OUT):
-        d = pd.read_csv(p, usecols=lambda c: c in {"target", "country", "oracle_acc"})
-        frames.append(d)
+    prev_path = leakage_audit_csv_path(OUT)
+    if prev_path.is_file():
+        prev = pd.read_csv(prev_path)
+        if {"target", "country", "oracle_acc"}.issubset(prev.columns):
+            frames.append(prev[["target", "country", "oracle_acc"]])
+    root = main_dir(OUT)
+    score_paths = list(root.glob("scores*.csv"))
+    runs = root / "runs"
+    if runs.is_dir():
+        score_paths.extend(runs.glob("*/scores*.csv"))
+    for p in score_paths:
+        try:
+            d = pd.read_csv(p, usecols=lambda c: c in {"target", "country", "oracle_acc"})
+        except (OSError, ValueError, pd.errors.EmptyDataError):
+            continue
+        if "oracle_acc" in d.columns and {"target", "country"}.issubset(d.columns):
+            frames.append(d[["target", "country", "oracle_acc"]])
     if not frames:
         rows["oracle_acc"] = np.nan
         return rows
@@ -200,41 +221,66 @@ def single_feature_test(
         return None
 
 
+def load_oracle_meta(oracle_csv: Path) -> dict:
+    path = oracle_csv.with_name("oracle_meta.json")
+    if not path.is_file():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def attach_type1_fields(rec: dict, meta: dict) -> None:
+    """Copy split sizes / ceiling from oracle_meta for the type-1 screen."""
+    rec["problem_type"] = meta.get("problem_type")
+    rec["target_type"] = meta.get("target_type")
+    rec["n_select"] = meta.get("n_select")
+    rec["n_score"] = meta.get("n_score")
+    ceiling = (meta.get("oracle_ceiling") or {}).get("5")
+    rec["ceiling_at_5"] = ceiling
+    rec["v2_minority_est"] = estimated_minority(
+        rec.get("n_score"), rec.get("majority_baseline")
+    )
+
+
+def prior_single_feature_lookup() -> dict[tuple[str, str, str], dict]:
+    """Reuse --with-data columns from an existing audit so an offline refresh
+    does not downgrade leakage → leakage_suspect."""
+    path = leakage_audit_csv_path(OUT)
+    if not path.is_file():
+        return {}
+    out: dict[tuple[str, str, str], dict] = {}
+    try:
+        prev = pd.read_csv(path)
+    except (OSError, pd.errors.EmptyDataError):
+        return {}
+    needed = {"survey", "target", "country"}
+    if not needed.issubset(prev.columns):
+        return {}
+    for _, r in prev.iterrows():
+        key = (str(r["survey"]), str(r["target"]), str(r["country"]))
+        out[key] = {
+            "single_feature_acc": r.get("single_feature_acc"),
+            "single_feature_recovery": r.get("single_feature_recovery"),
+        }
+    return out
+
+
 def classify(row: dict, args) -> str:
-    lift = (row.get("oracle_acc") or 0) - (row.get("majority_baseline") or 0)
-    # Accuracy-vs-majority “degenerate” (min_signal). Confirmatory cell selection
-    # no longer uses this as a drop rule — see docs/pre_paper_run_decisions.md.
-    if pd.isna(row.get("oracle_acc")) or lift < args.min_signal:
-        return "degenerate"
-    conc = row.get("top_importance_share") or 0
-    sf = row.get("single_feature_acc")
-    if sf is not None and not pd.isna(sf):
-        sf_lift = sf - (row.get("majority_baseline") or 0)
-        recover = (sf_lift / lift) if lift > 0 else 0.0
-        row["single_feature_recovery"] = recover
-        # CONCENTRATED leakage: one variable is the label in disguise, and importance
-        # piles onto it (Q263 <- Q266 "country of birth"; rtrd <- mnactic).
-        if recover >= args.recover_frac and conc >= args.conc_thresh:
-            return "leakage"
-        # DISTRIBUTED leakage: the cell predicts implausibly well with importance SPREAD
-        # thin and no single feature recovering much. That is the signature of a
-        # skip-pattern MODULE — dozens of items each carrying a little of "was this
-        # respondent routed here at all". All three Q67A cells look like this
-        # (oracle_acc 0.987-0.999 against a 0.50-0.70 majority, top share 0.07-0.17,
-        # recovery 0.10-0.26) because the whole climate battery is asked only of
-        # respondents who had heard of climate change. Removing the single worst
-        # offender (Q69) did not help; the accuracy stayed at 0.999.
-        #
-        # Deliberately NOT a high-recovery rule: recovery >= 0.95 fires on the MEDIAN
-        # cell under the log-loss oracle (34/68), because one strong correlate normally
-        # does as much accuracy work as a whole top-k. See docs/pipeline_audit_2026-08.md A5.
-        if row.get("oracle_acc", 0) >= args.implausible_acc:
-            return "leakage_distributed"
-        return "genuine"
-    # Offline fallback: concentration-only heuristic.
-    if conc >= args.conc_thresh and lift >= args.suspect_lift:
-        return "leakage_suspect"
-    return "genuine"
+    # CONCENTRATED leakage: one variable is the label in disguise, and importance
+    # piles onto it (Q263 <- Q266 "country of birth"; rtrd <- mnactic).
+    # DISTRIBUTED leakage: implausible accuracy with importance SPREAD thin — a
+    # skip-pattern MODULE (Q67A climate battery). Deliberately NOT a high-recovery
+    # rule: recovery >= 0.95 fires on the median log-loss cell. See pipeline_audit A5.
+    return classify_cell(row, ScreenThresholds(
+        conc_thresh=args.conc_thresh,
+        recover_frac=args.recover_frac,
+        implausible_acc=args.implausible_acc,
+        suspect_lift=args.suspect_lift,
+        min_v2_minority=args.min_v2_minority,
+        min_ceiling_at_5=args.min_ceiling_at_5,
+    ))
 
 
 def main() -> None:
@@ -247,11 +293,15 @@ def main() -> None:
                     help="Single-feature recovers >= this fraction of oracle lift -> leakage "
                          "(only in conjunction with --conc-thresh).")
     ap.add_argument("--implausible-acc", type=float, default=0.95,
-                    help="Oracle accuracy at or above this, with real lift over majority, "
-                         "is treated as distributed (module/skip-pattern) leakage — no "
-                         "attitude item is predictable this well from other survey items.")
+                    help="Oracle accuracy at or above this, with lift >= 0.20 over majority, "
+                         "is treated as distributed (module/skip-pattern) leakage.")
+    ap.add_argument("--min-v2-minority", type=float, default=TYPE1_MIN_V2_MINORITY,
+                    help="Type-1: expected non-mode rows on V2 (n_score × (1−majority)) "
+                         "below this → unestimable. Not an accuracy-vs-majority filter.")
+    ap.add_argument("--min-ceiling-at-5", type=float, default=TYPE1_MIN_CEILING_AT_5,
+                    help="Type-1: oracle_ceiling@5 below this → unestimable (compromised ranking).")
     ap.add_argument("--min-signal", type=float, default=0.03,
-                    help="Oracle lift over majority below this -> degenerate (not a leakage case).")
+                    help=argparse.SUPPRESS)  # retired: was accuracy-vs-majority degenerate
     ap.add_argument("--suspect-lift", type=float, default=0.10,
                     help="Offline-only: oracle lift above this + high concentration -> leakage_suspect.")
     ap.add_argument("--write-tex", action="store_true", help="Also emit a LaTeX longtable.")
@@ -270,6 +320,7 @@ def main() -> None:
         rec["bucket"] = info.get("bucket")
         rec["section"] = info.get("section")
         rec.update(concentration_signal(ocsv))
+        attach_type1_fields(rec, load_oracle_meta(ocsv))
         records.append(rec)
     rows = pd.DataFrame(records)
     rows = add_oracle_acc(rows)
@@ -280,9 +331,10 @@ def main() -> None:
         cfg = dotenv_values(ROOT / ".env").get("DATA_CONFIG_PATH") or os.environ.get("DATA_CONFIG_PATH")
         if not cfg or not os.path.isfile(cfg):
             print(f"--with-data set but DATA_CONFIG_PATH missing/invalid ({cfg!r}); "
-                  "falling back to offline concentration heuristic.", file=sys.stderr)
+                  "falling back to prior/offline single-feature values.", file=sys.stderr)
             args.with_data = False
 
+    prior = prior_single_feature_lookup()
     rows["single_feature_acc"] = np.nan
     rows["single_feature_recovery"] = np.nan
     if args.with_data:
@@ -293,10 +345,39 @@ def main() -> None:
             sf = single_feature_test(r["survey"], r["target"], r["country"],
                                      r["top_feature"], cfg, cache)
             rows.at[i, "single_feature_acc"] = sf if sf is not None else np.nan
+    else:
+        for i, r in rows.iterrows():
+            prev = prior.get((str(r["survey"]), str(r["target"]), str(r["country"])))
+            if not prev:
+                continue
+            sf = prev.get("single_feature_acc")
+            if sf is not None and not pd.isna(sf):
+                rows.at[i, "single_feature_acc"] = sf
 
-    rows["leakage_class"] = [classify(r._asdict() if hasattr(r, "_asdict") else dict(r), args)
-                             for _, r in rows.iterrows()]
-    # classify() may set single_feature_recovery via dict copy; recompute cleanly for the column
+    def _row_dict(series) -> dict:
+        d = series.to_dict()
+        for k, v in list(d.items()):
+            try:
+                if pd.isna(v):
+                    d[k] = None
+            except (ValueError, TypeError):
+                pass
+        return d
+
+    classes, reasons = [], []
+    for _, r in rows.iterrows():
+        d = _row_dict(r)
+        cls = classify(d, args)
+        classes.append(cls)
+        reasons.append(d.get("unestimable_reason") or (
+            type1_reason(d, ScreenThresholds(
+                min_v2_minority=args.min_v2_minority,
+                min_ceiling_at_5=args.min_ceiling_at_5,
+            )) if cls == "unestimable" else None
+        ))
+    rows["leakage_class"] = classes
+    rows["unestimable_reason"] = reasons
+
     def _recovery(r):
         lift = (r.get("oracle_acc") or 0) - (r.get("majority_baseline") or 0)
         sf = r.get("single_feature_acc")
@@ -312,23 +393,31 @@ def main() -> None:
     cols = ["survey", "target", "country", "bucket", "section", "majority_baseline",
             "oracle_acc", "oracle_lift", "top_feature", "top_importance_share",
             "importance_hhi", "single_feature_acc", "single_feature_recovery",
-            "n_features_scored", "leakage_class"]
+            "n_features_scored", "problem_type", "target_type", "n_select", "n_score",
+            "ceiling_at_5", "v2_minority_est", "unestimable_reason", "leakage_class"]
+    cols = [c for c in cols if c in rows.columns]
     rows[cols].to_csv(out_csv, index=False)
 
-    # Rollups
-    def share(df, cls):
-        return round(float((df["leakage_class"] == cls).mean()), 3) if len(df) else 0.0
+    drop = {"leakage", "leakage_distributed", "leakage_suspect"}
     summary = {
-        "mode": "data-backed" if args.with_data else "offline-concentration",
-        "thresholds": {"conc_thresh": args.conc_thresh, "recover_frac": args.recover_frac,
-                       "min_signal": args.min_signal, "suspect_lift": args.suspect_lift},
+        "mode": "data-backed" if args.with_data else (
+            "prior-single-feature" if prior else "offline-concentration"
+        ),
+        "screen": "type1_and_leakage",
+        "thresholds": {
+            "conc_thresh": args.conc_thresh, "recover_frac": args.recover_frac,
+            "suspect_lift": args.suspect_lift,
+            "min_v2_minority": args.min_v2_minority,
+            "min_ceiling_at_5": args.min_ceiling_at_5,
+        },
         "n_cells": int(len(rows)),
+        "n_genuine": int((rows["leakage_class"] == "genuine").sum()),
         "class_counts": rows["leakage_class"].value_counts().to_dict(),
         "by_survey": {s: sub["leakage_class"].value_counts().to_dict()
                       for s, sub in rows.groupby("survey")},
         "by_bucket": {str(b): sub["leakage_class"].value_counts().to_dict()
                       for b, sub in rows.groupby("bucket")},
-        "leakage_cells": rows.loc[rows["leakage_class"].isin(["leakage", "leakage_suspect"]),
+        "leakage_cells": rows.loc[rows["leakage_class"].isin(drop),
                                   ["survey", "target", "country", "top_feature",
                                    "oracle_lift", "top_importance_share",
                                    "single_feature_recovery"]].round(4).to_dict("records"),
@@ -338,7 +427,16 @@ def main() -> None:
     print(f"Wrote {out_csv} ({len(rows)} cells) and {out_summary.name}")
     print(f"Mode: {summary['mode']}")
     print("Class counts:", summary["class_counts"])
-    lk = rows[rows["leakage_class"].isin(["leakage", "leakage_suspect"])]
+    print(f"Genuine (default grid): {summary['n_genuine']}")
+    unest = rows[rows["leakage_class"] == "unestimable"]
+    if len(unest):
+        print("\nUnestimable (type-1) cells:")
+        show_u = ["survey", "target", "country", "majority_baseline",
+                  "v2_minority_est", "ceiling_at_5", "unestimable_reason"]
+        show_u = [c for c in show_u if c in unest.columns]
+        with pd.option_context("display.max_rows", None, "display.width", 160):
+            print(unest[show_u].to_string(index=False))
+    lk = rows[rows["leakage_class"].isin(["leakage", "leakage_distributed", "leakage_suspect"])]
     if len(lk):
         print("\nFlagged leakage cells:")
         show = ["survey", "target", "country", "top_feature", "oracle_lift",
@@ -364,7 +462,7 @@ def write_tex(rows: pd.DataFrame) -> None:
     def num(x, p=3):
         return "-" if x is None or (isinstance(x, float) and pd.isna(x)) else f"{float(x):.{p}f}"
 
-    lk = rows[rows["leakage_class"].isin(["leakage", "leakage_suspect"])]
+    lk = rows[rows["leakage_class"].isin(["leakage", "leakage_distributed", "leakage_suspect"])]
     lines = []
     for _, r in lk.iterrows():
         lines.append(

@@ -33,7 +33,7 @@ This branch is the **minimal core** (Arm C free-text loop + oracle/leakage/textb
 src/survey_features/     shared library (see __init__.py module map)
 scripts/
   run_main.py            gen → extract → map → score (Arm C)
-  leakage_audit.py       genuine-cell grid
+  leakage_audit.py       default grid (type-1 + leakage; not accuracy-vs-majority)
   compute_oracle.py      fit one cell's oracle
   rerun_oracles.py       recompute oracles (process pool)
   build_textbook_baseline.py
