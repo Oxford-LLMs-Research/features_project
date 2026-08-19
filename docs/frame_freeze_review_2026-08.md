@@ -48,17 +48,19 @@ removing single offender features did not help. The typed leakage screen now
 catches this pattern per cell (distributed-leakage rule), but only *after* paying
 for that cell's oracle.
 
-**Recommendation: drop all 42 (keep the current union rule).** Structural leakage
-risk plus wasted oracle compute against 42 questions out of 1,275 is cheap
-insurance. But look at the list first — it contains prominent constructs, and
-**three cells of the current provisional grid**: `Q43A` and `Q104` (the two poster
-cases for "tiny accuracy lift but real log-loss signal" — dropping them here is for
-the *gate* reason, which is unrelated and legitimate) and `Q630`. Notable losses
-also include ESS `vote` (turnout), `polintr` (political interest), `netusoft`
-(internet use), `clsprty` (party closeness), and the discrimination battery
-(`dscr*` yes/no items). If any construct on this list matters to the paper, the
-registered alternative is: rescue that specific gate and let the leakage screen
-police its cells.
+Recommendation was drop-all (cheap insurance against the Q67A pattern), noting the
+list contains prominent constructs — ESS `vote` (turnout), `polintr`, `netusoft`,
+`clsprty`, the `dscr*` discrimination battery — and three provisional-grid cells
+(`Q43A`, `Q104`, `Q630`).
+
+**DECIDED 2026-08-19: keep all 42 gates as targets** (user ruling — the constructs
+outweigh the insurance). Consequences accepted and recorded: (a) the typed leakage
+screen is now load-bearing for gate cells — its distributed-leakage rule is what
+stands between a Q67A-style routing artifact and the confirmatory grid; (b) oracle
+compute will be spent on gate cells that may drop at screening, so expect attrition
+above the memo's 15–20% planning figure on this subset; (c) the drawn grid carries
+each question's `gate` flag so post-oracle drops are attributable, and the spare
+pool should anticipate gate-cell replacements.
 
 <details>
 <summary>Full gate list (42)</summary>
@@ -114,9 +116,9 @@ near-duplicate threshold, which the screen now tests per cell.
 
 18 ESS variables named `test*` (`testjc34`–`42`, `testji1`–`9`) are questionnaire
 experiments, not substantive items; they sit in `contemporary_issues`, so no
-section rule catches them. **Recommendation: registered name rule — ESS variables
-matching `^test` are never targets.** (This also removes the `testji4`/`testji6`
-sibling-item near-duplicate found in the pipeline evaluation.)
+section rule catches them. **DECIDED 2026-08-19: excluded via the name rule** — ESS variables matching `^test`
+are never targets. (This also removes the `testji4`/`testji6` sibling-item
+near-duplicate found in the pipeline evaluation.)
 
 ## Decision 4 — nothing else needs judgment (for transparency)
 
@@ -130,12 +132,28 @@ sibling-item near-duplicate found in the pipeline evaluation.)
 
 ---
 
-## After the decisions
+## The frame is FROZEN (2026-08-19)
 
-Freeze = write the four rulings into this file + the memo, tag the inventory
-(`data/_target_universe_inventory.json` is regenerated; the *rules* are what's
-frozen, per the registry convention), then build `make_confirmatory_grid.py`
-implementing the draw (type-stratified 15/survey with the amended floor rule,
-3 countries uniform from eligible, WVS region-stratified, registered seed, 3 spares
-per survey). The frame numbers on the recommendations: 1,233 − 42 gates + 8 rescues
-= **1,199 questions** (draw-eligible ≥3 countries: ~1,100).
+All rulings are in: gates kept, 8 demographic-block items rescued, ESS `test*`
+excluded. The machine-readable rules live in
+[`data/frame_rules.yaml`](../data/frame_rules.yaml) (the *rules* are frozen, not
+the regenerated inventory file, per registry convention).
+
+**Frozen frame: 1,283 questions (42 gate-flagged); 1,178 draw-eligible with ≥ 3
+estimable countries (37 gate-flagged).** Per-survey draw-eligible pools after the
+rulings (gates back in improved the thin binary pools: Afrobarometer 6 → 13,
+Arab Barometer 4 → 6 — the near-census caveat on those strata stands):
+
+| survey | binary | nominal | ordinal | continuous | total |
+|---|---|---|---|---|---|
+| afrobarometer | 13 | 10 | 173 | 0 | 196 |
+| arabbarometer | 6 | 24 | 116 | 0 | 146 |
+| asianbarometer | 13 | 28 | 147 | 0 | 188 |
+| ess_wave_11 | 52 | 8 | 106 | 2 | 168 |
+| latinobarometer | 23 | 15 | 139 | 0 | 177 |
+| wvs | 43 | 18 | 242 | 0 | 303 |
+
+Next step: `make_confirmatory_grid.py` implementing the draw from
+`frame_rules.yaml` (type-stratified 15/survey with the amended floor rule,
+3 countries uniform from eligible, WVS region-stratified, registered seed, 3
+spares per survey, `gate` flag carried into the grid CSV).

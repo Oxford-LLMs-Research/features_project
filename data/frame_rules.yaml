@@ -1,0 +1,43 @@
+# Frozen target-frame rules — 2026-08-19.
+# The frame is the pool the confirmatory grid is sampled from. These rules are the
+# registered outcome of docs/frame_freeze_review_2026-08.md (rationale + rulings
+# there; decisions ledger: docs/pre_paper_run_decisions.md). Consumed by the draw
+# script (make_confirmatory_grid.py). Edit only with a new registered ruling.
+
+frozen: 2026-08-19
+
+eligibility:
+  # a question enters the frame iff ALL of:
+  in_data: true
+  exclude_followups: true        # skip_followup flag from the universe screen
+  keep_gates: true               # RULED 2026-08-19: gate questions stay as targets.
+                                 # The typed leakage screen polices their cells
+                                 # (distributed-leakage rule); expect elevated
+                                 # attrition on gate cells — carry the gate flag
+                                 # into the drawn grid so drops are attributable.
+  exclude_sections: [demographics]   # never predict demographics (features +
+                                     # textbook baseline only)
+  exclude_name_patterns:
+    - survey: ess_wave_11
+      pattern: "^test"           # ESS questionnaire experiments (18 items)
+  # type-1 estimability per country: thresholds live in
+  # survey_features.grid_screen (TYPE1_MIN_N = 50, TYPE1_MIN_UNIQUE = 3)
+  min_estimable_countries_frame: 1
+  min_estimable_countries_draw: 3
+
+# RULED 2026-08-19: attitude/behavior items filed in demographic codebook blocks
+# are targets despite the section rule (facts out; attitudes/evaluations/behaviors
+# stay). Substantively important per user ruling.
+rescue_whitelist:
+  - {survey: wvs,             variable: Q287,    why: subjective social class}
+  - {survey: latinobarometer, variable: S2,      why: subjective social class}
+  - {survey: ess_wave_11,     variable: rlgdgr,  why: self-rated religiosity}
+  - {survey: ess_wave_11,     variable: impbemw, why: importance-of attitude item}
+  - {survey: afrobarometer,   variable: Q90H,    why: practice frequency (behavior)}
+  - {survey: afrobarometer,   variable: Q90I,    why: practice frequency (behavior)}
+  - {survey: ess_wave_11,     variable: alcfreq, why: alcohol frequency (behavior)}
+  - {survey: ess_wave_11,     variable: fnsdfml, why: family meals frequency (behavior)}
+
+# Resulting counts on the 2026-08-19 inventory refresh:
+#   frame (>=1 estimable country): 1283 questions (42 gate-flagged)
+#   draw-eligible (>=3):           1178 questions (37 gate-flagged)
