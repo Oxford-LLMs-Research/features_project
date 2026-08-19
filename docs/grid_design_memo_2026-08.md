@@ -131,7 +131,16 @@ swap pairs per selector; pooling 9 selectors:
 **Decision: 30 transportability questions, selected from the 90 confirmatory questions
 by their measured heterogeneity (which comes free from the confirmatory oracles): 12
 high / 8 mid / 10 low, extended from 3 to 6 countries (5 where Asian Barometer caps
-out) = +90 cells.** The target effect of +0.02 is detectable in the high bin at 80%
+out) = +90 cells.** **Low-bin gate (added 2026-08-19):** het ≈ 0 conflates "structure
+genuinely shared" with "oracle too noisy to tell" (the screen's own definition:
+het = within-country reliability − between-country agreement, so both terms being low
+also gives het ≈ 0). A question is eligible for the low bin — the negative control —
+only if its within-country reliability (the het screen's `within` term, on the
+balanced v4 oracles) is at or above the median across the 90 confirmatory questions;
+the frozen numeric value is recorded in the registry entry when the bins are computed.
+Questions failing the floor are ineligible for the low bin (replace with the
+next-lowest-het question that passes). Without this gate the negative control is
+biased toward null mechanically — unmeasurable questions would pass it for free. The target effect of +0.02 is detectable in the high bin at 80%
 power under the conservative clustering assumption. The legacy screen suggests the top
 tercile starts around het ≈ +0.08, and ~30 of 90 questions should land there — so
 choosing 12 leaves margin for screening noise; if fewer than 12 usable high-het
@@ -227,8 +236,10 @@ leaves the short boundary-paper exit open).
    uniformly from each question's eligible countries, registered seed = **270 cells**;
    3 spares per survey with a same-survey-same-type replacement rule.
 3. **Transportability stratum:** 30 of those 90 questions by measured heterogeneity —
-   12 high / 8 mid / 10 low (negative controls) — extended to 6 countries (5 for Asian
-   Barometer) = **+90 cells**; top-up from frame only if the high bin comes up short.
+   12 high / 8 mid / 10 low (negative controls; low-bin membership additionally
+   requires within-country oracle reliability at or above the 90-question median,
+   see Q2 gate) — extended to 6 countries (5 for Asian Barometer) = **+90 cells**;
+   top-up from frame only if the high bin comes up short.
 4. **Selectors (9):** Kimi-K3 (2-cell probe first), Kimi-K2.6, DeepSeek-V4-Pro,
    GLM-5.1, Qwen3.5-397B, Nemotron-Ultra-550B, MiniMax-M3, Nemotron-Super-120B,
    gpt-oss-120b. **DeepSeek-V4-Flash dropped** (failure mode correlated with condition).
@@ -245,9 +256,18 @@ One entry, stage `end-to-end`, status `design`, with:
   unprompted condition, pooled selectors; standard errors clustered by question;
   surveys reported as strata. Smallest effect of interest +0.05 (this memo's anchors);
   grid powered to 0.040.
+- **Primary 1 heterogeneity (registered reported result, not a test):** questions ask
+  genuinely different things, so ~72% of cell-to-cell variance is between questions —
+  that spread is substance, not nuisance. Report the between-question distribution of
+  the effect alongside its mean: share of questions with value-over-textbook > 0,
+  between-question SD, and the per-target-type strata (log-loss effects for
+  binary/nominal, Spearman effects for ordinal — never pooled across metric families).
+  A grand mean alone would misrepresent a heterogeneous answer to "do models capture
+  predictive structure."
 - **Primary 2 (transportability):** mean own-vs-swapped gain in log loss, high-het bin,
   country condition, pooled selectors, clustered by question; low bin registered as
-  negative control (CI must cover 0).
+  negative control (CI must cover 0), with low-bin membership reliability-gated
+  (Q2 gate) so "no adaptation signal" cannot be manufactured by oracle noise.
 - **Secondary:** continuous dose-response slope of swap gain on balanced-oracle
   heterogeneity (30 questions); condition contrast (country-named vs unprompted);
   capability curve via within-cell paired selector contrasts ordered by model tier;
