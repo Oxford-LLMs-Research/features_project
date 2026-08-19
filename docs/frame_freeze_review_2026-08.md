@@ -103,12 +103,12 @@ evaluations, behaviors stay") would keep. All eight are otherwise fully eligible
 | ess_wave_11 | alcfreq | alcohol frequency | behavior |
 | ess_wave_11 | fnsdfml | eats family meals frequency | behavior |
 
-**Recommendation: rescue all 8** (that is what the registered default says; this is
-just its application). Note the leakage screen stays their guard — self-rated
-religiosity will correlate hard with worship-attendance *features*, which is fine
-and substantive unless it crosses the near-duplicate threshold, which the screen
-now tests per cell. Rescuing = a registered whitelist of (survey, variable) pairs
-alongside the section rule.
+**DECIDED 2026-08-19: rescue all 8** — ruled substantively important (user).
+The registered whitelist of (survey, variable) pairs above rides alongside the
+section rule and goes into `frame_rules` when the frame is frozen. The leakage
+screen stays their guard — self-rated religiosity will correlate hard with
+worship-attendance *features*, which is fine and substantive unless it crosses the
+near-duplicate threshold, which the screen now tests per cell.
 
 ## Decision 3 — ESS test-battery exclusion (mechanical, confirm)
 
