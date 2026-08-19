@@ -10,7 +10,7 @@ unattended CPU. This grid detects a main effect of +0.04 (the pilot estimate is
 could detect neither reliably.**
 
 All numbers below come from the pilot cells and the last full run's free-text arm
-(scores in `outputs/main/runs/pilot_phase_a/` and `outputs/main/`), not from
+(scores in `outputs/selectors/runs/pilot_phase_a/` and `outputs/selectors/`), not from
 assumptions. Analysis scripts: `scripts/grid_power_analysis.py` (variance components,
 swap-pair construction) and `scripts/grid_sizing_tables.py` (nested decomposition,
 sizing tables, cost model).

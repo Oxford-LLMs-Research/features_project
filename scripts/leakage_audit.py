@@ -157,7 +157,7 @@ def concentration_signal(oracle_csv: Path) -> dict:
 
 def add_oracle_acc(rows: pd.DataFrame) -> pd.DataFrame:
     """Attach oracle_acc from the previous audit and any scores CSVs (max per cell)."""
-    from survey_features.layout import main_dir
+    from survey_features.layout import selectors_dir
 
     frames = []
     prev_path = leakage_audit_csv_path(OUT)
@@ -165,7 +165,7 @@ def add_oracle_acc(rows: pd.DataFrame) -> pd.DataFrame:
         prev = pd.read_csv(prev_path)
         if {"target", "country", "oracle_acc"}.issubset(prev.columns):
             frames.append(prev[["target", "country", "oracle_acc"]])
-    root = main_dir(OUT)
+    root = selectors_dir(OUT)
     score_paths = list(root.glob("scores*.csv"))
     runs = root / "runs"
     if runs.is_dir():

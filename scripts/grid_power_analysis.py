@@ -7,10 +7,10 @@ if str(_REPO / "src") not in sys.path:
     sys.path.insert(0, str(_REPO / "src"))
 
 from survey_features.config import OUTPUTS_DIR
-from survey_features.layout import analysis_dir, main_dir
+from survey_features.layout import analysis_dir, selectors_dir
 
 ROOT = str(OUTPUTS_DIR)
-PILOT = str(main_dir(OUTPUTS_DIR) / "runs" / "pilot_phase_a")
+PILOT = str(selectors_dir(OUTPUTS_DIR) / "runs" / "pilot_phase_a")
 
 pd.set_option("display.width", 200)
 

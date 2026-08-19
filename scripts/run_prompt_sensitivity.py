@@ -2,7 +2,7 @@
 Prompt-sensitivity experiment: system-message arms × selectors on a frozen cell grid.
 
 Writes under outputs/experiments/prompt_sensitivity/<selector>/<arm>/ so confirmatory
-main/<selector>/ trees are never clobbered.
+selectors/<selector>/ trees are never clobbered.
 
   python scripts/run_prompt_sensitivity.py --selector kimi --arm none --smoke
   python scripts/run_prompt_sensitivity.py --selector deepseek_v4 --arm social_scientist

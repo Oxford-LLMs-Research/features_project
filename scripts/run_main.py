@@ -10,8 +10,8 @@ Main free-text pipeline — confirmatory Arm C loop.
 Grid = genuine cells from scripts/leakage_audit.py (type-1 + leakage screen;
 accuracy-vs-majority is not a drop), unless --cells CSV
 (survey,target,country) supplies an explicit grid (pilot / frame-sampled runs).
-Use --run-tag to write map/score under main/runs/<tag>/ without clobbering baseline.
-Gen/extract always stay under main/<selector>/.
+Use --run-tag to write map/score under selectors/runs/<tag>/ without clobbering baseline.
+Gen/extract always stay under selectors/<selector>/.
 
 Examples:
   python scripts/run_main.py --phase gen      --selector deepseek
@@ -49,8 +49,8 @@ from survey_features.config import (  # noqa: E402
 from survey_features.layout import (  # noqa: E402
     cell_tag,
     genuine_cells,
-    main_dir,
-    main_scores_path,
+    selector_scores_path,
+    selectors_dir,
     selector_dirs,
 )
 
@@ -376,7 +376,7 @@ def phase_pipeline(
     emb_model = DEFAULT_EMBEDDING_MODEL
     dmodel = DISAMBIGUATORS[disambig_key]
     gen_dir, extract_dir, map_dir = selector_dirs(selector_key, run_tag=run_tag)
-    # Gen/extract always under shared main/<selector>/; maps honor run_tag.
+    # Gen/extract always under shared selectors/<selector>/; maps honor run_tag.
     gen_dir, extract_dir, _ = selector_dirs(selector_key, run_tag=None)
     _, _, map_dir = selector_dirs(selector_key, run_tag=run_tag)
 
@@ -605,9 +605,7 @@ def phase_score(
     timing = TimingLog(default_timing_path("score", selector_key))
 
     _, _, map_dir = selector_dirs(selector_key, run_tag=run_tag)
-    out_csv = main_scores_path(selector_key, OUT, run_tag=run_tag)
-    if run_tag is None:
-        out_csv = main_dir(OUT) / f"scores_{selector_key}.csv"
+    out_csv = selector_scores_path(selector_key, OUT, run_tag=run_tag)
     out_csv.parent.mkdir(parents=True, exist_ok=True)
     emb_label = DEFAULT_EMBEDDING_MODEL
 
@@ -672,7 +670,7 @@ def main():
         "--run-tag",
         default=None,
         metavar="TAG",
-        help="Write map/score under main/runs/<TAG>/ (gen/extract stay shared)",
+        help="Write map/score under selectors/runs/<TAG>/ (gen/extract stay shared)",
     )
     ap.add_argument(
         "--cells",

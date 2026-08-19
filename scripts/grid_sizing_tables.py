@@ -1,9 +1,19 @@
 # Phase B part 2: nested variance, sizing tables, flash diagnosis, cost model
-import pandas as pd, numpy as np, glob, os
+import glob, os, sys
+from pathlib import Path
+
+import pandas as pd, numpy as np
 from scipy.stats import norm
 
-ROOT = r"C:\Users\murrn\Dropbox\features_project\outputs"
-PILOT = os.path.join(ROOT, "main", "runs", "pilot_phase_a")
+_REPO = Path(__file__).resolve().parents[1]
+if str(_REPO / "src") not in sys.path:
+    sys.path.insert(0, str(_REPO / "src"))
+
+from survey_features.config import OUTPUTS_DIR
+from survey_features.layout import selectors_dir
+
+ROOT = str(OUTPUTS_DIR)
+PILOT = str(selectors_dir(OUTPUTS_DIR) / "runs" / "pilot_phase_a")
 pd.set_option("display.width", 220)
 
 def load_scores(pattern):
@@ -15,7 +25,7 @@ def load_scores(pattern):
 
 pilot = load_scores(os.path.join(PILOT, "scores_*.csv"))
 swap = load_scores(os.path.join(PILOT, "swap_scores_*.csv"))
-era3 = load_scores(os.path.join(ROOT, "main", "scores_*.csv"))
+era3 = load_scores(str(selectors_dir(OUTPUTS_DIR) / "scores_*.csv"))
 
 def prep(df):
     d = df[(df.k_spec == "model") & df.value_over_textbook_ll.notna()].copy()

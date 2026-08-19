@@ -11,6 +11,8 @@ Conventions that keep the confirmatory pipeline reproducible. Read
 | Where should this run write, and how are experiments named? | this file |
 | What do caches mean (oracle era, identity)? | [`docs/onboarding.md`](docs/onboarding.md) §3–4 |
 | What was this experiment, and what did it find? | [`docs/experiments_registry.md`](docs/experiments_registry.md) |
+| What does this project term mean, in plain words? | [`docs/glossary.md`](docs/glossary.md) |
+| How is everything laid out (repo, `data/`, outputs, `paper/`)? | [`docs/project_layout.md`](docs/project_layout.md) |
 | End-of-day cleanup | `/repo-audit` |
 
 Do not restate the folder tree elsewhere. If the tree changes, edit README + `layout.py` together.
@@ -59,9 +61,9 @@ All writes resolve under `OUTPUTS_DIR` via `layout.py` helpers. Never hard-code
 | Bucket | Use for | Do not use for |
 |--------|---------|----------------|
 | `cache/` | Oracle cells, embeddings, leakage audit, textbook baselines | Exploratory scores, repo-audit reports |
-| `main/<selector>/` | Canonical confirmatory gen / extract / maps / scores | A probe that might clobber the baseline |
-| `main/runs/<tag>/` | `--run-tag` on **map / score / pipeline** of the locked stack (`run_main.py`) | Isolating gen/extract (they stay in `main/<selector>/`); a different prompt, extractor, or script |
-| `experiments/<name>/` | A named study with its own contract, models, or script | Overwriting confirmatory `cache/` or canonical `main/` |
+| `selectors/<selector>/` | Canonical confirmatory gen / extract / maps / scores | A probe that might clobber the baseline |
+| `selectors/runs/<tag>/` | `--run-tag` on **map / score / pipeline** of the locked stack (`run_main.py`) | Isolating gen/extract (they stay in `selectors/<selector>/`); a different prompt, extractor, or script |
+| `experiments/<name>/` | A named study with its own contract, models, or script | Overwriting confirmatory `cache/` or canonical `selectors/` |
 | `experiments/_analysis/` | Digests derived from registered experiments | One-off screens that are not an experiment |
 | `analysis/` | One-off diagnostic CSVs (e.g. oracle heterogeneity) | Registered experiment artifacts |
 | `logs/` | Flat `token_usage_*.jsonl` and `timing_*.jsonl` (context in the filename) | Subfolders per context; score CSVs |
@@ -73,10 +75,10 @@ All writes resolve under `OUTPUTS_DIR` via `layout.py` helpers. Never hard-code
 **`--run-tag` vs `experiments/<name>/` are not interchangeable.**
 
 - **`--run-tag`:** same confirmatory pipeline, same gen/extract; only maps and scores
-  land under `main/runs/<tag>/` so you do not clobber `main/<selector>/maps` and
+  land under `selectors/runs/<tag>/` so you do not clobber `selectors/<selector>/maps` and
   `scores_<selector>.csv`.
 - **`experiments/<name>/`:** different question (prompt, role swap, embedder, …).
-  Own tree; experiment scripts must not write canonical `main/` or `cache/`.
+  Own tree; experiment scripts must not write canonical `selectors/` or `cache/`.
 
 ## Experiment names and storage
 
@@ -87,7 +89,7 @@ first write (see below). Naming:
 |-------|------|---------|
 | **Folder `<name>`** | `snake_case`, short, names the *manipulation* | `prompt_sensitivity`, `pipeline_role_swap` |
 | **Registry slug** | `kebab-case` of the same words; more specific if one folder holds several contrasts | folder `pipeline_role_swap/` → slugs `pipeline-role-swap`, `extract-swap-minimax` |
-| **`--run-tag`** | `snake_case`, filesystem-safe (`layout.sanitize_model_slug`); not an experiments folder | `pilot_phase_a` → `main/runs/pilot_phase_a/` |
+| **`--run-tag`** | `snake_case`, filesystem-safe (`layout.sanitize_model_slug`); not an experiments folder | `pilot_phase_a` → `selectors/runs/pilot_phase_a/` |
 | **Arms / variants** | subdirs under the study folder, not sibling top-level names | `pipeline_role_swap/minimax_nemotron/` |
 | **Retries** | never overwrite; new attempt is `<name>_v2` or a new arm subdir | `extract_type_pilot_v2/` |
 | **Derived digests** | only `experiments/_analysis/` (leading underscore is reserved) | contrast blocks, stack summaries |
@@ -110,7 +112,7 @@ Add an entry in [`docs/experiments_registry.md`](docs/experiments_registry.md)
 
 1. the run writes under `outputs/experiments/<name>/`, or
 2. you will cite a `--run-tag` sweep (including pilots), or
-3. the run can change confirmatory numbers under `cache/` or canonical `main/`.
+3. the run can change confirmatory numbers under `cache/` or canonical `selectors/`.
 
 Fill **Result** when the run finishes (or mark `status: abandoned`). Do not
 register logs, `.tmp/`, or repo-audit reports.
@@ -118,7 +120,7 @@ register logs, `.tmp/`, or repo-audit reports.
 ## Ground rules
 
 1. **Do not break cached-artifact contracts.** Paths under `outputs/` go through
-   `layout.py` / `OUTPUTS_DIR`. Existing era-3 oracles and `main/` artifacts must keep resolving.
+   `layout.py` / `OUTPUTS_DIR`. Current-contract oracles and `selectors/` artifacts must keep resolving.
 2. **No result drift.** Refactors that touch scoring/metrics must re-check numbers against existing artifacts.
 3. **Keep model roles fixed.** Register new selectors in `config.SELECTORS`; don't change extractor/disambiguator for a selector comparison.
 4. **Python 3.9 compatibility.** `from __future__ import annotations` in every module.

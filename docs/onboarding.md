@@ -34,6 +34,9 @@ research branch / snapshots if you need them.
 
 ## 2. Vocabulary
 
+Metric-level terms below; project-level terms (confirmatory, Arm C, selector, phases,
+grid-screen classes) are defined in plain language in [`glossary.md`](glossary.md).
+
 | term | meaning |
 |---|---|
 | oracle | AutoGluon PI on real survey data — gold standard for selection |
@@ -61,7 +64,7 @@ Constant: `ORACLE_CONTRACT_VERSION` in `src/survey_features/oracle.py`.
 row here. Full audit: `docs/pipeline_audit_2026-08.md`.
 
 **Which numbers are current on this branch:** era-3 oracles under `outputs/cache/cells/`,
-and free-text Arm C artifacts under `outputs/main/`. Those paths resolve under the
+and free-text Arm C artifacts under `outputs/selectors/`. Those paths resolve under the
 shared Dropbox root (`SURVEY_FEATURES_OUTPUTS`). Experiment-by-experiment claims
 live in [`docs/experiments_registry.md`](experiments_registry.md) — register before
 writing when CONTRIBUTING says to.

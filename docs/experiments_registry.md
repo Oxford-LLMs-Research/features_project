@@ -89,7 +89,7 @@ Sorted by **Stage**, then status.
 
 | Stage | Slug | Status | One-line claim | Outputs |
 |-------|------|--------|----------------|---------|
-| end-to-end | [`main-freetext`](#main-freetext--confirmatory-free-text-arm-c) | complete | Free-text + dual-layer map is the confirmatory instrument | `outputs/main/` |
+| end-to-end | [`main-freetext`](#main-freetext--confirmatory-free-text-arm-c) | complete | Free-text + dual-layer map is the confirmatory instrument | `outputs/selectors/` |
 | end-to-end | [`confirmatory-zoo`](#confirmatory-zoo--multi-selector-lock) | design | Not run | — |
 | end-to-end | [`prelim-json-grid`](#prelim-json-grid--strict-json-appendix) | superseded | JSON-era magnitudes are a floor, not the estimate | snapshots / `outputs/grid/` |
 | elicitation | [`prompt-sensitivity`](#prompt-sensitivity--selector-system-message) | complete | Keep confirmatory social_scientist system prompt | `outputs/experiments/prompt_sensitivity/` |
@@ -260,7 +260,7 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 | **Commit** | dual-layer lock: `949a8cf` on `main` / carried into `rewrite/minimal-core`. Re-record SHA for any new selector sweep |
 | **Compute** | LLM API (selector + fixed Qwen extractor + Nemotron disambig); local CPU for score / XGB |
 | **Inputs** | `outputs/cache/audits/leakage_audit.csv` (genuine cells); `outputs/cache/cells/*/oracle.csv` (v3); `outputs/cache/baselines/textbook__*.json` |
-| **Outputs** | `outputs/main/<selector>/{freetext,extracted,maps}/`; `outputs/main/scores_<selector>.csv` |
+| **Outputs** | `outputs/selectors/<selector>/{freetext,extracted,maps}/`; `outputs/selectors/scores_<selector>.csv` |
 
 **Rationale.** To test whether an LLM, prompted in free text and mapped dual-layer onto survey variables, captures oracle importance and beats matched-k random and textbook demographic baselines across countries.
 
@@ -335,7 +335,7 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 | **Code** | on `main`: `scripts/run_main.py --embedding-model …`, `scripts/run_embedding_sensitivity_parallel.ps1`, `analysis/embedding_sensitivity.py`; design `docs/embedding_sensitivity.md` |
 | **Commit** | record the SHA of the sensitivity sweep; organizational commit `7b00be5` (outputs layout) |
 | **Compute** | LLM disambig (fixed); local sentence-transformers for embedders under test |
-| **Inputs** | reused `outputs/main/<selector>/{freetext,extracted}/`; MiniLM main maps as baseline |
+| **Inputs** | reused `outputs/selectors/<selector>/{freetext,extracted}/`; MiniLM main maps as baseline |
 | **Outputs** | `outputs/experiments/embedding_sensitivity/<model_slug>/<selector>/`; comparison digests under that tree |
 
 **Rationale.** To test whether swapping the retrieval embedder (holding selector, extractor, and disambiguator fixed) changes mapped codes and downstream scores.
@@ -356,7 +356,7 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 | **Code** | one-off local script (not committed); embedder via `sentence_transformers` / same model as [`retrieval.py`](../src/survey_features/retrieval.py) default |
 | **Commit** | — (no code or `outputs/` write; logged here for the decision trail) |
 | **Compute** | local: `all-MiniLM-L6-v2` only; no LLM |
-| **Inputs** | first 10 unprompted features from `outputs/main/kimi/extracted/afrobarometer__Q15__Angola.json` (labels + contexts) |
+| **Inputs** | first 10 unprompted features from `outputs/selectors/kimi/extracted/afrobarometer__Q15__Angola.json` (labels + contexts) |
 | **Outputs** | none under `outputs/` — cosine table lived in the session only |
 
 **Rationale.** To test whether extractor labels that use underscores (`left_right_economic_ideology`) vs whitespace (`left right economic ideology`) corrupt MiniLM query embeddings enough to threaten dual-embed retrieval.
@@ -396,8 +396,8 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 | **Code** | pilot on `main`: `scripts/run_subitem_mapping.py`, `analysis/subitem_mapping.py`; production path: [`mapping.map_features_with_subitems`](../src/survey_features/mapping.py) via [`run_main.py`](../scripts/run_main.py) |
 | **Commit** | pilot `f7a7fb0`; promotion `949a8cf` |
 | **Compute** | LLM disambig per parent and per bundled sub_item (≥2); local score |
-| **Inputs** | shared gen/extract under `outputs/main/<selector>/` |
-| **Outputs** | pilot: `outputs/experiments/subitem_mapping/`; production maps: `outputs/main/<selector>/maps/` with `expanded_codes` |
+| **Inputs** | shared gen/extract under `outputs/selectors/<selector>/` |
+| **Outputs** | pilot: `outputs/experiments/subitem_mapping/`; production maps: `outputs/selectors/<selector>/maps/` with `expanded_codes` |
 
 **Rationale.** To test whether mapping each bundled `sub_item` as its own retrieve+disambiguate unit (dual-layer) improves captured importance / predictive score versus parent-only mapping.
 
@@ -417,7 +417,7 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 | **Code** | was `scripts/pilot_extract_types.py` (untracked / cut on minimal-core); extraction prompt in [`prompts.py`](../src/survey_features/prompts.py) |
 | **Commit** | re-extract pilot did not land as a tagged release; taxonomy rename landed with `949a8cf` / prompts edits |
 | **Compute** | LLM: fixed extractor only |
-| **Inputs** | sample of cached free-text essays under `outputs/main/` |
+| **Inputs** | sample of cached free-text essays under `outputs/selectors/` |
 | **Outputs** | `outputs/experiments/extract_type_pilot/`, `extract_type_pilot_v2/` |
 
 **Rationale.** To test whether clearer extract-type taxonomy wording (including `population_statistic` rename) changes typed feature lists without touching the selector.
@@ -458,7 +458,7 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 | **Commit** | — (record when the zoo is actually swept) |
 | **Compute** | LLM API per selector; local score |
 | **Inputs** | era-3 oracles + genuine grid + textbook |
-| **Outputs** | `outputs/main/scores_<selector>.csv` (canonical or `--run-tag`) |
+| **Outputs** | `outputs/selectors/scores_<selector>.csv` (canonical or `--run-tag`) |
 
 **Rationale.** To test the confirmatory free-text + dual-layer stack across a locked set of selector models under identical extractor, disambiguator, and scoring contracts.
 

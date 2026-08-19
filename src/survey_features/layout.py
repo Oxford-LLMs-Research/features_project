@@ -12,7 +12,7 @@ name experiments: CONTRIBUTING.md.
       embeddings/survey_embeddings__<survey>__<model>.npz
       audits/leakage_audit.csv          # grid screen (type-1 + leakage)
       baselines/textbook__<survey>.json
-    main/                               # confirmatory Arm C
+    selectors/                          # confirmatory per-selector pipeline (was main/)
       <selector>/{freetext,extracted,maps}/
       scores_<selector>.csv
       runs/<run_tag>/…                  # --run-tag: map/score only
@@ -90,8 +90,9 @@ def logs_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
     return d
 
 
-def main_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
-    return outputs_dir / "main"
+def selectors_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    """outputs/selectors/ — canonical confirmatory per-selector outputs (was main/)."""
+    return outputs_dir / "selectors"
 
 
 def experiments_dir(outputs_dir: Path = OUTPUTS_DIR) -> Path:
@@ -225,38 +226,26 @@ def leakage_audit_write_paths(outputs_dir: Path = OUTPUTS_DIR) -> tuple[Path, Pa
     return d / "leakage_audit.csv", d / "leakage_audit_summary.json"
 
 
-# ── Main free-text pipeline ───────────────────────────────────────────────────
+# ── Confirmatory free-text pipeline (per-selector) ────────────────────────────
 
-def main_scores_path(
+def selector_scores_path(
     selector_key: str,
     outputs_dir: Path = OUTPUTS_DIR,
     run_tag: str | None = None,
 ) -> Path:
-    """Scores CSV under main/ (or main/runs/<tag>/)."""
-    root = main_dir(outputs_dir)
+    """Scores CSV under selectors/ (or selectors/runs/<tag>/)."""
+    root = selectors_dir(outputs_dir)
     if run_tag:
         return root / "runs" / sanitize_model_slug(run_tag) / f"scores_{selector_key}.csv"
-    preferred = root / f"scores_{selector_key}.csv"
-    if preferred.is_file():
-        return preferred
-    # Historical filenames still present for deepseek / kimi runs.
-    if selector_key == "deepseek":
-        legacy = root / "scores.csv"
-        if legacy.is_file():
-            return legacy
-    if selector_key == "kimi":
-        legacy_k = root / "scores_kimi.csv"
-        if legacy_k.is_file():
-            return legacy_k
-    return preferred
+    return root / f"scores_{selector_key}.csv"
 
 
-def resolve_main_scores_path(
+def resolve_selector_scores_path(
     selector_key: str,
     outputs_dir: Path = OUTPUTS_DIR,
     run_tag: str | None = None,
 ) -> Path | None:
-    p = main_scores_path(selector_key, outputs_dir, run_tag=run_tag)
+    p = selector_scores_path(selector_key, outputs_dir, run_tag=run_tag)
     return p if p.is_file() else None
 
 
@@ -267,10 +256,11 @@ def selector_dirs(
 ) -> tuple[Path, Path, Path]:
     """(freetext, extracted, maps) for one selector.
 
-    Gen/extract live under main/<selector>/. Maps use main/runs/<tag>/<selector>/maps
-    when run_tag is set, else main/<selector>/maps.
+    Gen/extract live under selectors/<selector>/. Maps use
+    selectors/runs/<tag>/<selector>/maps when run_tag is set, else
+    selectors/<selector>/maps.
     """
-    root = main_dir(outputs_dir)
+    root = selectors_dir(outputs_dir)
     base = root / selector_key
     freetext, extracted = base / "freetext", base / "extracted"
     if run_tag:

@@ -80,9 +80,9 @@ python scripts/run_main.py --phase pipeline --selector deepseek --disambiguator 
     --pipeline-workers 4 --map-workers 8 --with-score
 ```
 
-Use `--run-tag <name>` on map/score/pipeline to write under `main/runs/<name>/`
+Use `--run-tag <name>` on map/score/pipeline to write under `selectors/runs/<name>/`
 without clobbering the canonical baseline. Gen/extract always stay under
-`main/<selector>/`. Named studies (different prompt, models, or script) go under
+`selectors/<selector>/`. Named studies (different prompt, models, or script) go under
 `outputs/experiments/<name>/` — see CONTRIBUTING for which bucket to use.
 
 ---
@@ -112,7 +112,7 @@ outputs/                              # OUTPUTS_DIR — Dropbox share
     embeddings/
     audits/leakage_audit.csv          # pipeline leakage (not repo-audit)
     baselines/textbook__<survey>.json
-  main/                               # confirmatory Arm C
+  selectors/                          # canonical confirmatory per-selector outputs (was main/)
     <selector>/{freetext,extracted,maps}/
     scores_<selector>.csv
     runs/<run_tag>/                   # --run-tag map/score only
@@ -127,7 +127,10 @@ outputs/                              # OUTPUTS_DIR — Dropbox share
 
 **Where to write** ( `--run-tag` vs `experiments/`, when to register):
 [`CONTRIBUTING.md`](CONTRIBUTING.md). **What caches mean:**
-[`docs/onboarding.md`](docs/onboarding.md) §3–4.
+[`docs/onboarding.md`](docs/onboarding.md) §3–4. **What each bucket is and why —
+plus how `data/` inputs and `paper/` are organized:**
+[`docs/project_layout.md`](docs/project_layout.md). **Project terms in plain
+language:** [`docs/glossary.md`](docs/glossary.md).
 
 ---
 

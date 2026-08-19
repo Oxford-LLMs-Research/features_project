@@ -73,7 +73,7 @@ def main() -> None:
     ap.add_argument("--cells", type=Path, required=True,
                     help="grid CSV (survey,target,country)")
     ap.add_argument("--run-tag", default=None,
-                    help="read maps from main/runs/<tag>/; scores land beside them")
+                    help="read maps from selectors/runs/<tag>/; scores land beside them")
     ap.add_argument("--score-workers", type=int, default=None)
     ap.add_argument("--score-xgb-nthread", type=int, default=None)
     args = ap.parse_args()
