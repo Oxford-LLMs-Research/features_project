@@ -98,7 +98,8 @@ Sorted by **Stage**, then status.
 | grid | [`leakage-audit`](#leakage-audit--genuine-cell-screen) | complete | Drop type-1 / leakage only; keep type-2/3 signal | `outputs/cache/audits/leakage_audit.csv` |
 | mapping | [`pipeline-role-swap`](#pipeline-role-swap--minimax-extract--flash-disambig) | complete | Joint MiniMax+Flash rejected; Flash-as-disambig not followed up | `outputs/experiments/pipeline_role_swap/minimax_flash/` |
 | mapping | [`subitem-mapping`](#subitem-mapping--dual-layer-pilot) | complete → promoted | Dual-layer locked into main | `outputs/experiments/subitem_mapping/` |
-| oracle | [`oracle-v3`](#oracle-v3--measurement-level-honest-split) | complete | Era-3 oracle is the current ground truth | `outputs/cache/cells/` |
+| oracle | [`oracle-v3`](#oracle-v3--measurement-level-honest-split) | superseded | Era-3 oracle retired 2026-08-19; contract v4 is current (onboarding §3) | `outputs/cache/cells_v3/` (archive) |
+| scoring | [`pooled-country-value`](#pooled-country-value--is-country-worth-requesting) | design | Not run — pooled value of the country column vs selector country-requests | — |
 | retrieval | [`embedding-sensitivity`](#embedding-sensitivity--sentence-transformer-swap) | complete | Embedder swap moves maps more than scores | `outputs/experiments/embedding_sensitivity/` |
 | retrieval | [`ensemble-mapping`](#ensemble-mapping--minilm--mpnet-union) | complete (not promoted) | Union retrieval lifts Jaccard; small VoR gain | `outputs/experiments/ensemble_mapping/` |
 | retrieval | [`underscore-label-embed`](#underscore-label-embed--feature-label-tokenization) | complete (ad-hoc) | `_` vs spaces barely moves MiniLM vectors | chat-only |
@@ -291,7 +292,7 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 
 | Field | Value |
 |-------|-------|
-| **Status** | complete (current ground truth) |
+| **Status** | superseded (2026-08-19: contract v4 is the only contract; v3 was a dev byproduct — do not cite or build on its caches, see onboarding §3) |
 | **Stage** | oracle |
 | **Dates** | contract v3 rebuild 2026-08 (`21c780d` lineage) |
 | **Code** | [`scripts/rerun_oracles.py`](../scripts/rerun_oracles.py), [`scripts/compute_oracle.py`](../scripts/compute_oracle.py); [`src/survey_features/oracle.py`](../src/survey_features/oracle.py), [`oracle_pool.py`](../src/survey_features/oracle_pool.py). Audit: [`pipeline_audit_2026-08.md`](pipeline_audit_2026-08.md) |
@@ -457,10 +458,61 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 | **Code** | [`scripts/run_main.py`](../scripts/run_main.py) + `config.SELECTORS` |
 | **Commit** | — (record when the zoo is actually swept) |
 | **Compute** | LLM API per selector; local score |
-| **Inputs** | era-3 oracles + genuine grid + textbook |
+| **Inputs** | contract-v4 oracles for the sampled grid + typed leakage screen + textbook |
 | **Outputs** | `outputs/selectors/scores_<selector>.csv` (canonical or `--run-tag`) |
 
 **Rationale.** To test the confirmatory free-text + dual-layer stack across a locked set of selector models under identical extractor, disambiguator, and scoring contracts.
+
+**Result.** —
+
+---
+
+### `pooled-country-value` — is country worth requesting?
+
+| Field | Value |
+|-------|-------|
+| **Status** | design |
+| **Stage** | scoring |
+| **Dates** | designed 2026-08-19; runs after the confirmatory sweep |
+| **Code** | intended `scripts/run_pooled_country_value.py`; reuses [`evaluate_feature_set`](../src/survey_features/evaluation.py) unchanged (pooled rows + a whitelist flag for the country column in the pool builder) |
+| **Commit** | — (record at first artifact write) |
+| **Compute** | local CPU only (XGB on pooled rows); no LLM calls |
+| **Inputs** | the 30 transportability targets (grid memo Q2) with their 6-country microdata pooled **within survey**; balanced v4 oracles for those targets; unprompted-arm mapped picks from the confirmatory sweep; heterogeneity bins + within-country reliability from the het screen |
+| **Outputs** | `outputs/experiments/pooled_country_value/pooled_scores.csv` (one row per target × feature-set × ±country), digest in `experiments/_analysis/` |
+
+**Rationale.** Inside a (target, country) cell, country has zero variance — it can
+never be a feature — so the pipeline cannot say whether a selector *should* have
+asked for the respondent's country. Yet selectors do ask: in the unprompted
+condition they request a country/nationality feature in 24–50% of cells (vs 4–12%
+when the country is named), and on era-3 data that request rate is uncorrelated
+with *structure* heterogeneity (r ≈ −0.02) — which looked like indiscriminate
+hedging until we noticed the ground truth was wrong: requesting country is rational
+wherever country shifts the *level* of the target, even when the predictive
+structure is identical everywhere. This experiment measures the correct ground
+truth — the pooled predictive value of the country column, levels and structure
+combined — and asks whether selectors request country where it actually pays.
+
+**Design.** For each of the 30 transportability targets, stack its 6 countries'
+rows (same questionnaire — within-survey pooling only, per the grid memo's scope
+note). Score each feature set twice with the standard typed evaluator — once with
+the country column whitelisted in, once out; Δ(country) = the pooled value of
+knowing the country for that set. Sets: oracle top-k (Δ_oracle = ground truth
+"was country worth requesting"), the selector's unprompted picks (one set per
+target: the modal mapped set across its cells — registered collapse rule;
+unprompted picks are country-blind by construction, so per-cell copies differ only
+by extraction jitter), textbook, and matched-k random.
+
+**Predictions (registered before looking).** (1) Δ_oracle > 0 for most attitude
+targets (country level-shifts are near-universal) — if not, country-requesting is
+over-hedging even in level terms. (2) A knowledgeable selector's country-request
+rate (unprompted arm) rises with Δ_oracle — this replaces the structure-het x-axis
+that wrongly suggested hedging. (3) Crossing Δ_oracle with structure-het separates
+regimes: high-Δ/low-het = "levels differ, mechanism shared" (the same-pattern-
+different-drivers scenario made measurable); high-het targets should additionally
+show pick differentiation and swap gains (grid memo, transportability primary).
+**Guard:** pooled permutation importance of country lumps level shifts with
+structural change — never read Δ(country) alone as "structure varies"; that claim
+belongs to the het measure and the swap contrast.
 
 **Result.** —
 

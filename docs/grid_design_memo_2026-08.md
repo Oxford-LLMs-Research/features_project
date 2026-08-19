@@ -303,6 +303,22 @@ One entry, stage `end-to-end`, status `design`, with:
   capability curve via within-cell paired selector contrasts ordered by model tier;
   breadth-vs-precision (model-k vs fixed k=5). Binned high-vs-low reported as
   descriptive only.
+- **Secondary (behavioral adaptation battery, 30 transportability questions):**
+  three layers, one x-axis each, separating *adaptation* from *stereotyping/hedging*
+  and *rigidity*. (1) Country-request rate in the unprompted arm (share of cells
+  whose extracted features name country/nationality — text level, pre-mapping, since
+  country is unmappable within a cell) regressed on Δ_oracle from the registered
+  `pooled-country-value` experiment — the pooled value of the country column, the
+  correct ground truth for "should the model ask" (level + structure; structure-het
+  is the wrong x-axis here). (2) Pick differentiation across countries in the
+  country-named arm (1 − Jaccard of mapped codes) regressed on structure
+  heterogeneity — slope > 0 with low intercept = adaptation; high flat intercept =
+  stereotyping; flat zero = rigid. (3) Swap gain (Primary 2) = differentiation
+  paying off in value. Cross-arm consistency check: for an adaptive selector the
+  same questions drive all three layers. Read slopes/intercepts, not cells — pick
+  lists carry extraction jitter (map Jaccard across arms ≈ 0.35). Pilot-grade fact
+  motivating layer 1: era-3 request rates 24–50% unprompted vs 4–12% country-named,
+  uncorrelated with structure-het (r ≈ −0.02).
 - **Frozen before launch:** variance inputs and detectable-effect table (this memo);
   exclusion rules (leakage flag, minimum-signal, provider-caused missingness only —
   don't-know/refused are genuine answers); Flash exclusion; sampling seed and
