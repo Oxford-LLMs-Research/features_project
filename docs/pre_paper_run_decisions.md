@@ -87,15 +87,20 @@ skip cells already present in an old file).
 
 ## Ranked backlog before the confirmatory paper run
 
-1. **Recompute all 89 oracles under contract v4, then re-screen** — code done
-   2026-08-19 (v4 is the only contract; typed self-contained audit; absolute
-   near-duplicate rule; regression type-1). Runbook:
-   `cp -r outputs/cache/cells outputs/cache/cells_v3` →
-   `python scripts/rerun_oracles.py --processes 3` (89 cells, hours of AutoGluon) →
-   `python scripts/leakage_audit.py --with-data` → review flagged cells (expect
-   `SE7a Mongolia` → leakage; decide whether ESS test-battery items like `testji4`
-   belong in the target universe at all) → only then archive the legacy
-   `grid/`, `sensitivity/`, and old `selectors/scores_*.csv` to `.trash/`.
+1. **Build the confirmatory grid fresh; compute v4 oracles only for it** — code
+   done 2026-08-19 (v4 is the only contract; typed self-contained audit; absolute
+   near-duplicate rule; regression type-1). Do **not** blanket-recompute the 89
+   era-3 cells: they are the legacy grid, and the design memo
+   (`grid_design_memo_2026-08.md`) replaces it with a sampled 90×3 + 30×6 grid.
+   Runbook: (a) lock the target universe (`target_universe_screen.py`, no oracles
+   needed; decide flagged cases — e.g. whether ESS test-battery items like
+   `testji4` are targets at all); (b) sample the grid per the memo; (c)
+   `cp -r outputs/cache/cells outputs/cache/cells_v3`, then compute v4 oracles for
+   exactly the sampled cells (the 22 pilot cells already have v4); (d)
+   `python scripts/leakage_audit.py --with-data` → the binding genuine set
+   (expect SE7a-style near-duplicates to drop); (e) only then archive the legacy
+   `grid/`, `sensitivity/`, v3 cells, and old `selectors/scores_*.csv` to
+   `.trash/`. Legacy 89-cell oracles get recomputed only if drawn into the sample.
 
 2. **Lock the selector zoo**  
    `config.SELECTORS` today is only `deepseek` (V4-Pro) + `kimi` (K2.6). Registry `confirmatory-zoo` is still design-only. Decide the locked list (IDs on Nebius Studio / Token Factory), register keys in `config.SELECTORS`, then sweep with fixed Qwen+Nemotron + `social_scientist`.
