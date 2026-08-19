@@ -1,6 +1,13 @@
-"""Unit tests for survey_features.disambig.parse_letter (current per-feature parser)."""
+"""Unit tests for survey_features.mapping.parse_letter."""
 
-from survey_features.disambig import candidate_label, parse_letter
+from survey_features.mapping import (
+    MAP_STATUS_MODEL_EMPTY,
+    MAP_STATUS_MODEL_NONE,
+    MAP_STATUS_UNPARSEABLE,
+    candidate_label,
+    classify_none_raw,
+    parse_letter,
+)
 
 
 def test_bare_letter():
@@ -29,5 +36,12 @@ def test_aa_longest_token_wins():
 
 
 def test_out_of_range_letter():
-    # Only A..C are valid when n=3; "E" is not in the pool.
     assert parse_letter("E", 3) is None
+
+
+def test_classify_none_raw():
+    assert classify_none_raw("") == MAP_STATUS_MODEL_EMPTY
+    assert classify_none_raw("   ") == MAP_STATUS_MODEL_EMPTY
+    assert classify_none_raw("none") == MAP_STATUS_MODEL_NONE
+    assert classify_none_raw("None of these fit") == MAP_STATUS_MODEL_NONE
+    assert classify_none_raw("I am unsure which to pick") == MAP_STATUS_UNPARSEABLE

@@ -736,7 +736,7 @@ processing step damaged it.
 
 ## First era-3 results (arm C, nemotron, 47-cell grid)
 
-Read back from `outputs/main/scores_{kimi,deepseek}.csv` (1323 / 1347 rows, 0 errors;
+Read back from `outputs/selectors/scores_{kimi,deepseek}.csv` (1323 / 1347 rows, 0 errors;
 n = 90 arm-C rows each = cells × conditions). These are means over cells, **not**
 cluster-bootstrap estimates — no CIs yet, so treat as provisional.
 

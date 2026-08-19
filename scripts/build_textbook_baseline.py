@@ -43,7 +43,7 @@ from survey_features.config import (  # noqa: E402
     OUTPUTS_DIR,
     TEXTBOOK_CONSTRUCTS,
 )
-from survey_features.disambig import _disambiguate_pool  # noqa: E402
+from survey_features.mapping import _disambiguate_pool  # noqa: E402
 from survey_features.retrieval import (  # noqa: E402
     load_or_build_survey_embeddings,
     make_embed_fn,
@@ -113,7 +113,7 @@ def build_one(survey: str, disambig_key: str, embedding_model: str,
     constructs = []
     for (label, context), pool in zip(TEXTBOOK_CONSTRUCTS, pools):
         pool = [c for c in pool if c["similarity"] >= MIN_SIMILARITY]
-        code, text, raw = _disambiguate_pool(label, context, pool, dgen)
+        code, text, raw, _status = _disambiguate_pool(label, context, pool, dgen)
         entry = {
             "label": label,
             "context": context,

@@ -1,0 +1,15 @@
+{
+  "_meta": {
+    "source": "https://tokenfactory.nebius.com/model-catalog.md",
+    "unit": "USD per 1M tokens",
+    "note": "Snapshot for local cost inference; refresh when Nebius prices change."
+  },
+  "models": {
+    "deepseek-ai/DeepSeek-V4-Flash": {"input": 0.14, "output": 0.28},
+    "deepseek-ai/DeepSeek-V4-Pro": {"input": 1.75, "output": 3.5},
+    "moonshotai/Kimi-K2.6": {"input": 0.95, "output": 4.0},
+    "MiniMaxAI/MiniMax-M3": {"input": 0.3, "output": 1.2},
+    "Qwen/Qwen3-235B-A22B-Instruct-2507": {"input": 0.2, "output": 0.6},
+    "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B": {"input": 0.06, "output": 0.24}
+  }
+}

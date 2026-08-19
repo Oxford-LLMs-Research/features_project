@@ -1,6 +1,6 @@
 """Unit tests for dual-layer expand helpers (no LLM / retrieval)."""
 
-from survey_features.subitem_map import (
+from survey_features.mapping import (
     MIN_SUBITEMS_TO_EXPAND,
     _append_unique,
     subitem_context,
@@ -24,7 +24,7 @@ def test_subitem_context_empty_parent_context():
 
 
 def test_expanded_codes_union_parents_first_dedup():
-    """Mirror production: per-layer dedup; expanded is cross-layer union (parents first)."""
+    """Per-layer dedup; expanded is cross-layer union (parents first)."""
     parent_codes: list[str] = []
     subitem_codes: list[str] = []
     expanded_codes: list[str] = []
@@ -32,10 +32,8 @@ def test_expanded_codes_union_parents_first_dedup():
     seen_sub: set[str] = set()
     seen_exp: set[str] = set()
 
-    # parent Q1
     _append_unique("Q1", seen_parent, parent_codes)
     _append_unique("Q1", seen_exp, expanded_codes)
-    # sub_items Q2, Q1 (same code as parent — kept in subitem_codes), None, Q2 (within-layer dupe)
     for code in ("Q2", "Q1", None, "Q2"):
         _append_unique(code, seen_sub, subitem_codes)
         _append_unique(code, seen_exp, expanded_codes)

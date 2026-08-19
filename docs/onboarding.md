@@ -1,152 +1,125 @@
 # Onboarding — read this first
 
-The 30-minute path into this repo. README covers setup; CONTRIBUTING covers conventions;
-this covers **how the system thinks** — the concepts, the trust rules, and the sharp
-edges that otherwise live only in commit history and people's heads.
+The short path into this repo. README covers setup and where the Dropbox
+outputs tree lives; CONTRIBUTING covers where a run should write; this covers
+**how the system thinks**.
 
 ---
 
-## 1. What the project measures, in one diagram
-
-**Question:** does an LLM know, from a survey question's wording alone, which respondent
-characteristics predict the answer — and does that knowledge adapt across countries?
+## 1. What the project measures
 
 ```
                     THE MODEL'S SIDE (per selector LLM)
   question text ──▶ free-text essay ──▶ typed feature list ──▶ survey variable codes
-                    (gen)               (extract, FIXED model)  (retrieve + disambig,
-                                                                 FIXED models)
+                    (gen)               (extract, FIXED model)  (retrieve + dual-layer
+                                                                 disambig, FIXED models)
                     THE GROUND-TRUTH SIDE (once per cell)
   survey data  ──▶ AutoGluon permutation importance = "the oracle"
 
                     THE COMPARISON (per cell × selector)
   captured importance = model's oracle-mass / oracle top-k mass
-  + XGBoost predictive scoring: model picks vs random-k vs textbook demographics
+  + XGBoost: model picks vs random-k vs textbook demographics
 ```
 
-A **cell** = (survey, target question, country), e.g. `stfgov × Austria`. The grid is
-the set of cells that survived the leakage/degeneracy screen (`layout.genuine_cells()`).
+A **cell** = (survey, target question, country). The default grid is cells that
+survived type-1 (unestimable PI) and leakage (`layout.genuine_cells()`). Tiny
+accuracy lift vs majority is **not** a drop — see `grid_screen.py`.
 
-Three model roles, deliberately separated so no model grades its own homework:
-**selector** (the LLM under test), **extractor** (fixed: turns essays into feature
-lists), **disambiguator** (fixed: picks the matching survey variable).
+Three model roles (never mixed): **selector** (under test), **extractor** (fixed),
+**disambiguator** (fixed). Mapping is dual-layer: parents plus bundled `sub_items`
+(when ≥2) become `expanded_codes` — the headline set for scoring.
+
+JSON-era arms A/B and side experiments are **removed on this branch**; use the full
+research branch / snapshots if you need them.
 
 ## 2. Vocabulary
 
+Metric-level terms below; project-level terms (confirmatory, Arm C, selector, phases,
+grid-screen classes) are defined in plain language in [`glossary.md`](glossary.md).
+
 | term | meaning |
 |---|---|
-| oracle | AutoGluon permutation importance on the real survey data — the gold standard a selector is compared against |
-| honest split | oracle fits on 60% (T), *ranks* features on 20% (V1), *values* them on a disjoint 20% (V2). Removes the winner's curse in "oracle top-k". Explained in full at the top of `oracle.py` |
-| `oracle_ceiling@k` | how much of the achievable top-k mass the oracle itself captures when it can't cheat (V1-chosen, V2-valued). Report models against this, not against 1.0 |
-| captured importance | Σ oracle importance of the model's picks ÷ Σ oracle top-k (matched k). The primary selection metric |
-| value_over_random / _textbook | model's predictive score minus a matched-k random draw / minus ten fixed textbook demographics. Textbook is the harder, headline contrast |
-| k | the number of variables the model's requests mapped to. **Model-chosen k is part of the measurand** — never clamp it; fixed-k rows are diagnostics (they truncate in arrival order, since the model doesn't rank its requests) |
-| genuine / degenerate / leakage | the screen's verdict per cell: real signal / oracle can't beat the marginal / target predictable via an artifact (label proxy or routed module) |
-| arms A/B/C | pilot elicitation formats. C = free text = **the** instrument. A/B are JSON-era, kept for the paper's appendix only |
-| target type | binary / nominal / ordinal / continuous, detected from value labels. Drives how the oracle and evaluator model the target (classification+log-loss vs regression+Spearman) |
+| oracle | AutoGluon PI on real survey data — gold standard for selection |
+| honest split (v4) | 50% R ranks by k-fold CV, 30% D reserved for the downstream evaluator (= `train_index`), 20% V2 values the picks. See top of `oracle.py` |
+| `oracle_ceiling@k` | CV-ranked, V2-valued top-k mass — report models against this, not 1.0 |
+| captured importance | Σ oracle importance of model picks ÷ Σ oracle top-k (matched k) |
+| value_over_random / _textbook | predictive score minus matched-k random / textbook demographics |
+| k | number of variables the model's requests mapped to (model-chosen k is part of the measurand) |
+| genuine / unestimable / leakage | grid-screen verdict per cell (type-1 + leakage; not accuracy-vs-majority) |
+| target type | binary / nominal / ordinal / continuous — drives oracle + evaluator |
 
-## 3. Where truth lives — the three eras
+## 3. Where truth lives — oracle eras
 
-Every published number depends on the oracle, and the oracle's rules have changed twice.
-The **contract version** in each cell's `oracle_meta.json` records which rules built it:
+Every published number depends on the oracle. The **contract version** in each cell's
+`oracle_meta.json` records which rules built it:
 
 | contract | rules | cache |
 |---|---|---|
-| v1 | accuracy metric, single 80/20 split, everything multiclass | `features_project_snapshots/era1_cells_accuracy_v1_*.zip` (archived out of tree — provenance of all pre-2026-08 numbers; restore per that dir's MANIFEST.md) |
-| v2 | log loss, honest 60/20/20 split, still everything multiclass | `features_project_snapshots/era2_cells_logloss_multiclass_v2_*.zip` (archived out of tree) |
-| **v3** | + measurement-level aware (ordinal→regression+Spearman), out-of-scale sentinels excluded | `outputs/cache/cells/` (**current**) |
+| v1 | accuracy metric, single 80/20 | archived out of tree (snapshots) |
+| v2 | log loss, honest 60/20/20, still multiclass | archived out of tree |
+| v3 | + measurement-level aware; out-of-scale sentinels excluded; ONE-SHOT split | superseded 2026-08-19 — a dev byproduct; do not cite or build on it |
+| **v4** | k-fold CV ranking + 30% eval reserve (= `train_index`) + untouched 20% valuation holdout; reliability block in meta | `outputs/cache/cells/` (**current**) |
 
-The constant lives in `src/survey_features/oracle.py` (`ORACLE_CONTRACT_VERSION`);
-**this table is the version log** — the code points here.
-**Rule: any change that alters what oracle outputs *mean* must bump the version** (which
-auto-invalidates every cached cell) **and add a row to this table**; a pure refactor
-must not.
+Constant: `ORACLE_CONTRACT_VERSION` in `src/survey_features/oracle.py`.
+**Any change that alters what oracle outputs mean must bump the version** and add a
+row here. Full audit: `docs/pipeline_audit_2026-08.md`.
 
-Why this exists: a resume check that only asked "does the file exist?" once reported
-0 of 89 stale cells needing recomputation. Existence is not validity.
+**Which numbers are current on this branch:** contract-v4 oracles under `outputs/cache/cells/`
+(check `contract_version` in each meta — v3 stragglers are stale),
+and free-text Arm C artifacts under `outputs/selectors/`. Those paths resolve under the
+shared Dropbox root (`SURVEY_FEATURES_OUTPUTS`). Experiment-by-experiment claims
+live in [`docs/experiments_registry.md`](experiments_registry.md) — register before
+writing when CONTRIBUTING says to.
 
-Before quoting any number, read `docs/experiments_index.md` → *"Which numbers are
-current"*. Several memos in `docs/` carry **SUPERSEDED** banners — they are history,
-not results. The full audit that produced eras 2–3 is `docs/pipeline_audit_2026-08.md`.
+## 4. Cache identity
 
-## 4. Cache identity — the general discipline
+A cached artifact must carry the identity of the process that made it:
 
-Three mechanisms, one idea (a cached artifact must carry the identity of the process
-that made it):
+- **`contract_version`** in `oracle_meta.json`
+- **`_fingerprint`** in each cell's `baselines.json` (pool + textbook + draws)
+- **schema guard** in `score_cell.run_score_jobs` — mismatched score CSV headers are archived aside
 
-- **`contract_version`** in `oracle_meta.json` — see above.
-- **`_fingerprint`** in each cell's `baselines.json` — hash of the feature pool, the
-  textbook set, and the draw count. A stale baseline once silently served
-  `textbook_acc: null` for a day after the textbook baseline was added.
-- **schema guard** in `score_cell.run_score_jobs` — a scores CSV whose header doesn't
-  match the current `SCORE_COLS` is archived aside, never appended to.
+If you add a cache, give it an identity field.
 
-If you add a cache, give it an identity field. `CONTRIBUTING.md` rule 1 applies.
+## 5. Sharp edges
 
-## 5. Sharp edges (each learned the expensive way)
-
-1. **AutoGluon's `time_limit` is wall-clock and the preset spends all of it.** Cell cost
-   is set by the budget, not cell size (`corr(n_features, seconds) = 0.16`). Corollaries:
-   *never sleep the laptop mid-fit* (the clock keeps running), and thread-level
-   concurrency is useless-to-fatal.
-2. **Never run concurrent AutoGluon fits in one process.** Threads starved fits at one
-   setting and wedged the interpreter (LightGBM `bad array new length`) at another. Use
-   `scripts/rerun_oracles.py --processes N` (process isolation, `oracle_pool.py`).
-3. **`quick` runtime mode degrades the ranking** (ceiling@10 0.33 vs 0.68 on the same
-   cell). Don't use it for anything that will be quoted.
-4. **DK/refused are answers; "not asked" is not.** Respondent non-response is kept as
-   real categories everywhere except as the *target of a rank model* (no position on the
-   scale, coded 97 on 0–10). Structural missingness → NaN. `surveys.py` taxonomy;
-   review CSVs in `outputs/cache/audits/` when adding a survey.
-5. **Target measurement level is detected, and detection is fallible.** Run
-   `scripts/audit_target_types.py` and *read* `target_types.csv` before trusting a new
-   grid; hand overrides live in `surveys.TARGET_TYPE_OVERRIDES`.
-6. **The disambiguator is not deterministic at temperature 0.** Same input has produced
-   different mappings across runs. Cached maps are the reproducibility unit, not reruns.
-7. **Windows quirks are load-bearing:** Ray disabled (`oracle.py` fit kwargs), spawned
-   workers need `_ensure_src_on_pythonpath`, libomp conflict notes in README.
-8. **PyPI may be blocked on institutional networks** — the working interpreter is the
-   conda base (`miniconda3/python`), not `.venv`.
-9. **Baselines are model-independent and cached per (cell, k)** — a 16-model zoo pays
-   for them once. Don't restructure scoring in a way that breaks that sharing.
+1. AutoGluon `time_limit` is wall-clock — don't sleep the laptop mid-fit; thread-level concurrency is useless-to-fatal for AG.
+2. Never run concurrent AutoGluon fits in one process — use `rerun_oracles.py --processes N`.
+3. `quick` runtime mode degrades rankings; don't quote it.
+4. DK/refused are answers; structural missingness → NaN (`surveys.py` taxonomy).
+5. Target type detection is fallible — check `TARGET_TYPE_OVERRIDES` when adding targets.
+6. The disambiguator is not deterministic at temperature 0; cached maps are the reproducibility unit.
+7. Windows: Ray disabled in oracle fit; spawned workers need `_ensure_src_on_pythonpath`.
+8. Prefer conda `miniconda3` if `.venv` lacks AutoGluon.
+9. Baselines are model-independent and cached per (cell, k).
+10. The live `outputs/` tree is the shared Dropbox folder `features_project/outputs`,
+    via `SURVEY_FEATURES_OUTPUTS` in gitignored `.env`. Confirm `OUTPUTS_DIR` before
+    a run. Dropbox may briefly lock files mid-sync; if a heavy run hits a spurious
+    `PermissionError` on write, pause syncing for the run. One writer machine
+    only — collaborators read.
 
 ## 6. Running things
 
 ```bash
-# the pipeline (per selector; each phase resumable, cached per cell)
-python scripts/run_main.py --phase gen|extract|map|score --selector kimi
+cp -r outputs/cache/cells outputs/cache/cells_v3   # archive before a contract migration
+python scripts/rerun_oracles.py --processes 3   # after oracle contract changes
+python scripts/leakage_audit.py --with-data     # after ANY oracle change; default grid = genuine
+# then archive any pre-existing selectors/scores_*.csv before re-scoring — the
+# score-phase resume would silently skip cells already present in an old file
+python scripts/build_textbook_baseline.py
 
-# the oracle (process pool = the safe concurrency; ~5x wall speedup at 3-5 workers)
-python scripts/rerun_oracles.py --processes 3
-
-# the grid definition (rerun after ANY oracle change)
-python scripts/leakage_audit.py --with-data
-
-# audits worth reading, not just running
-python scripts/audit_target_types.py
-python scripts/audit_missing_codes.py
-python scripts/build_textbook_baseline.py --show
+python scripts/run_main.py --phase gen|extract|map|score --selector deepseek
+# map/pipeline need --disambiguator nemotron
 ```
 
-End every workday with the `/repo-audit` skill (audit + walk-through + commit plan by
-default; cleanup/commits only with `apply-clean` / confirmed `apply-all` — see
-CONTRIBUTING → Workflow).
+Order: oracle → leakage → gen/extract/map → score.
 
-Order matters: oracle → leakage screen → scoring. Scoring against a half-rebuilt oracle
-mixes eras.
+End workdays with `/repo-audit` (see CONTRIBUTING).
 
 ## 7. Suggested first week
 
-1. Read this file, then `README.md`, then `docs/pipeline_audit_2026-08.md` (skim the
-   section heads; deep-read §A1 and the honest-split part).
-2. Read the top-of-file docstrings of `oracle.py`, `surveys.py`, `score_cell.py`,
-   `metrics.py` — they carry the design rationale.
-3. Open one cell directory under `outputs/cache/cells/` and match every file to the
-   diagram in §1.
-4. Run `pytest tests/` (fast, no data needed) and one `--limit 1` scoring pass.
-5. Before touching anything cached, reread §4.
-
-*A doc can map complexity, not shrink it. The real onboarding win comes after the
-confirmatory run locks: deleting the legacy JSON arms, the dual-resolve layout
-fallbacks, and the era-1/2 generators. Until the paper's appendix is frozen they must
-stay (CONTRIBUTING rule 7).*
+1. This file → README § Outputs → CONTRIBUTING (where to write) → skim `docs/pipeline_audit_2026-08.md` (§A1 + honest split).
+2. Top docstrings of `oracle.py`, `surveys.py`, `mapping.py`, `score_cell.py`, `metrics.py`.
+3. Open one cell under `outputs/cache/cells/` and match files to the diagram in §1.
+4. `pytest tests/` and optionally `--limit 1` on a phase.
+5. Before touching caches, reread §4.

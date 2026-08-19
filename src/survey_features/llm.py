@@ -2,7 +2,7 @@
 LLM generation wrapper — the ONE client used everywhere in the pipeline.
 
 Returns a generate_fn(messages, max_tokens, temperature, *, usage_phase=...) -> str
-compatible with all pipeline modules (elicitation, extraction, disambig).
+compatible with all pipeline modules (elicitation, extraction, mapping).
 
 Backed by an OpenAI-compatible API, so it works with:
   - SGLang local server  (LLM_BASE_URL=http://localhost:30000/v1, LLM_API_KEY=EMPTY)
@@ -33,6 +33,55 @@ from typing import Any
 from openai import NotFoundError, OpenAI
 
 from . import config  # noqa: F401  (imports load .env once)
+from .config import OUTPUTS_DIR, ROOT
+
+
+def default_usage_path(phase: str, tag: str | None = None) -> Path:
+    """outputs/logs/token_usage_<phase>[_<tag>]_<UTC stamp>.jsonl"""
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    parts = ["token_usage", phase]
+    if tag:
+        safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in tag)[:64]
+        parts.append(safe)
+    parts.append(stamp)
+    return OUTPUTS_DIR / "logs" / ("_".join(parts) + ".jsonl")
+
+
+def load_nebius_pricing(path: Path | None = None) -> dict[str, dict[str, float]]:
+    """model_id -> {input, output} USD per 1M tokens. Empty dict if file missing."""
+    p = path or (ROOT / "data" / "nebius_pricing.json")
+    if not p.is_file():
+        return {}
+    raw = json.loads(p.read_text(encoding="utf-8"))
+    models = raw.get("models") or {}
+    out: dict[str, dict[str, float]] = {}
+    for mid, prices in models.items():
+        if not isinstance(prices, dict):
+            continue
+        try:
+            out[str(mid)] = {
+                "input": float(prices["input"]),
+                "output": float(prices["output"]),
+            }
+        except (KeyError, TypeError, ValueError):
+            continue
+    return out
+
+
+def estimate_cost_usd(
+    prompt_tokens: int,
+    completion_tokens: int,
+    model: str,
+    pricing: dict[str, dict[str, float]] | None = None,
+) -> float | None:
+    """USD for one model's tokens, or None if model missing from the price table."""
+    table = pricing if pricing is not None else load_nebius_pricing()
+    row = table.get(model)
+    if row is None:
+        return None
+    return (prompt_tokens / 1_000_000.0) * row["input"] + (
+        completion_tokens / 1_000_000.0
+    ) * row["output"]
 
 
 def _usage_to_dict(usage: Any) -> dict[str, Any]:
@@ -65,6 +114,8 @@ class TokenUsageLog:
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
     # phase -> aggregated counters
     _agg: dict[str, dict[str, int]] = field(default_factory=dict, repr=False)
+    # model -> aggregated counters (for cost)
+    _by_model: dict[str, dict[str, int]] = field(default_factory=dict, repr=False)
 
     def __post_init__(self) -> None:
         self.path = Path(self.path)
@@ -113,12 +164,22 @@ class TokenUsageLog:
             if latency_ms is not None:
                 g["latency_ms_sum"] += float(latency_ms)
                 g["latency_ms_n"] += 1
+            m = self._by_model.setdefault(
+                model,
+                {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+            )
+            m["calls"] += 1
+            for k in ("prompt_tokens", "completion_tokens", "total_tokens"):
+                v = ud.get(k)
+                if v is not None:
+                    m[k] = m.get(k, 0) + int(v)
 
-    def print_summary(self) -> None:
-        """Print per-phase and pooled totals (stdout)."""
+    def print_summary(self, pricing: dict[str, dict[str, float]] | None = None) -> None:
+        """Print per-phase totals and inferred USD cost when prices are known."""
         if not self._agg:
             print("\n[llm usage] No token records (usage object missing from API responses?)")
             return
+        table = pricing if pricing is not None else load_nebius_pricing()
         print(f"\n[llm usage] JSONL: {self.path.resolve()}")
         tot_p = tot_c = tot_t = tot_n = 0
         for phase in sorted(self._agg):
@@ -141,6 +202,26 @@ class TokenUsageLog:
             f"  {'ALL':16s}  calls={tot_n:5d}  "
             f"prompt~{tot_p:,}  completion~{tot_c:,}  total~{tot_t:,}"
         )
+        if not self._by_model:
+            return
+        print("[llm cost] inferred from data/nebius_pricing.json (missing models skipped)")
+        cost_known = 0.0
+        any_known = False
+        unknown: list[str] = []
+        for model in sorted(self._by_model):
+            m = self._by_model[model]
+            p, c = m.get("prompt_tokens", 0), m.get("completion_tokens", 0)
+            usd = estimate_cost_usd(p, c, model, table)
+            if usd is None:
+                unknown.append(model)
+                print(f"  {model}: tokens p={p:,} c={c:,}  $=? (no price row)")
+            else:
+                any_known = True
+                cost_known += usd
+                print(f"  {model}: tokens p={p:,} c={c:,}  ~${usd:.4f}")
+        if any_known:
+            suffix = f"  (excl. {len(unknown)} unpriced model(s))" if unknown else ""
+            print(f"  TOTAL known ~${cost_known:.4f}{suffix}")
 
 
 def make_generate_fn(
@@ -225,8 +306,18 @@ def make_generate_fn(
             )
             return ""
         choice = response.choices[0]
-        content = choice.message.content
+        msg = choice.message
+        content = msg.content
         fr = getattr(choice, "finish_reason", None)
+
+        # Reasoning models (e.g. DeepSeek-V4-Flash) sometimes exhaust max_tokens on
+        # CoT and leave content empty; recover from reasoning fields when present.
+        if content is None or (isinstance(content, str) and not content.strip()):
+            for attr in ("reasoning_content", "reasoning"):
+                alt = getattr(msg, attr, None)
+                if isinstance(alt, str) and alt.strip():
+                    content = alt
+                    break
 
         _log = usage_log_ref[0] if usage_log_ref is not None else usage_log
         if _log is not None and usage_phase:

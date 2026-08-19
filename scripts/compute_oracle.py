@@ -31,6 +31,8 @@ from survey_features.layout import (  # noqa: E402
 )
 from survey_features.oracle import (  # noqa: E402
     ENFORCE_IDENTICAL_FEATURE_POOL,
+    DEFAULT_CV_FOLDS,
+    EVAL_RESERVE,
     MAX_MISSINGNESS_THRESHOLD,
     MIN_CLASS_COUNT,
     MIN_NORMALIZED_FEATURE_ENTROPY,
@@ -191,6 +193,32 @@ def _parse_args() -> argparse.Namespace:
         help="Recompute even if cache/cells/<target>_<country>/oracle.csv exists.",
     )
     parser.add_argument(
+        "--num-cpus",
+        type=int,
+        default=None,
+        help=(
+            "CPU budget passed to each AutoGluon fit. REQUIRED when running several "
+            "oracle processes concurrently: without it every fit assumes it owns all "
+            "cores, oversubscribes them, and blows its time_limit (onboarding.md #5)."
+        ),
+    )
+    parser.add_argument(
+        "--cv-folds",
+        type=int,
+        default=DEFAULT_CV_FOLDS,
+        help=(
+            f"k-fold CV ranking folds (contract v4; default {DEFAULT_CV_FOLDS}). "
+            "Must be >= 2 — the v3 one-shot split is retired."
+        ),
+    )
+    parser.add_argument(
+        "--eval-reserve",
+        type=float,
+        default=EVAL_RESERVE,
+        help=f"share of rows reserved for the downstream evaluator "
+             f"(default: {EVAL_RESERVE}).",
+    )
+    parser.add_argument(
         "--ag-verbosity",
         type=int,
         default=0,
@@ -325,6 +353,9 @@ def main() -> None:
                     ag_verbosity=args.ag_verbosity,
                     eval_metric=args.eval_metric,
                     survey_id=survey_id,
+                    cv_folds=args.cv_folds,
+                    eval_reserve=args.eval_reserve,
+                    num_cpus=args.num_cpus,
                 )
 
                 oracle_df.to_csv(oracle_path, index=False)

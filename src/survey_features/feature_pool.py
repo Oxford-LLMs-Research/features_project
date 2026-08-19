@@ -1,8 +1,8 @@
 """
-Candidate feature-pool construction for one oracle cell: metadata/admin exclusions,
-semantic near-duplicate filter, per-country missingness/variation filters, and the
-skip-pattern (conditional-missingness) leakage screen. Moved out of oracle.py; that
-module re-exports these names, so either import path works.
+Candidate feature-pool for one oracle cell: admin exclusions, near-duplicate filter,
+missingness/variation filters, and the skip-pattern leakage screen.
+
+Used by oracle fit and (indirectly) by score_cell's random-draw universe.
 """
 
 from __future__ import annotations

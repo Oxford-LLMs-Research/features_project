@@ -1,8 +1,8 @@
 """
-Survey loading, country maps, and metadata handling — the SINGLE copy.
+Survey loading, country maps, missing-code taxonomy, and target measurement types.
 
-Previously near-duplicated between run_grid.py and phase0b_oracle_autogluon.py;
-everything that touches survey data/metadata structure now lives here.
+Owns every behaviour that touches survey data/metadata structure. Downstream:
+feature_pool / oracle / score_cell / retrieval (via extract_survey_variables).
 """
 
 from __future__ import annotations
@@ -22,8 +22,6 @@ SURVEY_COUNTRY_COL: dict[str, str] = {
     "ess_wave_10":    "cntry",
     "ess_wave_11":    "cntry",
 }
-
-DEFAULT_SURVEY = "wvs"
 
 
 def load_survey(survey_id: str, config_path: str) -> tuple[pd.DataFrame, dict]:
@@ -103,15 +101,6 @@ def build_admin_cols(metadata: dict, country_col: str) -> frozenset[str]:
     """
     excluded = metadata.get("EXCLUDED", {})
     return frozenset(excluded.keys()) | {country_col}
-
-
-def get_question_text(var_code: str, metadata: dict) -> str:
-    """Question wording (or description) for one variable code."""
-    for section in metadata.values():
-        if var_code in section:
-            info = section[var_code]
-            return (info.get("question") or info.get("description") or var_code).strip()
-    raise KeyError(f"{var_code} not found in metadata")
 
 
 def extract_survey_variables(metadata: dict, exclude_sections: list[str] = None) -> dict[str, str]:
@@ -243,15 +232,6 @@ AMBIGUOUS_MISSING_PATTERNS: tuple[str, ...] = (
     "not stated",
 )
 
-# Backwards-compatible alias: the old flat pattern list (union of all).
-MISSING_LABEL_PATTERNS: tuple[str, ...] = (
-    RESPONDENT_MISSING_PATTERNS
-    + STRUCTURAL_MISSING_PATTERNS
-    + STRUCTURAL_EXACT_PATTERNS
-    + AMBIGUOUS_MISSING_PATTERNS
-)
-_MISSING_LABEL_PATTERNS = MISSING_LABEL_PATTERNS
-
 RESPONDENT = "respondent"
 STRUCTURAL = "structural"
 SUBSTANTIVE = "substantive"
@@ -346,14 +326,6 @@ def classify_missing_codes(metadata: dict) -> dict[str, dict[str, set]]:
     return out
 
 
-def missing_codes_from_metadata(metadata: dict) -> dict[str, set]:
-    """{var_code: set of ALL non-substantive value codes} (legacy union view)."""
-    return {
-        var: buckets[RESPONDENT] | buckets[STRUCTURAL]
-        for var, buckets in classify_missing_codes(metadata).items()
-    }
-
-
 # ── Target measurement level ──────────────────────────────────────────────────
 # The oracle is the study's gold standard, so how it MODELS a target matters as much as
 # which features it ranks. Forcing everything to problem_type="multiclass" treats an
@@ -421,10 +393,6 @@ ORDINAL_WEAK_FAMILIES: tuple[tuple[str, ...], ...] = (
     ("important",), ("trust",), ("common",), ("proud",), ("close",),
     ("secure",), ("well",),
 )
-ORDINAL_WEAK_PATTERNS: tuple[str, ...] = tuple(
-    p for fam in ORDINAL_WEAK_FAMILIES for p in fam
-)
-
 # Phrases where an otherwise-strong scale word is part of a category NAME, not a scale
 # anchor. Checked before the strong-pattern test and the match suppressed.
 ORDINAL_FALSE_FRIENDS: tuple[str, ...] = (
@@ -432,8 +400,6 @@ ORDINAL_FALSE_FRIENDS: tuple[str, ...] = (
     "never employed", "no, never", "never been",
     "left school", "left the country", "left full-time education",
 )
-
-ORDINAL_LABEL_PATTERNS: tuple[str, ...] = ORDINAL_STRONG_PATTERNS + ORDINAL_WEAK_PATTERNS
 
 # Scales have few, PACKED codes; code lists (party/ISCO/region) are large and sparse.
 # Loose cardinality cap (ESS education ladders reach 28) + density test.
@@ -730,58 +696,6 @@ def to_ordinal_codes(var_code: str, metadata: dict, series: pd.Series) -> pd.Ser
         except (TypeError, ValueError):
             continue
     return series.astype(str).str.strip().str.lower().map(label_to_code)
-
-
-def target_type_rows(metadata: dict, codes: list[str],
-                     data: pd.DataFrame | None = None,
-                     survey: str | None = None) -> list[dict]:
-    """One audit row per target: detected type, reason, and the labels behind it."""
-    rows = []
-    for c in codes:
-        series = data[c] if (data is not None and c in data.columns) else None
-        ttype, reason = detect_target_type(c, metadata, series, survey=survey)
-        vals = _substantive_values(c, metadata)
-        try:
-            q = get_question_text(c, metadata)[:90]
-        except KeyError:
-            q = ""
-        rows.append({
-            "variable": c,
-            "question": q,
-            "detected_type": ttype,
-            "reason": reason,
-            "n_substantive_values": len(vals),
-            "labels": " | ".join(str(v) for v in list(vals.values())[:6]),
-        })
-    return rows
-
-
-def missing_code_taxonomy_rows(metadata: dict) -> list[dict]:
-    """One row per non-substantive (variable, value code) for the audit CSV."""
-    rows: list[dict] = []
-    for section_name, section in (metadata or {}).items():
-        if not isinstance(section, dict):
-            continue
-        for var_code, info in section.items():
-            if not isinstance(info, dict):
-                continue
-            values = info.get("values") or {}
-            if not isinstance(values, dict):
-                continue
-            for code_str, label in values.items():
-                kind, ambiguous = classify_missing_label(label)
-                if kind == SUBSTANTIVE:
-                    continue
-                rows.append({
-                    "section": section_name,
-                    "variable": var_code,
-                    "value_code": code_str,
-                    "label": str(label).strip(),
-                    "classified_as": kind,
-                    "ambiguous": int(ambiguous),
-                    "action": "kept as level" if kind == RESPONDENT else "set to NaN",
-                })
-    return rows
 
 
 def clean_question_columns(

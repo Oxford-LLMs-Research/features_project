@@ -21,7 +21,10 @@ import re
 from .prompts import EXTRACT_PROMPT
 
 FEATURE_TYPES = {"respondent_attribute", "temporal_contextual",
-                 "instrument_methodology", "base_rate_prior"}
+                 "instrument_methodology", "population_statistic"}
+
+# Legacy slug from pre-rename extracts / older prompts → current FEATURE_TYPES.
+_LEGACY_TYPE_ALIASES = {"base_rate_prior": "population_statistic"}
 
 
 def parse_json_list(raw: str) -> list:
@@ -43,18 +46,23 @@ def parse_json_list(raw: str) -> list:
     return v if isinstance(v, list) else []
 
 
-def extract_features(response_text: str, generate_fn) -> tuple[list[dict], str]:
+def extract_features(
+    response_text: str,
+    generate_fn,
+    *,
+    max_tokens: int = 4096,
+) -> tuple[list[dict], str]:
     """Extract typed features from one selection response.
 
     Returns (features, raw). Each feature: {feature, context, sub_items, type}.
     `type` is a model-assigned class (FEATURE_TYPES); used downstream to pipeline only
     respondent_attribute (and optionally temporal_contextual) into mapping, and to study
-    the rest (methodology, base-rate-seeking) as behavioral metadata."""
+    the rest (methodology, population statistics) as behavioral metadata."""
     if not (response_text or "").strip():
         return [], ""
     raw = generate_fn(
         [{"role": "user", "content": EXTRACT_PROMPT.format(response_text=response_text.strip())}],
-        max_tokens=4096, temperature=0.0, usage_phase="extract",
+        max_tokens=max(512, int(max_tokens)), temperature=0.0, usage_phase="extract",
     ) or ""
     out = []
     for it in parse_json_list(raw):
@@ -69,6 +77,7 @@ def extract_features(response_text: str, generate_fn) -> tuple[list[dict], str]:
         si = it.get("sub_items") or []
         si = [str(x).strip() for x in si if str(x).strip()] if isinstance(si, list) else []
         ftype = str(it.get("type", "")).strip().lower()
+        ftype = _LEGACY_TYPE_ALIASES.get(ftype, ftype)
         if ftype not in FEATURE_TYPES:
             ftype = "respondent_attribute"  # default if model omits/garbles the label
         out.append({"feature": str(feat).strip(),

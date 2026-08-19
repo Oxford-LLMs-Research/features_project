@@ -1,13 +1,9 @@
 """
-Downstream prediction evaluation.
-Compare XGBoost performance using oracle, model-selected, textbook and random feature
-sets (matched-k, 5-fold CV). Shared by the current free-text pipeline and the legacy grid.
+Matched-k XGBoost CV: oracle vs model vs random vs textbook feature sets.
 
-The target's MEASUREMENT LEVEL selects estimator and score, mirroring the oracle
-(oracle.TARGET_TYPE_PROBLEM); why: pipeline_audit_2026-08.md §A11. Every result carries
-`primary_score`, higher-is-better and comparable WITHIN a cell only (neg log loss for
-classification, Spearman rho for regression) — all the metrics need, since every
-contrast is matched-k within a cell.
+The target's measurement level selects estimator and score, mirroring the oracle
+(oracle.TARGET_TYPE_PROBLEM; docs/pipeline_audit_2026-08.md §A11). Results carry
+`primary_score` (higher-is-better, comparable within a cell only).
 """
 
 from __future__ import annotations
@@ -17,7 +13,6 @@ from collections.abc import Sequence
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-from joblib import Parallel, delayed
 from scipy.stats import spearmanr
 from sklearn.metrics import accuracy_score, log_loss, mean_absolute_error
 from sklearn.model_selection import KFold, StratifiedKFold
@@ -259,169 +254,3 @@ def single_random_draw_result(
         country_data, target_var, random_vars,
         nthread=nthread, target_type=target_type, row_index=row_index,
     )
-
-
-def single_random_draw(
-    country_data: pd.DataFrame,
-    target_var: str,
-    all_feature_pool: list[str],
-    k: int,
-    seed: int,
-    nthread: int | None = 1,
-) -> float | None:
-    """Accuracy of one random-k draw (thin wrapper kept for existing call sites)."""
-    return single_random_draw_result(
-        country_data, target_var, all_feature_pool, k, seed, nthread=nthread
-    )["accuracy_mean"]
-
-
-# Backwards-compatible alias (old name in phase0b_evaluation.py).
-_single_random_draw = single_random_draw
-
-
-def run_comparison(
-    data: pd.DataFrame,
-    target_var: str,
-    country_code: int | str,
-    country_col: str,
-    model_features: list[str],
-    oracle_importances: pd.DataFrame,
-    n_random_draws: int = 20,
-    all_feature_pool: list[str] = None,
-    random_state: int = 42,
-    n_jobs: int = -1,
-    eval_xgb_nthread: int | None = None,
-    row_index: Sequence | None = None,
-) -> dict:
-    """
-    Compare oracle, model-selected, and random feature sets.
-
-    Args:
-        data: full survey DataFrame
-        target_var: target variable code (e.g., "Q199")
-        country_code: numeric country code (e.g., 566 for Nigeria)
-        country_col: column name for country (e.g., "B_COUNTRY")
-        model_features: list of mapped variable codes from disambiguation
-            (None entries = unmapped, will be filtered out)
-        oracle_importances: DataFrame with columns
-            [target_variable, country, feature_variable, importance_mean]
-            (prefer importance_select for ranking when present)
-        n_random_draws: number of random feature draws for baseline
-        all_feature_pool: list of all available feature codes for random draws.
-            If None, uses all columns except target and country.
-        random_state: random seed
-        row_index: optional oracle fit-split labels passed to every arm's CV
-
-    Returns:
-        dict with results for oracle, model, and random conditions.
-    """
-    from .metrics import oracle_topk_codes, rank_score_from_frame
-
-    # Filter to country
-    country_data = data[data[country_col] == country_code].copy()
-
-    # Feature pool for random draws (build first so we can filter model_vars against it)
-    if all_feature_pool is None:
-        exclude = {target_var, country_col}
-        all_feature_pool = [c for c in country_data.columns if c not in exclude]
-
-    # Model features: filter out None/unmapped, then restrict to oracle feature pool
-    # so the model is evaluated on the same variable universe as the oracle.
-    pool_set = set(all_feature_pool)
-    k_requested = len(model_features)
-    k_mapped = sum(1 for f in model_features if f is not None)
-    model_vars = [f for f in model_features if f is not None and f in pool_set]
-    k = len(model_vars)
-
-    if k == 0:
-        return {
-            "target": target_var,
-            "country": country_code,
-            "error": "no mapped features in pool",
-            "k": 0,
-            "k_requested": k_requested,
-            "k_mapped": k_mapped,
-        }
-
-    # Oracle top-k: rank on select split when present, else importance_mean
-    oracle_sub = oracle_importances[
-        (oracle_importances["target_variable"] == target_var)
-        & (oracle_importances["country"] == country_code)
-    ]
-    rank, _score = rank_score_from_frame(oracle_sub)
-    if rank:
-        oracle_vars = [c for c in oracle_topk_codes(rank, k) if c in pool_set][:k]
-    else:
-        oracle_vars = (
-            oracle_sub.sort_values("importance_mean", ascending=False)["feature_variable"]
-            .head(k).tolist()
-        )
-
-    # Evaluate oracle
-    oracle_result = evaluate_feature_set(
-        country_data, target_var, oracle_vars, nthread=eval_xgb_nthread,
-        row_index=row_index,
-    )
-
-    # Evaluate model-selected
-    model_result = evaluate_feature_set(
-        country_data, target_var, model_vars, nthread=eval_xgb_nthread,
-        row_index=row_index,
-    )
-
-    # Evaluate random-k (averaged over draws, parallelised across cores)
-    seeds = [random_state + i for i in range(n_random_draws)]
-    raw = Parallel(n_jobs=n_jobs)(
-        delayed(single_random_draw_result)(
-            country_data, target_var, all_feature_pool, k, s,
-            nthread=eval_xgb_nthread, row_index=row_index,
-        )
-        for s in seeds
-    )
-    random_scores = [
-        d["accuracy_mean"] for d in raw if d.get("accuracy_mean") is not None
-    ]
-
-    random_result = {
-        "accuracy_mean": round(float(np.mean(random_scores)), 4) if random_scores else None,
-        "accuracy_std": round(float(np.std(random_scores)), 4) if random_scores else None,
-        "n_draws": len(random_scores),
-    }
-
-    return {
-        "target": target_var,
-        "country": country_code,
-        "k": k,
-        "k_requested": k_requested,
-        "k_mapped": k_mapped,
-        "oracle": oracle_result,
-        "model": model_result,
-        "random": random_result,
-    }
-
-
-def print_comparison(result: dict):
-    """Print a single comparison result."""
-    if "error" in result and result.get("error"):
-        print(
-            f"  {result.get('target', '?')} | country={result.get('country', '?')} "
-            f"| ERROR: {result['error']}"
-        )
-        return
-
-    o = result["oracle"]
-    m = result["model"]
-    r = result["random"]
-    bl = o.get("majority_baseline", "?")
-
-    print(f"\n  {result['target']} | country={result['country']} | k={result['k']} (requested={result['k_requested']}, mapped={result['k_mapped']})")
-    print(f"    Majority baseline: {bl}")
-    print(f"    Oracle top-{result['k']}:    {o['accuracy_mean']} ± {o['accuracy_std']}  (features: {o['n_features']})")
-    print(f"    Model-selected:    {m['accuracy_mean']} ± {m['accuracy_std']}  (features: {m['n_features']})")
-    print(f"    Random-{result['k']} (n={r['n_draws']}): {r['accuracy_mean']} ± {r['accuracy_std']}")
-
-    if o["accuracy_mean"] and m["accuracy_mean"] and r["accuracy_mean"]:
-        cost = o["accuracy_mean"] - m["accuracy_mean"]
-        value = m["accuracy_mean"] - r["accuracy_mean"]
-        print(f"    Cost of imperfect selection: {cost:+.4f}")
-        print(f"    Value of reasoning over random: {value:+.4f}")

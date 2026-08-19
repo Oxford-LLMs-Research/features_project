@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Main run: T × C × Model</title>
+  <style>
+    :root {
+      --bg: #f6f6f4;
+      --surface: #fff;
+      --text: #1a1a1a;
+      --muted: #5c5c5c;
+      --line: #e2e2dc;
+      --accent: #2563eb;
+      --info: #1d4ed8;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --ok: #047857;
+      --bar: #3b82f6;
+      --bar2: #94a3b8;
+      --warn-bar: #d97706;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #121212;
+        --surface: #1c1c1c;
+        --text: #ededed;
+        --muted: #a3a3a3;
+        --line: #2e2e2e;
+        --accent: #60a5fa;
+        --info: #93c5fd;
+        --warn: #fbbf24;
+        --danger: #f87171;
+        --ok: #34d399;
+        --bar: #60a5fa;
+        --bar2: #64748b;
+        --warn-bar: #f59e0b;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.45 system-ui, -apple-system, Segoe UI, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 64px; }
+    h1 { font-size: 24px; font-weight: 650; margin: 0 0 8px; }
+    h2 { font-size: 18px; font-weight: 650; margin: 0 0 6px; }
+    h3 { font-size: 15px; font-weight: 650; margin: 0 0 6px; }
+    p { margin: 0; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    .stack { display: flex; flex-direction: column; gap: 24px; }
+    .gap8 { gap: 8px; }
+    .gap12 { gap: 12px; }
+    .gap16 { gap: 16px; }
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .between { justify-content: space-between; }
+    .start { align-items: flex-start; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .stats3 { grid-template-columns: repeat(3, 1fr); }
+    .stats2 { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 800px) {
+      .stats, .stats3, .stats2, .two { grid-template-columns: 1fr; }
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 14px 16px;
+    }
+    .stat .v { font-size: 22px; font-weight: 650; letter-spacing: -0.02em; }
+    .stat .l { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .tone-warn .v { color: var(--warn); }
+    .tone-danger .v { color: var(--danger); }
+    .tone-ok .v { color: var(--ok); }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 16px 18px 20px;
+    }
+    .card-h {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-weight: 650;
+    }
+    .callout {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      padding: 12px 14px;
+      background: var(--surface);
+    }
+    .callout.warn { border-left-color: var(--warn); }
+    .callout.danger { border-left-color: var(--danger); }
+    .callout h3 { margin-bottom: 4px; }
+    .pill {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      padding: 5px 10px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .pill.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+    button.ghost, button.pill { font: inherit; }
+    .ghost {
+      background: none;
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    label.toggle {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    label.toggle input { margin-top: 4px; }
+    select {
+      width: 100%;
+      padding: 7px 8px;
+      font: inherit;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--line);
+    }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 550; }
+    .dim td { color: var(--muted); }
+    .chart { width: 100%; height: 220px; }
+    .chart.sm { height: 200px; }
+    hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap stack" id="app"></div>
+  <script>
+const GEN_IN = 65, GEN_OUT = 2233, EXTRACT_IN = 1333, EXTRACT_OUT = 1128;
+const DISAMBIG_IN = 474, DISAMBIG_OUT = 324, DISAMBIG_PER_COND = 30, CONDITIONS = 2;
+const EXTRACT_LAT_S = 12.85, DISAMBIG_LAT_S = 2.47, KIMI_GEN_LAT_S = 32.87, DSV4_GEN_LAT_S = 17.07;
+const QWEN_IN = 0.2, QWEN_OUT = 0.6, NEMO_IN = 0.06, NEMO_OUT = 0.24;
+const PIPE_WORKERS = 4, MAP_WORKERS = 8, ORACLE_PROCS = 3, ORACLE_S = 180;
+const SCORE_S_PER_42 = 16 * 60, LEGACY_42 = 42;
+const C_KEYS = [1, 3, 5, 8, 10, 15, 20, 30];
+
+const ZOO = [
+  { key: "k3", label: "Kimi-K3", input: 3, output: 15, tokPerS: 120, thinking: true },
+  { key: "k26", label: "Kimi-K2.6", input: 0.95, output: 4, tokPerS: 68, registered: true, genIn: 65, genOut: 2233, genLatS: KIMI_GEN_LAT_S },
+  { key: "dspro", label: "DeepSeek-V4-Pro", input: 1.75, output: 3.5, tokPerS: 67, registered: true, genIn: 61, genOut: 1149, genLatS: DSV4_GEN_LAT_S },
+  { key: "glm", label: "GLM-5.1", input: 1.4, output: 4.4, tokPerS: 70 },
+  { key: "qwen35", label: "Qwen3.5-397B", input: 0.6, output: 3.6, tokPerS: 80 },
+  { key: "nultra", label: "Nemotron-Ultra-550B", input: 1, output: 3, tokPerS: 80 },
+  { key: "minimax", label: "MiniMax-M3", input: 0.3, output: 1.2, tokPerS: 80 },
+  { key: "nsuper", label: "Nemotron-Super-120B", input: 0.3, output: 0.9, tokPerS: 90 },
+  { key: "flash", label: "DeepSeek-V4-Flash", input: 0.14, output: 0.28, tokPerS: 100 },
+  { key: "oss", label: "gpt-oss-120b", input: 0.15, output: 0.6, tokPerS: 90 },
+];
+
+const SURVEYS = [
+  { id: "afro", label: "Afro", nC: 39 },
+  { id: "arab", label: "Arab", nC: 8 },
+  { id: "asian", label: "Asian", nC: 9 },
+  { id: "ess", label: "ESS 11", nC: 30 },
+  { id: "lat", label: "Latino", nC: 17 },
+  { id: "wvs", label: "WVS", nC: 66 },
+];
+
+const FRAMES = [
+  { demo: true, skip: false, frame: { targets: 1525, cells: 37445, by: {
+    afro: { t: 201, cells: 7670, at: [201, 201, 201, 201, 200, 200, 200, 199] },
+    arab: { t: 217, cells: 1180, at: [217, 151, 148, 83, 0, 0, 0, 0] },
+    asian: { t: 238, cells: 873, at: [238, 229, 29, 24, 0, 0, 0, 0] },
+    ess: { t: 344, cells: 6067, at: [344, 216, 211, 210, 206, 199, 194, 166] },
+    lat: { t: 190, cells: 3160, at: [190, 188, 188, 187, 186, 184, 0, 0] },
+    wvs: { t: 335, cells: 18495, at: [335, 329, 326, 321, 317, 301, 280, 277] },
+  }}},
+  { demo: true, skip: true, frame: { targets: 1932, cells: 41873, by: {
+    afro: { t: 244, cells: 8874, at: [244, 240, 239, 239, 238, 237, 236, 221] },
+    arab: { t: 397, cells: 1975, at: [397, 287, 240, 115, 0, 0, 0, 0] },
+    asian: { t: 238, cells: 873, at: [238, 229, 29, 24, 0, 0, 0, 0] },
+    ess: { t: 506, cells: 7850, at: [506, 283, 275, 270, 264, 257, 249, 204] },
+    lat: { t: 205, cells: 3358, at: [205, 201, 201, 199, 198, 194, 0, 0] },
+    wvs: { t: 342, cells: 18943, at: [342, 336, 333, 328, 324, 308, 287, 284] },
+  }}},
+  { demo: false, skip: false, frame: { targets: 1233, cells: 32966, by: {
+    afro: { t: 179, cells: 6893, at: [179, 179, 179, 179, 179, 179, 179, 179] },
+    arab: { t: 196, cells: 1049, at: [196, 134, 132, 70, 0, 0, 0, 0] },
+    asian: { t: 194, cells: 616, at: [194, 188, 7, 7, 0, 0, 0, 0] },
+    ess: { t: 181, cells: 4327, at: [181, 156, 152, 151, 148, 145, 142, 123] },
+    lat: { t: 175, cells: 2936, at: [175, 174, 174, 174, 173, 171, 0, 0] },
+    wvs: { t: 308, cells: 17145, at: [308, 302, 299, 294, 292, 276, 257, 257] },
+  }}},
+  { demo: false, skip: true, frame: { targets: 1502, cells: 35242, by: {
+    afro: { t: 220, cells: 8022, at: [220, 216, 215, 215, 215, 214, 213, 199] },
+    arab: { t: 359, cells: 1746, at: [359, 257, 212, 95, 0, 0, 0, 0] },
+    asian: { t: 194, cells: 616, at: [194, 188, 7, 7, 0, 0, 0, 0] },
+    ess: { t: 239, cells: 4682, at: [239, 168, 163, 161, 158, 155, 152, 132] },
+    lat: { t: 182, cells: 3031, at: [182, 181, 181, 180, 179, 175, 0, 0] },
+    wvs: { t: 308, cells: 17145, at: [308, 302, 299, 294, 292, 276, 257, 257] },
+  }}},
+];
+
+const GRID_PRESETS = [
+  { id: "t5c3", label: "5 × 3", t: "5", c: "3" },
+  { id: "t5c5", label: "5 × 5", t: "5", c: "5", recommend: true },
+  { id: "t10c5", label: "10 × 5", t: "10", c: "5" },
+  { id: "t20c5", label: "20 × 5", t: "20", c: "5" },
+  { id: "all5", label: "All T × 5 C", t: "all", c: "5", avoid: true },
+  { id: "census", label: "Census cells", t: "all", c: "1", avoid: true },
+];
+
+const state = {
+  includeDemo: true,
+  includeSkip: false,
+  tStr: "5",
+  cStr: "5",
+  nModels: 10,
+  thinkOn: false,
+  allAsK3: false,
+  legacy42: false,
+};
+
+function pickFrame(demo, skip) {
+  return (FRAMES.find((f) => f.demo === demo && f.skip === skip) || FRAMES[0]).frame;
+}
+function atLeast(at, c) {
+  for (let i = 0; i < C_KEYS.length; i++) if (C_KEYS[i] >= c) return at[i] || 0;
+  return 0;
+}
+function gridFromFrame(frame, tPer, c) {
+  if (tPer === "census" || (tPer === "all" && c === 1)) {
+    const rows = SURVEYS.map((s) => ({
+      id: s.id, avail: frame.by[s.id].t, take: frame.by[s.id].t, cells: frame.by[s.id].cells,
+    }));
+    return { cells: frame.cells, taken: frame.targets, rows };
+  }
+  const rows = SURVEYS.map((s) => {
+    const avail = atLeast(frame.by[s.id].at, c);
+    const take = tPer === "all" ? avail : Math.min(Number(tPer) || 0, avail);
+    return { id: s.id, avail, take, cells: take * c };
+  });
+  return {
+    cells: rows.reduce((a, r) => a + r.cells, 0),
+    taken: rows.reduce((a, r) => a + r.take, 0),
+    rows,
+  };
+}
+function usd(prompt, completion, input, output) {
+  return (prompt / 1e6) * input + (completion / 1e6) * output;
+}
+const EXTRACT_PER_COND = usd(EXTRACT_IN, EXTRACT_OUT, QWEN_IN, QWEN_OUT);
+const MAP_PER_COND = usd(DISAMBIG_IN, DISAMBIG_OUT, NEMO_IN, NEMO_OUT) * DISAMBIG_PER_COND;
+
+function formatUsd(n) {
+  if (!Number.isFinite(n)) return "—";
+  if (n >= 1000) return "$" + Math.round(n).toLocaleString("en-US");
+  if (n >= 100) return "$" + n.toFixed(0);
+  if (n >= 10) return "$" + n.toFixed(1);
+  return "$" + n.toFixed(2);
+}
+function formatDuration(seconds) {
+  if (seconds < 90) return Math.round(seconds) + " s";
+  if (seconds < 3600) return Math.round(seconds / 60) + " min";
+  const h = seconds / 3600;
+  return h.toFixed(h >= 10 ? 0 : 1) + " h";
+}
+function pickModels(n) {
+  if (n <= 2) return ZOO.filter((m) => m.registered);
+  return ZOO.slice(0, n);
+}
+function thinkMultFor(model, thinkOn, allAsK3) {
+  if (!thinkOn) return 1;
+  if (allAsK3 || model.thinking) return 5;
+  return 1;
+}
+function genUnitCost(model, thinkOn, allAsK3) {
+  const input = allAsK3 ? 3 : model.input;
+  const output = allAsK3 ? 15 : model.output;
+  const pin = model.genIn ?? GEN_IN;
+  const pout = (model.genOut ?? GEN_OUT) * thinkMultFor(model, thinkOn, allAsK3);
+  return usd(pin, pout, input, output);
+}
+function genLatencyS(model, thinkOn, allAsK3) {
+  const mult = thinkMultFor(model, thinkOn, allAsK3);
+  const pout = (model.genOut ?? GEN_OUT) * mult;
+  if (allAsK3) return pout / 120;
+  if (model.genLatS && mult === 1) return model.genLatS;
+  return pout / model.tokPerS;
+}
+function estimate(llmCells, newOracles, models, thinkOn, allAsK3) {
+  const nCond = llmCells * CONDITIONS;
+  const nModels = models.length;
+  let gen = 0, genWall = 0;
+  for (const m of models) {
+    gen += nCond * genUnitCost(m, thinkOn, allAsK3);
+    genWall += (nCond * genLatencyS(m, thinkOn, allAsK3)) / PIPE_WORKERS;
+  }
+  const extract = nCond * nModels * EXTRACT_PER_COND;
+  const map = nCond * nModels * MAP_PER_COND;
+  const extractWall = (nCond * EXTRACT_LAT_S * nModels) / PIPE_WORKERS;
+  const mapWall = (nCond * DISAMBIG_PER_COND * DISAMBIG_LAT_S * nModels) / (PIPE_WORKERS * MAP_WORKERS);
+  const scoreOne = SCORE_S_PER_42 * (llmCells / LEGACY_42);
+  const oracle = (newOracles * ORACLE_S) / ORACLE_PROCS;
+  const llm = genWall + extractWall + mapWall;
+  return {
+    money: { gen, extract, map, total: gen + extract + map },
+    time: {
+      oracle, gen: genWall, extract: extractWall, map: mapWall,
+      score: scoreOne * nModels,
+      overlapped: oracle + llm + scoreOne,
+      sequential: oracle + llm + scoreOne * nModels,
+    },
+  };
+}
+function round1(n) { return Math.round(n * 10) / 10; }
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function barChart(cats, series, opts) {
+  const w = 640, h = opts.height || 200, padL = 36, padR = 12, padT = 16, padB = 36;
+  const innerW = w - padL - padR, innerH = h - padT - padB;
+  const n = cats.length, g = series.length;
+  const max = Math.max(1, ...series.flatMap((s) => s.data));
+  const groupW = innerW / n;
+  const barW = Math.min(28, (groupW * 0.7) / g);
+  const colors = ["var(--bar)", "var(--bar2)", "var(--warn-bar)"];
+  let bars = "";
+  series.forEach((s, si) => {
+    s.data.forEach((v, i) => {
+      const bh = (v / max) * innerH;
+      const x = padL + i * groupW + (groupW - barW * g) / 2 + si * barW;
+      const y = padT + innerH - bh;
+      bars += `<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(0, bh)}" fill="${s.color || colors[si]}" />`;
+      if (opts.showValues && v) {
+        const lab = (opts.prefix || "") + (Number.isInteger(v) ? v : v) + (opts.suffix || "");
+        bars += `<text x="${x + barW / 2}" y="${y - 4}" text-anchor="middle" font-size="10" fill="currentColor">${esc(lab)}</text>`;
+      }
+    });
+  });
+  const labels = cats.map((c, i) =>
+    `<text x="${padL + i * groupW + groupW / 2}" y="${h - 10}" text-anchor="middle" font-size="11" fill="var(--muted)">${esc(c)}</text>`
+  ).join("");
+  const legend = series.length > 1
+    ? series.map((s, i) => `<span style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;font-size:12px;color:var(--muted)"><span style="width:10px;height:10px;background:${s.color || colors[i]};display:inline-block"></span>${esc(s.name)}</span>`).join("")
+    : "";
+  return `<div>${legend}<svg class="chart${opts.small ? " sm" : ""}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">${bars}${labels}</svg></div>`;
+}
+
+function render() {
+  const { includeDemo, includeSkip, tStr, cStr, nModels, thinkOn, allAsK3, legacy42 } = state;
+  const models = pickModels(nModels);
+  const c = Number(cStr) || 5;
+  const frame = pickFrame(includeDemo, includeSkip);
+  const census = tStr === "all" && cStr === "1";
+  const grid = gridFromFrame(frame, census ? "census" : tStr, census ? 1 : c);
+  const llmCells = legacy42 ? LEGACY_42 : grid.cells;
+  const newOracles = legacy42 ? 0 : grid.cells;
+  const run = estimate(llmCells, newOracles, models, thinkOn, allAsK3);
+  const includesK3 = models.some((m) => m.thinking) || allAsK3;
+  const activePreset = GRID_PRESETS.find((p) => p.t === tStr && p.c === cStr);
+  const asianShort = grid.rows.find((r) => r.id === "asian");
+  const tWanted = tStr === "all" ? Infinity : Number(tStr) || 0;
+  const k3One = genUnitCost(ZOO[0], false, false) * CONDITIONS * llmCells;
+  const k3Five = genUnitCost(ZOO[0], true, false) * CONDITIONS * llmCells;
+
+  const cellTone = legacy42 ? "tone-warn" : llmCells > 2000 ? "tone-danger" : "";
+  const usdTone = run.money.total > 200 ? "tone-danger" : "";
+  const orTone = newOracles === 0 ? "tone-ok" : newOracles > 400 ? "tone-danger" : "tone-warn";
+
+  let notes = "";
+  if (activePreset?.avoid || census) {
+    notes += `<div class="callout danger"><h3>Do not run this as the confirmatory grid</h3><p class="small">All frame targets (or all cells) is a fishing net. Multiplicity swamps a confirmatory claim.</p></div>`;
+  }
+  if (legacy42) {
+    notes += `<div class="callout warn"><h3>Legacy 42 is not the lock</h3><p class="small">Those 42 cells are the accuracy-vs-majority remainder of 89 era-3 oracles (min-signal 0.03). Type 2/3 are not drop rules. Do not mix that score file with a new sampled grid.</p></div>`;
+  }
+  if (asianShort && tWanted > asianShort.avail && c >= 5 && !legacy42) {
+    notes += `<div class="callout warn"><h3>Asian Barometer cannot fill this C</h3><p class="small">Only ${asianShort.avail} Asian items have type-1 support in ${c} countries${includeDemo ? " (29 with demographics, 7 without)" : " without demographics"}. Arab tops out at 8 countries. Extra T on those surveys does not add cells at this C.</p></div>`;
+  }
+  if (includesK3 && !thinkOn) {
+    notes += `<div class="callout warn"><h3>Kimi-K3 thinking tokens are unmeasured</h3><p class="small">Gen for K3 on this grid is ${formatUsd(k3One)} if output looks like K2.6 essays, and ${formatUsd(k3Five)} at a 5× reasoning bill. Toggle the thinking tax on to see the ceiling.</p></div>`;
+  }
+
+  const pills = GRID_PRESETS.map((p) =>
+    `<button class="pill${!legacy42 && tStr === p.t && cStr === p.c ? " on" : ""}" data-act="preset" data-t="${p.t}" data-c="${p.c}">${p.label}</button>`
+  ).join("") + `<button class="pill${legacy42 ? " on" : ""}" data-act="legacy">Legacy 42</button>`;
+
+  const surveyBars = barChart(
+    SURVEYS.map((s) => s.label),
+    [
+      { name: "Usable targets at this C", data: grid.rows.map((r) => r.avail), color: "var(--bar2)" },
+      { name: "Taken", data: grid.rows.map((r) => r.take), color: "var(--bar)" },
+    ],
+    { height: 220, showValues: true }
+  );
+  const costBars = barChart(
+    ["Gen", "Extract", "Map"],
+    [{ name: "USD", data: [round1(run.money.gen), round1(run.money.extract), round1(run.money.map)] }],
+    { height: 200, showValues: true, prefix: "$", small: true }
+  );
+  const timeBars = barChart(
+    ["Oracle", "Gen", "Extract", "Map", "Score"],
+    [{ name: "Minutes", data: [
+      round1(run.time.oracle / 60), round1(run.time.gen / 60), round1(run.time.extract / 60),
+      round1(run.time.map / 60), round1(run.time.score / 60),
+    ], color: "var(--warn-bar)" }],
+    { height: 200, showValues: true, suffix: " min", small: true }
+  );
+
+  const tableRows = SURVEYS.map((s) => {
+    const r = grid.rows.find((x) => x.id === s.id);
+    return `<tr><td>${s.label}</td><td>${frame.by[s.id].t}</td><td>${r.avail}</td><td>${r.take}</td><td>${r.cells.toLocaleString()}</td></tr>`;
+  }).join("");
+
+  const zooRows = ZOO.map((m) => {
+    const inZoo = models.some((x) => x.key === m.key);
+    const per = CONDITIONS * genUnitCost(m, thinkOn, allAsK3);
+    const bits = m.label + (m.registered ? " · registered" : "") + (m.thinking ? " · thinking" : "");
+    return `<tr class="${inZoo ? "" : "dim"}"><td>${esc(bits)}</td><td>$${m.input} / $${m.output}</td><td>${m.tokPerS}</td><td>${inZoo ? "yes" : "—"}</td><td>${formatUsd(per)}</td></tr>`;
+  }).join("");
+
+  document.getElementById("app").innerHTML = `
+    <div class="stack gap8">
+      <h1>Main run: T × C × Model</h1>
+      <p class="muted">Standalone copy of the Cursor canvas, 16 Aug 2026. Stack is locked (free-text, Qwen extract, Nemotron dual-layer, era-3 oracles, social_scientist). The grid is a sample from the screened universe, not the old 42-cell accuracy remainder. Token rates from prompt-sensitivity logs, 9 Aug 2026; prices Nebius Token Factory, 16 Aug 2026. Open this file in a browser. No network required.</p>
+    </div>
+    <div class="callout">
+      <h3>1,525 is the sampling frame</h3>
+      <p class="small">Hygiene already dropped admin items, skip/follow-ups, and type-1 cells (two classes with n ≥ 50 in the country, or n ≥ 50 and ≥3 scale points for ordinal). Size comes from T per survey × C countries. Default 5 × 5 is 150 cells (25 targets). Census of the frame is 37,445 cells.</p>
+    </div>
+    <div class="stats">
+      <div class="stat ${cellTone}"><div class="v">${llmCells.toLocaleString()}</div><div class="l">${legacy42 ? "Legacy 42 LLM cells" : "Grid cells"}</div></div>
+      <div class="stat ${usdTone}"><div class="v">${formatUsd(run.money.total)}</div><div class="l">LLM $ · ${models.length} selectors</div></div>
+      <div class="stat"><div class="v">${formatDuration(run.time.overlapped)}</div><div class="l">Wall (1 machine, score overlapped)</div></div>
+      <div class="stat ${orTone}"><div class="v">${newOracles.toLocaleString()}</div><div class="l">New AutoGluon oracles</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h">Frame and grid <button class="ghost" data-act="reset">Reset to 5 × 5</button></div>
+      <div class="stack gap16">
+        <label class="toggle">
+          <span><strong>Include demographics</strong><br><span class="small muted">${includeDemo ? "430" : "0"} type-1-viable demo items in the frame. ESS 11 shrinks hard without them.</span></span>
+          <input type="checkbox" data-act="demo" ${includeDemo ? "checked" : ""} />
+        </label>
+        <label class="toggle">
+          <span><strong>Include skip / follow-up items</strong><br><span class="small muted">Off: routed batteries and their gates (Q67A, rtrd). WVS immigrant is not in this set.</span></span>
+          <input type="checkbox" data-act="skip" ${includeSkip ? "checked" : ""} />
+        </label>
+        <div class="stats3">
+          <div class="stat"><div class="v">${frame.targets.toLocaleString()}</div><div class="l">Frame targets</div></div>
+          <div class="stat"><div class="v">${frame.cells.toLocaleString()}</div><div class="l">Frame cells</div></div>
+          <div class="stat"><div class="v">${grid.taken}</div><div class="l">Targets taken at this C</div></div>
+        </div>
+        <div class="field">
+          <span class="small muted">Grid preset (T per survey × countries with type-1 support)</span>
+          <div class="row">${pills}</div>
+        </div>
+        <div class="two">
+          <div class="stack gap12">
+            <label class="field"><span class="small muted">Targets per survey</span>
+              <select data-act="t">
+                ${[["5","5 per survey"],["8","8 per survey"],["10","10 per survey"],["15","15 per survey"],["20","20 per survey"],["30","30 per survey"],["all","All frame targets at this C"]].map(([v,l]) => `<option value="${v}" ${tStr===v?"selected":""}>${l}</option>`).join("")}
+              </select>
+            </label>
+            <label class="field"><span class="small muted">Countries per target</span>
+              <select data-act="c">
+                ${[["3","3 countries"],["5","5 countries"],["8","8 countries"],["10","10 countries"]].map(([v,l]) => `<option value="${v}" ${cStr===v?"selected":""}>${l}</option>`).join("")}
+              </select>
+            </label>
+          </div>
+          <div class="stack gap12">
+            <label class="field"><span class="small muted">Selector count</span>
+              <select data-act="models">
+                <option value="2" ${nModels===2?"selected":""}>2 — registered (K2.6 + V4-Pro)</option>
+                <option value="6" ${nModels===6?"selected":""}>6 — flagship + mid tier</option>
+                <option value="10" ${nModels===10?"selected":""}>10 — full proposed zoo</option>
+              </select>
+            </label>
+            <label class="toggle">
+              <span><strong>K3 thinking tax (5× output)</strong><br><span class="small muted">Unmeasured. Probe 2 cells before a sweep.</span></span>
+              <input type="checkbox" data-act="think" ${thinkOn ? "checked" : ""} />
+            </label>
+            <label class="toggle">
+              <span><strong>Upper bound: bill all as K3</strong><br><span class="small muted">Every selector at $3 / $15 per 1M.</span></span>
+              <input type="checkbox" data-act="allk3" ${allAsK3 ? "checked" : ""} />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    ${notes}
+    <div class="stack gap8">
+      <h2>What this T × C actually takes</h2>
+      ${surveyBars}
+      <p class="small muted">Usable = type-1 in at least ${census ? "1" : c} countries after the frame toggles. Taken = min(T per survey, usable). Cells = taken × ${census ? "all viable countries" : c}. Source: respondent microdata screen, 16 Aug 2026.</p>
+    </div>
+    <table>
+      <thead><tr><th>Survey</th><th>Frame T</th><th>Usable at C</th><th>Taken</th><th>Cells</th></tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+    <hr />
+    <div class="stack gap8">
+      <h2>Dollars and hours by stage</h2>
+      <p class="muted">Formula: 2 conditions × cells × (gen[m] + Qwen extract + 30 × Nemotron). Selector gen owns the bill. Map owns call count. Oracle and score are local CPU. New grid assumes a fresh era-3 oracle per cell.</p>
+    </div>
+    <div class="two">
+      <div class="stack gap8">
+        <h3>LLM cost by stage (USD)</h3>
+        ${costBars}
+        <p class="small muted">Source: 2 × ${llmCells.toLocaleString()} cells × ${models.length} models · kimi-length essays (${GEN_IN} in / ${GEN_OUT} out) except V4-Pro observed 1149 out · Qwen + Nemotron ×${DISAMBIG_PER_COND}.</p>
+      </div>
+      <div class="stack gap8">
+        <h3>Wall clock by stage (minutes)</h3>
+        ${timeBars}
+        <p class="small muted">Oracle ${ORACLE_S}s / cell / ${ORACLE_PROCS} processes · pipeline workers ${PIPE_WORKERS} × map ${MAP_WORKERS} · score 16 min / 42 cells × models. Overlapped ${formatDuration(run.time.overlapped)}; sequential ${formatDuration(run.time.sequential)}.</p>
+      </div>
+    </div>
+    <div class="stats3">
+      <div class="stat"><div class="v">${formatUsd(run.money.gen)}</div><div class="l">Gen $</div></div>
+      <div class="stat"><div class="v">${formatUsd(run.money.extract + run.money.map)}</div><div class="l">Extract + map $</div></div>
+      <div class="stat"><div class="v">${formatDuration(run.time.oracle)}</div><div class="l">Oracle wall</div></div>
+    </div>
+    <hr />
+    <div class="stack gap8">
+      <h2>Selector zoo (Nebius)</h2>
+      <p class="muted">Extractor and disambiguator stay out of the zoo. Kimi-K3 is the ceiling. Only K2.6 and V4-Pro are registered today.</p>
+    </div>
+    <table>
+      <thead><tr><th>Model</th><th>In / out $ per 1M</th><th>Tok/s</th><th>In zoo</th><th>Gen $ / cell</th></tr></thead>
+      <tbody>${zooRows}</tbody>
+    </table>
+    <p class="small muted">Gen $ / cell is two conditions at the current thinking / K3-bound toggles. Extract+map add ${formatUsd(CONDITIONS * (EXTRACT_PER_COND + MAP_PER_COND))} per cell per selector regardless of model.</p>
+  `;
+}
+
+document.getElementById("app").addEventListener("click", (e) => {
+  const t = e.target.closest("[data-act]");
+  if (!t) return;
+  const act = t.getAttribute("data-act");
+  if (act === "reset") {
+    Object.assign(state, { includeDemo: true, includeSkip: false, tStr: "5", cStr: "5", nModels: 10, thinkOn: false, allAsK3: false, legacy42: false });
+  } else if (act === "preset") {
+    state.legacy42 = false;
+    state.tStr = t.getAttribute("data-t");
+    state.cStr = t.getAttribute("data-c");
+  } else if (act === "legacy") {
+    state.legacy42 = true;
+  } else {
+    return;
+  }
+  render();
+});
+document.getElementById("app").addEventListener("change", (e) => {
+  const t = e.target.closest("[data-act]");
+  if (!t) return;
+  const act = t.getAttribute("data-act");
+  if (act === "demo") state.includeDemo = t.checked;
+  else if (act === "skip") state.includeSkip = t.checked;
+  else if (act === "think") state.thinkOn = t.checked;
+  else if (act === "allk3") state.allAsK3 = t.checked;
+  else if (act === "t") { state.legacy42 = false; state.tStr = t.value; }
+  else if (act === "c") { state.legacy42 = false; state.cStr = t.value; }
+  else if (act === "models") state.nModels = Number(t.value) || 10;
+  else return;
+  render();
+});
+render();
+  </script>
+</body>
+</html>
