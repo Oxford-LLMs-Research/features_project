@@ -29,6 +29,7 @@ sys.path.insert(0, str(ROOT / "src"))
 os.chdir(ROOT)
 
 from survey_features.config import ROOT as _PKG  # noqa: F401  loads .env
+from survey_features.grid_screen import TYPE1_MIN_N, TYPE1_MIN_UNIQUE
 from survey_features.oracle import TARGET_TYPE_PROBLEM
 from survey_features.surveys import (
     SURVEY_COUNTRY_COL,
@@ -73,8 +74,8 @@ SKIP_NA = 0.25
 GATE_RANGE = 0.7
 GATE_MIN_CLASS = 20
 GATE_MAX_CARD = 8
-TYPE1_MIN_N = 50
-TYPE1_MIN_UNIQUE = 3  # ordinal/continuous
+# TYPE1_MIN_N / TYPE1_MIN_UNIQUE live in survey_features.grid_screen (one home
+# for grid keep/drop thresholds; imported above).
 CHECK_VARS = {
     "afrobarometer": ["Q67A", "Q67B", "Q67"],
     "wvs": ["Q263", "Q266", "Q254"],

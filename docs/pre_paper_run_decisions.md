@@ -47,28 +47,55 @@ Map Jaccard vs scientist maps ≈0.35 (arms rewrite feature sets substantially).
 
 ## Grid screen: which (target × country) cells to keep
 
-Decided 2026-08-16; **default machinery as of 2026-08-19** in
+Decided 2026-08-16; **typed, self-contained machinery as of 2026-08-19** in
 [`src/survey_features/grid_screen.py`](../src/survey_features/grid_screen.py)
 (written by [`scripts/leakage_audit.py`](../scripts/leakage_audit.py);
 consumed by [`layout.genuine_cells()`](../src/survey_features/layout.py)).
-Era-3/v4 oracles rank on **log-loss** (binary/nominal) or **Spearman** (ordinal).
-Accuracy lift vs majority is **not** a drop rule.
+Oracles (contract v4) rank on **log-loss** (binary/nominal) or **Spearman**
+(ordinal/continuous). Accuracy lift vs majority is **not** a drop rule, and every
+screen gate is framed in the cell's own metric — no ordinal is ever judged as
+multiclass accuracy. The audit takes NO input from historical score files or a
+previous audit: leakage gates use a fresh typed probe (`--with-data`, cached per
+cell in `audit_probe.json`, keyed to the oracle it describes); offline runs can
+only mark type-1 and degrade concentrated cells to `leakage_suspect` — never
+clear them to genuine.
 
 | Keep / drop | Name | What it is | Decision |
 |-------------|------|------------|----------|
-| **Keep as a drop rule** | Type 1 — unestimable PI | Minority too thin on V2 (`n_score × (1−majority) < 10`, and V1 when `n_select` is stored). Modal share alone is not the test (`majority ≥ 0.80` was retracted in [`pipeline_audit_2026-08.md`](pipeline_audit_2026-08.md) §A10 — Q43A is 84–91% majority with the largest log-loss signal in the discard pile). After the oracle, `oracle_ceiling@5 < 0.30` is compromised ranking (Q141 Andorra `ceiling@5 ≈ 0.24`). Oracle fit still uses `MIN_CLASS_COUNT = 5` on the full cell; the **grid** uses the V1/V2 rule. | **Drop** → `unestimable`. |
+| **Keep as a drop rule** | Type 1 — unestimable PI | Classification: minority too thin on V2 (`n_score × (1−majority) < 10`) or on the CV ranking-fold holdouts (v4 `fold_fit_sizes`). Regression: `n_score < 50` or fewer than 3 distinct scale points (`n_target_unique`). Modal share alone is not the test (`majority ≥ 0.80` was retracted in [`pipeline_audit_2026-08.md`](pipeline_audit_2026-08.md) §A10 — Q43A is 84–91% majority with the largest log-loss signal in the discard pile). After the oracle, `oracle_ceiling@5 < 0.30` is compromised ranking (Q141 Andorra `ceiling@5 ≈ 0.24`). Oracle fit still uses `MIN_CLASS_COUNT = 5` on the full cell. | **Drop** → `unestimable`. |
 | **Do not use** | Type 2 — tiny accuracy lift | Oracle top-k XGB accuracy beats the mode by less than 0.03, e.g. Q104 Mauritania +0.029, Q43A Angola +0.003. | **Not a reason to drop.** Class is `genuine` if type-1 and leakage pass. |
 | **Do not use** | Type 3 — accuracy below the mode | Downstream XGB accuracy of the oracle top-k *loses* to majority, typical of high-cardinality ordinals (P16ST, P61ST). | **Not a reason to drop.** Spearman PI can still rank. |
 
-Still drop **leakage** (concentrated near-duplicate; distributed skip-pattern / `Q67A`). Do not drop on accuracy-vs-majority.
+Still drop **leakage**: relative near-duplicate (single feature recovers ≥ 0.90 of
+oracle PI with concentration ≥ 0.80), **absolute** near-duplicate (single-feature
+accuracy ≥ 0.90 and ≥ +0.20 over the mode, or single-feature Spearman ≥ 0.90, with
+concentration ≥ 0.80 — fires with ZERO oracle-side lift; added 2026-08-19 after
+`SE7a Mongolia`: `SE7` alone hit acc 0.9945 vs mode 0.4438 with importance share
+1.0 yet oracle lift ≈ 0 hid it), and distributed skip-pattern modules
+(implausible oracle PI with spread importance / `Q67A`). Do not drop on
+accuracy-vs-majority.
 
-Refresh the live CSV after this screen change (`python scripts/leakage_audit.py`). 2026-08-19 refresh: 89 oracle cells → **71 genuine** (was 42), 5 unestimable, 10 concentrated leakage, 3 distributed (Q67A). Do not mix a new grid with the old 42/47 score files.
+History: the 2026-08-19 refresh on the era-3 (v3) oracles gave 89 cells →
+**71 genuine** (was 42), 5 unestimable, 10 concentrated leakage, 3 distributed
+(Q67A). That grid is **provisional** — v3 inputs are retired. The binding grid
+comes from: `rerun_oracles.py` (all 89 → v4) → `leakage_audit.py --with-data`.
+Do not mix any grid with the old 42/47 accuracy-era score files, and archive
+`selectors/scores_*.csv` before re-scoring (the score-phase resume would silently
+skip cells already present in an old file).
 
 ---
 
 ## Ranked backlog before the confirmatory paper run
 
-1. **Re-grid on type-1 + leakage, not accuracy-vs-majority** — **done in code 2026-08-19** (`grid_screen.py`; default `run_main` grid). Refresh `outputs/cache/audits/leakage_audit.csv` so the live CSV matches. Do not mix the new genuine set with old 42/47 score files. Older docs may still say 47.
+1. **Recompute all 89 oracles under contract v4, then re-screen** — code done
+   2026-08-19 (v4 is the only contract; typed self-contained audit; absolute
+   near-duplicate rule; regression type-1). Runbook:
+   `cp -r outputs/cache/cells outputs/cache/cells_v3` →
+   `python scripts/rerun_oracles.py --processes 3` (89 cells, hours of AutoGluon) →
+   `python scripts/leakage_audit.py --with-data` → review flagged cells (expect
+   `SE7a Mongolia` → leakage; decide whether ESS test-battery items like `testji4`
+   belong in the target universe at all) → only then archive the legacy
+   `grid/`, `sensitivity/`, and old `selectors/scores_*.csv` to `.trash/`.
 
 2. **Lock the selector zoo**  
    `config.SELECTORS` today is only `deepseek` (V4-Pro) + `kimi` (K2.6). Registry `confirmatory-zoo` is still design-only. Decide the locked list (IDs on Nebius Studio / Token Factory), register keys in `config.SELECTORS`, then sweep with fixed Qwen+Nemotron + `social_scientist`.
@@ -89,4 +116,4 @@ Refresh the live CSV after this screen change (`python scripts/leakage_audit.py`
 - Expanding the 12-cell prompt-sensitivity factorial
 - Promoting MiniMax or Flash into confirmatory defaults
 - Switching the default system prompt to `helpful` on kimi-only evidence
-- Rebuilding era-3 oracles
+- ~~Rebuilding era-3 oracles~~ (retracted 2026-08-19: the v3→v4 recompute of all 89 grid cells is now REQUIRED — v3 is a dev byproduct and nothing may cite it)

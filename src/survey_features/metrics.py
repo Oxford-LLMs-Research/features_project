@@ -77,7 +77,8 @@ def load_oracle_importance(target: str, country: str, outputs_dir: Path = OUTPUT
 def load_oracle_train_index(
     target: str, country: str, outputs_dir: Path = OUTPUTS_DIR,
 ) -> list | None:
-    """Fit-split row labels from oracle_meta.json, or None if absent / empty."""
+    """Evaluator row labels from oracle_meta.json (v4 train_index = the eval
+    reserve D — rows no oracle fit or importance pass touched), or None."""
     p = cell_dir(target, country, outputs_dir) / "oracle_meta.json"
     if not p.is_file():
         return None

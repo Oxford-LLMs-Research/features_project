@@ -1,17 +1,18 @@
 """
-Recompute every cached oracle cell under the current settings (log loss + honest split).
+Recompute every cached oracle cell under the current contract (v4: k-fold CV
+ranking + eval reserve + untouched valuation holdout).
 
 Drives survey_features.oracle.compute_oracle cell by cell, grouped by survey so each
 survey frame is loaded once. Resumable: a cell whose oracle_meta.json already records
-the requested eval_metric is skipped unless --force.
+ORACLE_CONTRACT_VERSION (and the requested eval_metric, if forced) is skipped
+unless --force.
 
 The cell list comes from whatever is already on disk (outputs/cache/cells/<target>_<country>/),
 cross-checked against the leakage audit for survey attribution, so this reproduces the
 existing grid rather than inventing one.
 
-Before running this, archive the previous caches — the accuracy-era results are what
-every published number was computed from:
-    cp -r outputs/cache/cells outputs/cache/cells_accuracy_v1
+Before a contract migration, archive the previous caches first, e.g.:
+    cp -r outputs/cache/cells outputs/cache/cells_v3
 
 Usage:
     python scripts/rerun_oracles.py --dry-run
@@ -39,6 +40,7 @@ import pandas as pd  # noqa: E402
 
 from survey_features.config import OUTPUTS_DIR  # noqa: E402
 from survey_features.layout import (  # noqa: E402
+    cache_cells_dir,
     cell_dir as layout_cell_dir,
     leakage_audit_csv_path,
     tmp_dir,
@@ -147,7 +149,22 @@ def main() -> None:
 
     print(f"[rerun] metric={args.eval_metric or 'per target type'} "
           f"runtime={args.runtime_mode} contract=v{ORACLE_CONTRACT_VERSION}")
-    print(f"[rerun] {len(cells)} cells on disk, {len(todo)} to (re)compute")
+    # Disk census reads every meta directly (pilot cells outside the audit grid —
+    # e.g. targets missing from targets.yaml — still count toward "done").
+    census: dict[object, int] = {}
+    for meta_path in cache_cells_dir(outputs_dir).glob("*/oracle_meta.json"):
+        try:
+            v = json.loads(meta_path.read_text(encoding="utf-8")).get("contract_version")
+        except Exception:
+            v = "unreadable"
+        census[v] = census.get(v, 0) + 1
+    parts = ", ".join(
+        f"{n} at v{v}" + (" (current)" if v == ORACLE_CONTRACT_VERSION else " (stale)")
+        if isinstance(v, int) else f"{n} {v}"
+        for v, n in sorted(census.items(), key=lambda kv: str(kv[0]))
+    )
+    print(f"[rerun] disk census: {parts}")
+    print(f"[rerun] {len(cells)} cells on the audit grid, {len(todo)} to (re)compute")
     for s, items in by_survey.items():
         print(f"         {s:16s} {len(items)} cells")
     if args.dry_run:

@@ -40,8 +40,8 @@ grid-screen classes) are defined in plain language in [`glossary.md`](glossary.m
 | term | meaning |
 |---|---|
 | oracle | AutoGluon PI on real survey data — gold standard for selection |
-| honest split | fit on 60% (T), rank on 20% (V1), value on 20% (V2). See top of `oracle.py` |
-| `oracle_ceiling@k` | V1-chosen, V2-valued top-k mass — report models against this, not 1.0 |
+| honest split (v4) | 50% R ranks by k-fold CV, 30% D reserved for the downstream evaluator (= `train_index`), 20% V2 values the picks. See top of `oracle.py` |
+| `oracle_ceiling@k` | CV-ranked, V2-valued top-k mass — report models against this, not 1.0 |
 | captured importance | Σ oracle importance of model picks ÷ Σ oracle top-k (matched k) |
 | value_over_random / _textbook | predictive score minus matched-k random / textbook demographics |
 | k | number of variables the model's requests mapped to (model-chosen k is part of the measurand) |
@@ -57,13 +57,15 @@ Every published number depends on the oracle. The **contract version** in each c
 |---|---|---|
 | v1 | accuracy metric, single 80/20 | archived out of tree (snapshots) |
 | v2 | log loss, honest 60/20/20, still multiclass | archived out of tree |
-| **v3** | + measurement-level aware; out-of-scale sentinels excluded | `outputs/cache/cells/` (**current**) |
+| v3 | + measurement-level aware; out-of-scale sentinels excluded; ONE-SHOT split | superseded 2026-08-19 — a dev byproduct; do not cite or build on it |
+| **v4** | k-fold CV ranking + 30% eval reserve (= `train_index`) + untouched 20% valuation holdout; reliability block in meta | `outputs/cache/cells/` (**current**) |
 
 Constant: `ORACLE_CONTRACT_VERSION` in `src/survey_features/oracle.py`.
 **Any change that alters what oracle outputs mean must bump the version** and add a
 row here. Full audit: `docs/pipeline_audit_2026-08.md`.
 
-**Which numbers are current on this branch:** era-3 oracles under `outputs/cache/cells/`,
+**Which numbers are current on this branch:** contract-v4 oracles under `outputs/cache/cells/`
+(check `contract_version` in each meta — v3 stragglers are stale),
 and free-text Arm C artifacts under `outputs/selectors/`. Those paths resolve under the
 shared Dropbox root (`SURVEY_FEATURES_OUTPUTS`). Experiment-by-experiment claims
 live in [`docs/experiments_registry.md`](experiments_registry.md) — register before
@@ -99,8 +101,11 @@ If you add a cache, give it an identity field.
 ## 6. Running things
 
 ```bash
+cp -r outputs/cache/cells outputs/cache/cells_v3   # archive before a contract migration
 python scripts/rerun_oracles.py --processes 3   # after oracle contract changes
 python scripts/leakage_audit.py --with-data     # after ANY oracle change; default grid = genuine
+# then archive any pre-existing selectors/scores_*.csv before re-scoring — the
+# score-phase resume would silently skip cells already present in an old file
 python scripts/build_textbook_baseline.py
 
 python scripts/run_main.py --phase gen|extract|map|score --selector deepseek

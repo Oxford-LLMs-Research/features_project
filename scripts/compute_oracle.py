@@ -31,6 +31,7 @@ from survey_features.layout import (  # noqa: E402
 )
 from survey_features.oracle import (  # noqa: E402
     ENFORCE_IDENTICAL_FEATURE_POOL,
+    DEFAULT_CV_FOLDS,
     EVAL_RESERVE,
     MAX_MISSINGNESS_THRESHOLD,
     MIN_CLASS_COUNT,
@@ -204,17 +205,17 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--cv-folds",
         type=int,
-        default=0,
+        default=DEFAULT_CV_FOLDS,
         help=(
-            "0/1 = contract v3 honest split (default). >=2 = contract v4: k-fold CV "
-            "ranking + valuation holdout + downstream-eval reserve."
+            f"k-fold CV ranking folds (contract v4; default {DEFAULT_CV_FOLDS}). "
+            "Must be >= 2 — the v3 one-shot split is retired."
         ),
     )
     parser.add_argument(
         "--eval-reserve",
         type=float,
         default=EVAL_RESERVE,
-        help=f"v4 only: share of rows reserved for the downstream evaluator "
+        help=f"share of rows reserved for the downstream evaluator "
              f"(default: {EVAL_RESERVE}).",
     )
     parser.add_argument(
