@@ -81,10 +81,15 @@ def grid_cells(outputs_dir: Path = OUT) -> list[tuple[str, str, str]]:
     return [(r["survey"], r["target"], r["country"]) for r in rows]
 
 
-def selector_generate_fn(selector_model: str, usage_log=None):
+def selector_generate_fn(selector_model: str, usage_log=None, extra_body=None):
     """Selector client; transient errors -> '' (keeps sweeps alive)."""
     from survey_features.llm import make_generate_fn
-    fn, _ = make_generate_fn(model=selector_model, usage_log=usage_log, on_error="empty")
+    fn, _ = make_generate_fn(
+        model=selector_model,
+        usage_log=usage_log,
+        on_error="empty",
+        extra_body=extra_body,
+    )
     return fn
 
 

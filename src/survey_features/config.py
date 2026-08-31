@@ -58,6 +58,7 @@ DEFAULT_SELECTOR = "deepseek"
 EXPERIMENT_SELECTORS: dict[str, dict[str, str]] = {
     **SELECTORS,
     "deepseek_v4": {"model": "deepseek-ai/DeepSeek-V4-Pro"},
+    "hermes": {"model": "NousResearch/Hermes-4-405B"},
 }
 
 # Extraction (free-text essay -> feature list) is held FIXED across selectors.

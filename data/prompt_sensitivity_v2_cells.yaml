@@ -1,0 +1,753 @@
+experiment: prompt_sensitivity_v2
+seed_requested: 20260819
+seed_used: 20260819
+n_questions: 24
+n_countries_per_survey: 3
+n_cells: 72
+n_unique_countries: 18
+condition: country_provided
+min_classification_questions: 3
+n_classification_questions: 4
+notes: 24 questions (2 per survey x theme stratum) on a shared 3-country panel per
+  survey. Stage 1 is country-named only. Do not hand-swap items; leakage/unestimable
+  cells use the same-survey-same-stratum spare.
+surveys:
+  afrobarometer:
+    questions:
+    - target: Q46E
+      type: ordinal
+      section: institutional_trust
+      stratum: political_institutional
+      role: core
+      n_type1_pass: 39
+      n_eligible_countries: 39
+    - target: Q53C
+      type: ordinal
+      section: institutional_trust
+      stratum: political_institutional
+      role: core
+      n_type1_pass: 39
+      n_eligible_countries: 39
+    - target: Q87E
+      type: ordinal
+      section: social_attitudes
+      stratum: everyday_person
+      role: core
+      n_type1_pass: 39
+      n_eligible_countries: 39
+    - target: Q52A
+      type: ordinal
+      section: values_identity
+      stratum: everyday_person
+      role: core
+      n_type1_pass: 39
+      n_eligible_countries: 39
+    spares:
+    - target: Q27C
+      type: ordinal
+      section: political_attitudes
+      stratum: political_institutional
+      role: spare
+      n_type1_pass: 38
+      n_eligible_countries: 38
+    - target: Q20
+      type: ordinal
+      section: social_attitudes
+      stratum: everyday_person
+      role: spare
+      n_type1_pass: 39
+      n_eligible_countries: 39
+    countries:
+    - Benin
+    - Guinea
+    - Togo
+    shared_eligible_n: 39
+    used_spare_swap: null
+  arabbarometer:
+    questions:
+    - target: Q201A_2
+      type: ordinal
+      section: institutional_trust
+      stratum: political_institutional
+      role: core
+      n_type1_pass: 7
+      n_eligible_countries: 7
+    - target: Q701H_1
+      type: ordinal
+      section: political_attitudes
+      stratum: political_institutional
+      role: core
+      n_type1_pass: 6
+      n_eligible_countries: 6
+    - target: Q105A
+      type: ordinal
+      section: wellbeing
+      stratum: everyday_person
+      role: core
+      n_type1_pass: 8
+      n_eligible_countries: 8
+    - target: Q129A_1
+      type: ordinal
+      section: wellbeing
+      stratum: everyday_person
+      role: core
+      n_type1_pass: 7
+      n_eligible_countries: 7
+    spares:
+    - target: Q204_3
+      type: ordinal
+      section: institutional_trust
+      stratum: political_institutional
+      role: spare
+      n_type1_pass: 8
+      n_eligible_countries: 8
+    - target: Q609
+      type: ordinal
+      section: values_identity
+      stratum: everyday_person
+      role: spare
+      n_type1_pass: 7
+      n_eligible_countries: 7
+    countries:
+    - Jordan
+    - Morocco
+    - Tunisia
+    shared_eligible_n: 6
+    used_spare_swap: null
+  asianbarometer:
+    questions:
+    - target: Q174
+      type: ordinal
+      section: political_attitudes
+      stratum: political_institutional
+      role: core
+      n_type1_pass: 3
+      n_eligible_countries: 3
+    - target: Q102
+      type: ordinal
+      section: political_attitudes
+      stratum: political_institutional
+      role: core
+      n_type1_pass: 3
+      n_eligible_countries: 3
+    - target: Q21
+      type: nominal
+      section: social_attitudes
+      stratum: everyday_person
+      role: core
+      n_type1_pass: 3
+      n_eligible_countries: 3
+    - target: Q137
+      type: ordinal
+      section: values_identity
+      stratum: everyday_person
+      role: core
+      n_type1_pass: 3
+      n_eligible_countries: 3
+    spares:
+    - target: Q16
+      type: ordinal
+      section: institutional_trust
+      stratum: political_institutional
+      role: spare
+      n_type1_pass: 3
+      n_eligible_countries: 3
+    - target: Q166
+      type: ordinal
+      section: values_identity
+      stratum: everyday_person
+      role: spare
+      n_type1_pass: 3
+      n_eligible_countries: 3
+    countries:
+    - Indonesia
+    - Philippines
+    - Taiwan
+    shared_eligible_n: 3
+    used_spare_swap: null
+  ess_wave_11:
+    questions:
+    - target: stfeco
+      type: ordinal
+      section: political_attitudes
+      stratum: political_institutional
+      role: core
+      n_type1_pass: 30
+      n_eligible_countries: 30
+    - target: psppipla
+      type: ordinal
+      section: political_participation
+      stratum: political_institutional
+      role: core
+      n_type1_pass: 30
+      n_eligible_countries: 30
+    - target: eatveg
+      type: ordinal
+      section: wellbeing
+      stratum: everyday_person
+      role: core
+      n_type1_pass: 30
+      n_eligible_countries: 30
+    - target: eqparlv
+      type: ordinal
+      section: social_attitudes
+      stratum: everyday_person
+      role: core
+      n_type1_pass: 30
+      n_eligible_countries: 30
+    spares:
+    - target: ipstrgva
+      type: ordinal
+      section: political_attitudes
+      stratum: political_institutional
+      role: spare
+      n_type1_pass: 30
+      n_eligible_countries: 30
+    - target: hltprsd
+      type: binary
+      section: wellbeing
+      stratum: everyday_person
+      role: spare
+      n_type1_pass: 30
+      n_eligible_countries: 30
+    countries:
+    - Finland
+    - France
+    - Greece
+    shared_eligible_n: 30
+    used_spare_swap: null
+  latinobarometer:
+    questions:
+    - target: P16ST
+      type: ordinal
+      section: political_attitudes
+      stratum: political_institutional
+      role: core
+      n_type1_pass: 17
+      n_eligible_countries: 17
+    - target: P26SDN.D
+      type: ordinal
+      section: political_attitudes
+      stratum: political_institutional
+      role: core
+      n_type1_pass: 17
+      n_eligible_countries: 17
+    - target: S20.G
+      type: binary
+      section: wellbeing
+      stratum: everyday_person
+      role: core
+      n_type1_pass: 16
+      n_eligible_countries: 16
+    - target: S20.J
+      type: binary
+      section: wellbeing
+      stratum: everyday_person
+      role: core
+      n_type1_pass: 17
+      n_eligible_countries: 17
+    spares:
+    - target: P13STGBS.A
+      type: ordinal
+      section: institutional_trust
+      stratum: political_institutional
+      role: spare
+      n_type1_pass: 15
+      n_eligible_countries: 15
+    - target: S8
+      type: binary
+      section: social_attitudes
+      stratum: everyday_person
+      role: spare
+      n_type1_pass: 17
+      n_eligible_countries: 17
+    countries:
+    - Brasil
+    - Ecuador
+    - Panama
+    shared_eligible_n: 16
+    used_spare_swap: null
+  wvs:
+    questions:
+    - target: Q291UN3
+      type: ordinal
+      section: institutional_trust
+      stratum: political_institutional
+      role: core
+      n_type1_pass: 16
+      n_eligible_countries: 16
+    - target: Q292C
+      type: ordinal
+      section: institutional_trust
+      stratum: political_institutional
+      role: core
+      n_type1_pass: 13
+      n_eligible_countries: 13
+    - target: Q173
+      type: nominal
+      section: values_identity
+      stratum: everyday_person
+      role: core
+      n_type1_pass: 64
+      n_eligible_countries: 64
+    - target: Q183
+      type: ordinal
+      section: values_identity
+      stratum: everyday_person
+      role: core
+      n_type1_pass: 61
+      n_eligible_countries: 61
+    spares:
+    - target: Q74
+      type: ordinal
+      section: institutional_trust
+      stratum: political_institutional
+      role: spare
+      n_type1_pass: 66
+      n_eligible_countries: 66
+    - target: Q181
+      type: ordinal
+      section: values_identity
+      stratum: everyday_person
+      role: spare
+      n_type1_pass: 66
+      n_eligible_countries: 66
+    countries:
+    - Ethiopia
+    - Kyrgyzstan
+    - Myanmar
+    shared_eligible_n: 11
+    used_spare_swap: null
+cells:
+- survey: afrobarometer
+  target: Q46E
+  country: Benin
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: afrobarometer
+  target: Q46E
+  country: Guinea
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: afrobarometer
+  target: Q46E
+  country: Togo
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: afrobarometer
+  target: Q53C
+  country: Benin
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: afrobarometer
+  target: Q53C
+  country: Guinea
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: afrobarometer
+  target: Q53C
+  country: Togo
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: afrobarometer
+  target: Q87E
+  country: Benin
+  type: ordinal
+  section: social_attitudes
+  stratum: everyday_person
+- survey: afrobarometer
+  target: Q87E
+  country: Guinea
+  type: ordinal
+  section: social_attitudes
+  stratum: everyday_person
+- survey: afrobarometer
+  target: Q87E
+  country: Togo
+  type: ordinal
+  section: social_attitudes
+  stratum: everyday_person
+- survey: afrobarometer
+  target: Q52A
+  country: Benin
+  type: ordinal
+  section: values_identity
+  stratum: everyday_person
+- survey: afrobarometer
+  target: Q52A
+  country: Guinea
+  type: ordinal
+  section: values_identity
+  stratum: everyday_person
+- survey: afrobarometer
+  target: Q52A
+  country: Togo
+  type: ordinal
+  section: values_identity
+  stratum: everyday_person
+- survey: arabbarometer
+  target: Q201A_2
+  country: Jordan
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: arabbarometer
+  target: Q201A_2
+  country: Morocco
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: arabbarometer
+  target: Q201A_2
+  country: Tunisia
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: arabbarometer
+  target: Q701H_1
+  country: Jordan
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: arabbarometer
+  target: Q701H_1
+  country: Morocco
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: arabbarometer
+  target: Q701H_1
+  country: Tunisia
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: arabbarometer
+  target: Q105A
+  country: Jordan
+  type: ordinal
+  section: wellbeing
+  stratum: everyday_person
+- survey: arabbarometer
+  target: Q105A
+  country: Morocco
+  type: ordinal
+  section: wellbeing
+  stratum: everyday_person
+- survey: arabbarometer
+  target: Q105A
+  country: Tunisia
+  type: ordinal
+  section: wellbeing
+  stratum: everyday_person
+- survey: arabbarometer
+  target: Q129A_1
+  country: Jordan
+  type: ordinal
+  section: wellbeing
+  stratum: everyday_person
+- survey: arabbarometer
+  target: Q129A_1
+  country: Morocco
+  type: ordinal
+  section: wellbeing
+  stratum: everyday_person
+- survey: arabbarometer
+  target: Q129A_1
+  country: Tunisia
+  type: ordinal
+  section: wellbeing
+  stratum: everyday_person
+- survey: asianbarometer
+  target: Q174
+  country: Indonesia
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: asianbarometer
+  target: Q174
+  country: Philippines
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: asianbarometer
+  target: Q174
+  country: Taiwan
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: asianbarometer
+  target: Q102
+  country: Indonesia
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: asianbarometer
+  target: Q102
+  country: Philippines
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: asianbarometer
+  target: Q102
+  country: Taiwan
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: asianbarometer
+  target: Q21
+  country: Indonesia
+  type: nominal
+  section: social_attitudes
+  stratum: everyday_person
+- survey: asianbarometer
+  target: Q21
+  country: Philippines
+  type: nominal
+  section: social_attitudes
+  stratum: everyday_person
+- survey: asianbarometer
+  target: Q21
+  country: Taiwan
+  type: nominal
+  section: social_attitudes
+  stratum: everyday_person
+- survey: asianbarometer
+  target: Q137
+  country: Indonesia
+  type: ordinal
+  section: values_identity
+  stratum: everyday_person
+- survey: asianbarometer
+  target: Q137
+  country: Philippines
+  type: ordinal
+  section: values_identity
+  stratum: everyday_person
+- survey: asianbarometer
+  target: Q137
+  country: Taiwan
+  type: ordinal
+  section: values_identity
+  stratum: everyday_person
+- survey: ess_wave_11
+  target: stfeco
+  country: Finland
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: ess_wave_11
+  target: stfeco
+  country: France
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: ess_wave_11
+  target: stfeco
+  country: Greece
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: ess_wave_11
+  target: psppipla
+  country: Finland
+  type: ordinal
+  section: political_participation
+  stratum: political_institutional
+- survey: ess_wave_11
+  target: psppipla
+  country: France
+  type: ordinal
+  section: political_participation
+  stratum: political_institutional
+- survey: ess_wave_11
+  target: psppipla
+  country: Greece
+  type: ordinal
+  section: political_participation
+  stratum: political_institutional
+- survey: ess_wave_11
+  target: eatveg
+  country: Finland
+  type: ordinal
+  section: wellbeing
+  stratum: everyday_person
+- survey: ess_wave_11
+  target: eatveg
+  country: France
+  type: ordinal
+  section: wellbeing
+  stratum: everyday_person
+- survey: ess_wave_11
+  target: eatveg
+  country: Greece
+  type: ordinal
+  section: wellbeing
+  stratum: everyday_person
+- survey: ess_wave_11
+  target: eqparlv
+  country: Finland
+  type: ordinal
+  section: social_attitudes
+  stratum: everyday_person
+- survey: ess_wave_11
+  target: eqparlv
+  country: France
+  type: ordinal
+  section: social_attitudes
+  stratum: everyday_person
+- survey: ess_wave_11
+  target: eqparlv
+  country: Greece
+  type: ordinal
+  section: social_attitudes
+  stratum: everyday_person
+- survey: latinobarometer
+  target: P16ST
+  country: Brasil
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: latinobarometer
+  target: P16ST
+  country: Ecuador
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: latinobarometer
+  target: P16ST
+  country: Panama
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: latinobarometer
+  target: P26SDN.D
+  country: Brasil
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: latinobarometer
+  target: P26SDN.D
+  country: Ecuador
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: latinobarometer
+  target: P26SDN.D
+  country: Panama
+  type: ordinal
+  section: political_attitudes
+  stratum: political_institutional
+- survey: latinobarometer
+  target: S20.G
+  country: Brasil
+  type: binary
+  section: wellbeing
+  stratum: everyday_person
+- survey: latinobarometer
+  target: S20.G
+  country: Ecuador
+  type: binary
+  section: wellbeing
+  stratum: everyday_person
+- survey: latinobarometer
+  target: S20.G
+  country: Panama
+  type: binary
+  section: wellbeing
+  stratum: everyday_person
+- survey: latinobarometer
+  target: S20.J
+  country: Brasil
+  type: binary
+  section: wellbeing
+  stratum: everyday_person
+- survey: latinobarometer
+  target: S20.J
+  country: Ecuador
+  type: binary
+  section: wellbeing
+  stratum: everyday_person
+- survey: latinobarometer
+  target: S20.J
+  country: Panama
+  type: binary
+  section: wellbeing
+  stratum: everyday_person
+- survey: wvs
+  target: Q291UN3
+  country: Ethiopia
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: wvs
+  target: Q291UN3
+  country: Kyrgyzstan
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: wvs
+  target: Q291UN3
+  country: Myanmar
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: wvs
+  target: Q292C
+  country: Ethiopia
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: wvs
+  target: Q292C
+  country: Kyrgyzstan
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: wvs
+  target: Q292C
+  country: Myanmar
+  type: ordinal
+  section: institutional_trust
+  stratum: political_institutional
+- survey: wvs
+  target: Q173
+  country: Ethiopia
+  type: nominal
+  section: values_identity
+  stratum: everyday_person
+- survey: wvs
+  target: Q173
+  country: Kyrgyzstan
+  type: nominal
+  section: values_identity
+  stratum: everyday_person
+- survey: wvs
+  target: Q173
+  country: Myanmar
+  type: nominal
+  section: values_identity
+  stratum: everyday_person
+- survey: wvs
+  target: Q183
+  country: Ethiopia
+  type: ordinal
+  section: values_identity
+  stratum: everyday_person
+- survey: wvs
+  target: Q183
+  country: Kyrgyzstan
+  type: ordinal
+  section: values_identity
+  stratum: everyday_person
+- survey: wvs
+  target: Q183
+  country: Myanmar
+  type: ordinal
+  section: values_identity
+  stratum: everyday_person

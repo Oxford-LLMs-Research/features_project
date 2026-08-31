@@ -37,6 +37,7 @@ for _p in (str(ROOT / "src"), str(ROOT)):
         sys.path.insert(0, _p)
 
 import pandas as pd  # noqa: E402
+import yaml  # noqa: E402
 
 from survey_features.config import OUTPUTS_DIR  # noqa: E402
 from survey_features.layout import (  # noqa: E402
@@ -60,6 +61,18 @@ from survey_features.surveys import (  # noqa: E402
     flatten_metadata,
     load_survey,
 )
+
+
+def cells_from_yaml(path: Path) -> list[tuple[str, str, str]]:
+    """(survey, target, country) from a frozen cells yaml (e.g. prompt-sensitivity v2)."""
+    doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    rows = doc.get("cells") or []
+    out = []
+    for r in rows:
+        out.append((str(r["survey"]), str(r["target"]), str(r["country"])))
+    if not out:
+        raise SystemExit(f"No cells in {path}")
+    return out
 
 
 def cells_from_audit(outputs_dir: Path) -> list[tuple[str, str, str]]:
@@ -108,12 +121,23 @@ def main() -> None:
         "--autogluon-time-limit", type=int, default=0,
         help=(
             "Per-fit wall-clock budget in seconds (0 = runtime-mode default). The "
-            "preset SPENDS the whole budget, so this — not cell size — sets cell cost."
+            "preset SPENDS the whole budget, so this — not cell size — sets cell cost. "
+            "Do not raise this to unstick a cell that overshoots: lock the tree bag "
+            "in oracle.py instead (onboarding.md #5.7)."
         ),
     )
     ap.add_argument("--output-dir", default=None)
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument(
+        "--cells-yaml",
+        type=Path,
+        default=None,
+        help=(
+            "Frozen (survey, target, country) list. Default is the leakage-audit "
+            "grid. Use this for experiment grids that are not yet on that audit."
+        ),
+    )
     ap.add_argument(
         "--processes", type=int, default=0,
         help=(
@@ -135,7 +159,12 @@ def main() -> None:
         raise SystemExit("DATA_CONFIG_PATH is not set in .env")
 
     outputs_dir = Path(args.output_dir) if args.output_dir else OUTPUTS_DIR
-    cells = cells_from_audit(outputs_dir)
+    if args.cells_yaml:
+        cells = cells_from_yaml(args.cells_yaml)
+        grid_src = str(args.cells_yaml)
+    else:
+        cells = cells_from_audit(outputs_dir)
+        grid_src = "leakage audit"
     if args.survey:
         cells = [c for c in cells if c[0] in set(args.survey)]
     todo = [c for c in cells
@@ -147,6 +176,7 @@ def main() -> None:
     for survey, target, country in todo:
         by_survey.setdefault(survey, []).append((target, country))
 
+    print(f"[rerun] grid={grid_src}")
     print(f"[rerun] metric={args.eval_metric or 'per target type'} "
           f"runtime={args.runtime_mode} contract=v{ORACLE_CONTRACT_VERSION}")
     # Disk census reads every meta directly (pilot cells outside the audit grid —
@@ -164,14 +194,13 @@ def main() -> None:
         for v, n in sorted(census.items(), key=lambda kv: str(kv[0]))
     )
     print(f"[rerun] disk census: {parts}")
-    print(f"[rerun] {len(cells)} cells on the audit grid, {len(todo)} to (re)compute")
+    print(f"[rerun] {len(cells)} cells on the grid, {len(todo)} to (re)compute")
     for s, items in by_survey.items():
         print(f"         {s:16s} {len(items)} cells")
     if args.dry_run:
         return
 
     tmp_root = _set_local_tmp_dir(tmp_dir(outputs_dir))
-    similarity_model = load_similarity_model(0.85)
     config_path = os.environ["DATA_CONFIG_PATH"]
     done = failed = 0
     counter_lock = threading.Lock()
@@ -204,6 +233,7 @@ def main() -> None:
         print("[rerun] next: python scripts/leakage_audit.py --with-data")
         return
 
+    similarity_model = load_similarity_model(0.85)
     for survey, items in by_survey.items():
         print(f"\n=== {survey} ({len(items)} cells) ===", flush=True)
         data, metadata = load_survey(survey, config_path)
