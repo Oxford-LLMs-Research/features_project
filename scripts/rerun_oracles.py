@@ -251,7 +251,9 @@ def main() -> None:
     config_path = os.environ["DATA_CONFIG_PATH"]
     done = failed = 0
     counter_lock = threading.Lock()
-    cpus = os.cpu_count() or 4
+    # Inside a SLURM allocation the cgroup budget is authoritative — os.cpu_count()
+    # sees the whole node and oversubscribes threads (and memory with them).
+    cpus = int(os.environ.get("SLURM_CPUS_PER_TASK") or 0) or (os.cpu_count() or 4)
     n_workers = args.workers if args.workers else max(1, min(5, cpus // 4))
     cpus_per_worker = max(1, cpus // n_workers)
     # Wall-clock budget scales with worker count (fits share cores, not time).
