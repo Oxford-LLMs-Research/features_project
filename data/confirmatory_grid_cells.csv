@@ -906,13 +906,13 @@ wvs,Q21,New Zealand,binary,social_attitudes,False,1,confirmatory
 wvs,Q21,Indonesia,binary,social_attitudes,False,2,confirmatory
 wvs,Q21,Tajikistan,binary,social_attitudes,False,3,confirmatory
 wvs,Q21,United States,binary,social_attitudes,False,4,oracle_only
-wvs,Q21,Greece,binary,social_attitudes,False,5,oracle_only
-wvs,Q21,Armenia,binary,social_attitudes,False,6,oracle_only
-wvs,Q21,China,binary,social_attitudes,False,7,oracle_only
-wvs,Q21,Bangladesh,binary,social_attitudes,False,8,oracle_only
-wvs,Q21,Czechia,binary,social_attitudes,False,9,oracle_only
-wvs,Q21,Colombia,binary,social_attitudes,False,10,oracle_only
-wvs,Q145,410,binary,wellbeing,False,1,confirmatory
+wvs,Q21,Netherlands,binary,social_attitudes,False,5,oracle_only
+wvs,Q21,India,binary,social_attitudes,False,6,oracle_only
+wvs,Q21,Macao SAR,binary,social_attitudes,False,7,oracle_only
+wvs,Q21,Maldives,binary,social_attitudes,False,8,oracle_only
+wvs,Q21,Serbia,binary,social_attitudes,False,9,oracle_only
+wvs,Q21,Guatemala,binary,social_attitudes,False,10,oracle_only
+wvs,Q145,India,binary,wellbeing,False,1,confirmatory
 wvs,Q145,Canada,binary,wellbeing,False,2,confirmatory
 wvs,Q145,Iran,binary,wellbeing,False,3,confirmatory
 wvs,Q145,Guatemala,binary,wellbeing,False,4,oracle_only
@@ -921,58 +921,58 @@ wvs,Q145,Kazakhstan,binary,wellbeing,False,6,oracle_only
 wvs,Q145,Bangladesh,binary,wellbeing,False,7,oracle_only
 wvs,Q145,Australia,binary,wellbeing,False,8,oracle_only
 wvs,Q145,Thailand,binary,wellbeing,False,9,oracle_only
-wvs,Q145,Mongolia,binary,wellbeing,False,10,oracle_only
-wvs,Q150,Iraq,binary,political_attitudes,False,1,confirmatory
-wvs,Q150,Taiwan ROC,binary,political_attitudes,False,2,confirmatory
-wvs,Q150,Czechia,binary,political_attitudes,False,3,confirmatory
-wvs,Q150,Myanmar,binary,political_attitudes,False,4,oracle_only
-wvs,Q150,Canada,binary,political_attitudes,False,5,oracle_only
-wvs,Q150,Zimbabwe,binary,political_attitudes,False,6,oracle_only
-wvs,Q150,410,binary,political_attitudes,False,7,oracle_only
-wvs,Q150,Uzbekistan,binary,political_attitudes,False,8,oracle_only
-wvs,Q150,Bolivia,binary,political_attitudes,False,9,oracle_only
-wvs,Q150,Netherlands,binary,political_attitudes,False,10,oracle_only
-wvs,Q10,Germany,binary,values_identity,False,1,confirmatory
+wvs,Q145,China,binary,wellbeing,False,10,oracle_only
+wvs,Q150,Australia,binary,political_attitudes,False,1,confirmatory
+wvs,Q150,Argentina,binary,political_attitudes,False,2,confirmatory
+wvs,Q150,Serbia,binary,political_attitudes,False,3,confirmatory
+wvs,Q150,Greece,binary,political_attitudes,False,4,oracle_only
+wvs,Q150,Singapore,binary,political_attitudes,False,5,oracle_only
+wvs,Q150,India,binary,political_attitudes,False,6,oracle_only
+wvs,Q150,Kyrgyzstan,binary,political_attitudes,False,7,oracle_only
+wvs,Q150,Maldives,binary,political_attitudes,False,8,oracle_only
+wvs,Q150,United States,binary,political_attitudes,False,9,oracle_only
+wvs,Q150,Egypt,binary,political_attitudes,False,10,oracle_only
+wvs,Q10,Greece,binary,values_identity,False,1,confirmatory
 wvs,Q10,Egypt,binary,values_identity,False,2,confirmatory
-wvs,Q10,Argentina,binary,values_identity,False,3,confirmatory
+wvs,Q10,Venezuela,binary,values_identity,False,3,confirmatory
 wvs,Q10,Uzbekistan,binary,values_identity,False,4,oracle_only
 wvs,Q10,Japan,binary,values_identity,False,5,oracle_only
-wvs,Q10,410,binary,values_identity,False,6,oracle_only
+wvs,Q10,Northern Ireland,binary,values_identity,False,6,oracle_only
 wvs,Q10,Bangladesh,binary,values_identity,False,7,oracle_only
 wvs,Q10,Philippines,binary,values_identity,False,8,oracle_only
 wvs,Q10,Czechia,binary,values_identity,False,9,oracle_only
 wvs,Q10,United States,binary,values_identity,False,10,oracle_only
-wvs,Q47,Ukraine,nominal,wellbeing,False,1,confirmatory
-wvs,Q47,Morocco,nominal,wellbeing,False,2,confirmatory
-wvs,Q47,Northern Ireland,nominal,wellbeing,False,3,confirmatory
+wvs,Q47,Russia,nominal,wellbeing,False,1,confirmatory
+wvs,Q47,Iraq,nominal,wellbeing,False,2,confirmatory
+wvs,Q47,Armenia,nominal,wellbeing,False,3,confirmatory
 wvs,Q47,United States,nominal,wellbeing,False,4,oracle_only
-wvs,Q47,Mongolia,nominal,wellbeing,False,5,oracle_only
+wvs,Q47,Macao SAR,nominal,wellbeing,False,5,oracle_only
 wvs,Q47,Myanmar,nominal,wellbeing,False,6,oracle_only
 wvs,Q47,Uzbekistan,nominal,wellbeing,False,7,oracle_only
-wvs,Q47,Zimbabwe,nominal,wellbeing,False,8,oracle_only
-wvs,Q47,Venezuela,nominal,wellbeing,False,9,oracle_only
-wvs,Q47,Maldives,nominal,wellbeing,False,10,oracle_only
+wvs,Q47,Nigeria,nominal,wellbeing,False,8,oracle_only
+wvs,Q47,Colombia,nominal,wellbeing,False,9,oracle_only
+wvs,Q47,Pakistan,nominal,wellbeing,False,10,oracle_only
 wvs,Q287,Tunisia,nominal,demographics,False,1,confirmatory
 wvs,Q287,Australia,nominal,demographics,False,2,confirmatory
-wvs,Q287,Greece,nominal,demographics,False,3,confirmatory
+wvs,Q287,Germany,nominal,demographics,False,3,confirmatory
 wvs,Q287,Kyrgyzstan,nominal,demographics,False,4,oracle_only
 wvs,Q287,Vietnam,nominal,demographics,False,5,oracle_only
-wvs,Q287,China,nominal,demographics,False,6,oracle_only
+wvs,Q287,Macao SAR,nominal,demographics,False,6,oracle_only
 wvs,Q287,Zimbabwe,nominal,demographics,False,7,oracle_only
 wvs,Q287,India,nominal,demographics,False,8,oracle_only
 wvs,Q287,Serbia,nominal,demographics,False,9,oracle_only
-wvs,Q287,Venezuela,nominal,demographics,False,10,oracle_only
-wvs,Q223,Peru,nominal,political_participation,False,1,confirmatory
+wvs,Q287,Chile,nominal,demographics,False,10,oracle_only
+wvs,Q223,Nicaragua,nominal,political_participation,False,1,confirmatory
 wvs,Q223,Thailand,nominal,political_participation,False,2,confirmatory
-wvs,Q223,India,nominal,political_participation,False,3,confirmatory
+wvs,Q223,Armenia,nominal,political_participation,False,3,confirmatory
 wvs,Q223,Maldives,nominal,political_participation,False,4,oracle_only
-wvs,Q223,Ukraine,nominal,political_participation,False,5,oracle_only
+wvs,Q223,Russia,nominal,political_participation,False,5,oracle_only
 wvs,Q223,Australia,nominal,political_participation,False,6,oracle_only
 wvs,Q223,Uzbekistan,nominal,political_participation,False,7,oracle_only
 wvs,Q223,Germany,nominal,political_participation,False,8,oracle_only
-wvs,Q223,Lebanon,nominal,political_participation,False,9,oracle_only
-wvs,Q223,Mongolia,nominal,political_participation,False,10,oracle_only
-wvs,Q216,Mexico,ordinal,political_participation,False,1,confirmatory
+wvs,Q223,Turkey,nominal,political_participation,False,9,oracle_only
+wvs,Q223,Hong Kong SAR,nominal,political_participation,False,10,oracle_only
+wvs,Q216,Chile,ordinal,political_participation,False,1,confirmatory
 wvs,Q216,Zimbabwe,ordinal,political_participation,False,2,confirmatory
 wvs,Q216,Maldives,ordinal,political_participation,False,3,confirmatory
 wvs,Q216,Uzbekistan,ordinal,political_participation,False,4,oracle_only
@@ -982,53 +982,53 @@ wvs,Q216,Serbia,ordinal,political_participation,False,7,oracle_only
 wvs,Q216,Cyprus,ordinal,political_participation,False,8,oracle_only
 wvs,Q216,Philippines,ordinal,political_participation,False,9,oracle_only
 wvs,Q216,China,ordinal,political_participation,False,10,oracle_only
-wvs,Q110,Pakistan,ordinal,political_attitudes,False,1,confirmatory
-wvs,Q110,Philippines,ordinal,political_attitudes,False,2,confirmatory
-wvs,Q110,Canada,ordinal,political_attitudes,False,3,confirmatory
-wvs,Q110,Northern Ireland,ordinal,political_attitudes,False,4,oracle_only
-wvs,Q110,Japan,ordinal,political_attitudes,False,5,oracle_only
-wvs,Q110,Netherlands,ordinal,political_attitudes,False,6,oracle_only
-wvs,Q110,Australia,ordinal,political_attitudes,False,7,oracle_only
-wvs,Q110,Czechia,ordinal,political_attitudes,False,8,oracle_only
-wvs,Q110,Tajikistan,ordinal,political_attitudes,False,9,oracle_only
-wvs,Q110,Nicaragua,ordinal,political_attitudes,False,10,oracle_only
-wvs,Q159,Pakistan,ordinal,contemporary_issues,False,1,confirmatory
-wvs,Q159,410,ordinal,contemporary_issues,False,2,confirmatory
-wvs,Q159,Zimbabwe,ordinal,contemporary_issues,False,3,confirmatory
-wvs,Q159,Indonesia,ordinal,contemporary_issues,False,4,oracle_only
-wvs,Q159,New Zealand,ordinal,contemporary_issues,False,5,oracle_only
-wvs,Q159,Tajikistan,ordinal,contemporary_issues,False,6,oracle_only
-wvs,Q159,Chile,ordinal,contemporary_issues,False,7,oracle_only
-wvs,Q159,United States,ordinal,contemporary_issues,False,8,oracle_only
-wvs,Q159,Egypt,ordinal,contemporary_issues,False,9,oracle_only
-wvs,Q159,Great Britain,ordinal,contemporary_issues,False,10,oracle_only
+wvs,Q110,Armenia,ordinal,political_attitudes,False,1,confirmatory
+wvs,Q110,China,ordinal,political_attitudes,False,2,confirmatory
+wvs,Q110,Ecuador,ordinal,political_attitudes,False,3,confirmatory
+wvs,Q110,Bangladesh,ordinal,political_attitudes,False,4,oracle_only
+wvs,Q110,Nigeria,ordinal,political_attitudes,False,5,oracle_only
+wvs,Q110,New Zealand,ordinal,political_attitudes,False,6,oracle_only
+wvs,Q110,Canada,ordinal,political_attitudes,False,7,oracle_only
+wvs,Q110,Great Britain,ordinal,political_attitudes,False,8,oracle_only
+wvs,Q110,Kazakhstan,ordinal,political_attitudes,False,9,oracle_only
+wvs,Q110,Morocco,ordinal,political_attitudes,False,10,oracle_only
+wvs,Q159,Iraq,ordinal,contemporary_issues,False,1,confirmatory
+wvs,Q159,Myanmar,ordinal,contemporary_issues,False,2,confirmatory
+wvs,Q159,Nigeria,ordinal,contemporary_issues,False,3,confirmatory
+wvs,Q159,Japan,ordinal,contemporary_issues,False,4,oracle_only
+wvs,Q159,Canada,ordinal,contemporary_issues,False,5,oracle_only
+wvs,Q159,Brazil,ordinal,contemporary_issues,False,6,oracle_only
+wvs,Q159,Andorra,ordinal,contemporary_issues,False,7,oracle_only
+wvs,Q159,Czechia,ordinal,contemporary_issues,False,8,oracle_only
+wvs,Q159,Northern Ireland,ordinal,contemporary_issues,False,9,oracle_only
+wvs,Q159,Maldives,ordinal,contemporary_issues,False,10,oracle_only
 wvs,Q45,Singapore,ordinal,values_identity,False,1,confirmatory
-wvs,Q45,Serbia,ordinal,values_identity,False,2,confirmatory
-wvs,Q45,Venezuela,ordinal,values_identity,False,3,confirmatory
+wvs,Q45,Ukraine,ordinal,values_identity,False,2,confirmatory
+wvs,Q45,Uruguay,ordinal,values_identity,False,3,confirmatory
 wvs,Q45,Zimbabwe,ordinal,values_identity,False,4,oracle_only
 wvs,Q45,Armenia,ordinal,values_identity,False,5,oracle_only
 wvs,Q45,Canada,ordinal,values_identity,False,6,oracle_only
-wvs,Q45,Germany,ordinal,values_identity,False,7,oracle_only
+wvs,Q45,Cyprus,ordinal,values_identity,False,7,oracle_only
 wvs,Q45,China,ordinal,values_identity,False,8,oracle_only
-wvs,Q45,New Zealand,ordinal,values_identity,False,9,oracle_only
+wvs,Q45,Australia,ordinal,values_identity,False,9,oracle_only
 wvs,Q45,Tunisia,ordinal,values_identity,False,10,oracle_only
 wvs,Q132,Romania,ordinal,wellbeing,False,1,confirmatory
 wvs,Q132,Tunisia,ordinal,wellbeing,False,2,confirmatory
-wvs,Q132,Pakistan,ordinal,wellbeing,False,3,confirmatory
-wvs,Q132,Germany,ordinal,wellbeing,False,4,oracle_only
-wvs,Q132,Hong Kong SAR,ordinal,wellbeing,False,5,oracle_only
+wvs,Q132,Bangladesh,ordinal,wellbeing,False,3,confirmatory
+wvs,Q132,Netherlands,ordinal,wellbeing,False,4,oracle_only
+wvs,Q132,Taiwan ROC,ordinal,wellbeing,False,5,oracle_only
 wvs,Q132,Singapore,ordinal,wellbeing,False,6,oracle_only
-wvs,Q132,Armenia,ordinal,wellbeing,False,7,oracle_only
+wvs,Q132,Northern Ireland,ordinal,wellbeing,False,7,oracle_only
 wvs,Q132,Australia,ordinal,wellbeing,False,8,oracle_only
-wvs,Q132,Peru,ordinal,wellbeing,False,9,oracle_only
+wvs,Q132,Venezuela,ordinal,wellbeing,False,9,oracle_only
 wvs,Q132,Kenya,ordinal,wellbeing,False,10,oracle_only
-wvs,Q94,United States,ordinal,social_attitudes,False,1,confirmatory
+wvs,Q94,Canada,ordinal,social_attitudes,False,1,confirmatory
 wvs,Q94,Kenya,ordinal,social_attitudes,False,2,confirmatory
-wvs,Q94,Northern Ireland,ordinal,social_attitudes,False,3,confirmatory
-wvs,Q94,Cyprus,ordinal,social_attitudes,False,4,oracle_only
+wvs,Q94,Armenia,ordinal,social_attitudes,False,3,confirmatory
+wvs,Q94,Netherlands,ordinal,social_attitudes,False,4,oracle_only
 wvs,Q94,Singapore,ordinal,social_attitudes,False,5,oracle_only
-wvs,Q94,Chile,ordinal,social_attitudes,False,6,oracle_only
-wvs,Q94,Slovakia,ordinal,social_attitudes,False,7,oracle_only
+wvs,Q94,Brazil,ordinal,social_attitudes,False,6,oracle_only
+wvs,Q94,Ukraine,ordinal,social_attitudes,False,7,oracle_only
 wvs,Q94,Lebanon,ordinal,social_attitudes,False,8,oracle_only
 wvs,Q94,Pakistan,ordinal,social_attitudes,False,9,oracle_only
 wvs,Q94,Japan,ordinal,social_attitudes,False,10,oracle_only
@@ -1042,63 +1042,63 @@ wvs,Q292A,Venezuela,ordinal,institutional_trust,False,7,oracle_only
 wvs,Q292A,Tajikistan,ordinal,institutional_trust,False,8,oracle_only
 wvs,Q292A,Zimbabwe,ordinal,institutional_trust,False,9,oracle_only
 wvs,Q292A,Philippines,ordinal,institutional_trust,False,10,oracle_only
-wvs,Q210,Japan,ordinal,political_participation,False,1,confirmatory
-wvs,Q210,Australia,ordinal,political_participation,False,2,confirmatory
-wvs,Q210,Philippines,ordinal,political_participation,False,3,confirmatory
-wvs,Q210,Uzbekistan,ordinal,political_participation,False,4,oracle_only
-wvs,Q210,United States,ordinal,political_participation,False,5,oracle_only
-wvs,Q210,Peru,ordinal,political_participation,False,6,oracle_only
-wvs,Q210,Czechia,ordinal,political_participation,False,7,oracle_only
-wvs,Q210,Egypt,ordinal,political_participation,False,8,oracle_only
-wvs,Q210,Kenya,ordinal,political_participation,False,9,oracle_only
-wvs,Q210,Bangladesh,ordinal,political_participation,False,10,oracle_only
+wvs,Q210,Indonesia,ordinal,political_participation,False,1,confirmatory
+wvs,Q210,Armenia,ordinal,political_participation,False,2,confirmatory
+wvs,Q210,Uzbekistan,ordinal,political_participation,False,3,confirmatory
+wvs,Q210,Australia,ordinal,political_participation,False,4,oracle_only
+wvs,Q210,Japan,ordinal,political_participation,False,5,oracle_only
+wvs,Q210,Zimbabwe,ordinal,political_participation,False,6,oracle_only
+wvs,Q210,Tunisia,ordinal,political_participation,False,7,oracle_only
+wvs,Q210,Russia,ordinal,political_participation,False,8,oracle_only
+wvs,Q210,Maldives,ordinal,political_participation,False,9,oracle_only
+wvs,Q210,Uruguay,ordinal,political_participation,False,10,oracle_only
 wvs,Q90,Ethiopia,ordinal,political_attitudes,False,1,confirmatory
-wvs,Q90,New Zealand,ordinal,political_attitudes,False,2,confirmatory
+wvs,Q90,Germany,ordinal,political_attitudes,False,2,confirmatory
 wvs,Q90,Peru,ordinal,political_attitudes,False,3,confirmatory
-wvs,Q90,Malaysia,ordinal,political_attitudes,False,4,oracle_only
+wvs,Q90,Singapore,ordinal,political_attitudes,False,4,oracle_only
 wvs,Q90,Hong Kong SAR,ordinal,political_attitudes,False,5,oracle_only
 wvs,Q90,Egypt,ordinal,political_attitudes,False,6,oracle_only
-wvs,Q90,Kyrgyzstan,ordinal,political_attitudes,False,7,oracle_only
-wvs,Q90,Canada,ordinal,political_attitudes,False,8,oracle_only
+wvs,Q90,Kazakhstan,ordinal,political_attitudes,False,7,oracle_only
+wvs,Q90,United States,ordinal,political_attitudes,False,8,oracle_only
 wvs,Q90,Serbia,ordinal,political_attitudes,False,9,oracle_only
-wvs,Q90,Netherlands,ordinal,political_attitudes,False,10,oracle_only
+wvs,Q90,Pakistan,ordinal,political_attitudes,False,10,oracle_only
 wvs,Q202,Libya,ordinal,contemporary_issues,False,1,confirmatory
 wvs,Q202,Kazakhstan,ordinal,contemporary_issues,False,2,confirmatory
-wvs,Q202,Taiwan ROC,ordinal,contemporary_issues,False,3,confirmatory
+wvs,Q202,Mongolia,ordinal,contemporary_issues,False,3,confirmatory
 wvs,Q202,India,ordinal,contemporary_issues,False,4,oracle_only
 wvs,Q202,Kenya,ordinal,contemporary_issues,False,5,oracle_only
 wvs,Q202,Singapore,ordinal,contemporary_issues,False,6,oracle_only
-wvs,Q202,New Zealand,ordinal,contemporary_issues,False,7,oracle_only
-wvs,Q202,Bangladesh,ordinal,contemporary_issues,False,8,oracle_only
-wvs,Q202,Ukraine,ordinal,contemporary_issues,False,9,oracle_only
-wvs,Q202,Peru,ordinal,contemporary_issues,False,10,oracle_only
-wvs,Q190,China,ordinal,values_identity,False,1,confirmatory
-wvs,Q190,United States,ordinal,values_identity,False,2,confirmatory
-wvs,Q190,Armenia,ordinal,values_identity,False,3,confirmatory
-wvs,Q190,Jordan,ordinal,values_identity,False,4,oracle_only
-wvs,Q190,Kyrgyzstan,ordinal,values_identity,False,5,oracle_only
-wvs,Q190,Slovakia,ordinal,values_identity,False,6,oracle_only
-wvs,Q190,Myanmar,ordinal,values_identity,False,7,oracle_only
-wvs,Q190,Australia,ordinal,values_identity,False,8,oracle_only
-wvs,Q190,Peru,ordinal,values_identity,False,9,oracle_only
-wvs,Q190,Pakistan,ordinal,values_identity,False,10,oracle_only
-wvs,Q56,Slovakia,ordinal,wellbeing,False,1,confirmatory
+wvs,Q202,Australia,ordinal,contemporary_issues,False,7,oracle_only
+wvs,Q202,Maldives,ordinal,contemporary_issues,False,8,oracle_only
+wvs,Q202,Romania,ordinal,contemporary_issues,False,9,oracle_only
+wvs,Q202,Brazil,ordinal,contemporary_issues,False,10,oracle_only
+wvs,Q190,Nigeria,ordinal,values_identity,False,1,confirmatory
+wvs,Q190,Hong Kong SAR,ordinal,values_identity,False,2,confirmatory
+wvs,Q190,Cyprus,ordinal,values_identity,False,3,confirmatory
+wvs,Q190,Malaysia,ordinal,values_identity,False,4,oracle_only
+wvs,Q190,Australia,ordinal,values_identity,False,5,oracle_only
+wvs,Q190,Jordan,ordinal,values_identity,False,6,oracle_only
+wvs,Q190,Romania,ordinal,values_identity,False,7,oracle_only
+wvs,Q190,Kazakhstan,ordinal,values_identity,False,8,oracle_only
+wvs,Q190,Brazil,ordinal,values_identity,False,9,oracle_only
+wvs,Q190,Northern Ireland,ordinal,values_identity,False,10,oracle_only
+wvs,Q56,Romania,ordinal,wellbeing,False,1,confirmatory
 wvs,Q56,China,ordinal,wellbeing,False,2,confirmatory
-wvs,Q56,Argentina,ordinal,wellbeing,False,3,confirmatory
-wvs,Q56,Greece,ordinal,wellbeing,False,4,oracle_only
+wvs,Q56,Peru,ordinal,wellbeing,False,3,confirmatory
+wvs,Q56,Germany,ordinal,wellbeing,False,4,oracle_only
 wvs,Q56,Canada,ordinal,wellbeing,False,5,oracle_only
 wvs,Q56,Bangladesh,ordinal,wellbeing,False,6,oracle_only
 wvs,Q56,Tajikistan,ordinal,wellbeing,False,7,oracle_only
-wvs,Q56,India,ordinal,wellbeing,False,8,oracle_only
-wvs,Q56,Ethiopia,ordinal,wellbeing,False,9,oracle_only
-wvs,Q56,Egypt,ordinal,wellbeing,False,10,oracle_only
-wvs,Q33,Pakistan,ordinal,social_attitudes,False,1,confirmatory
-wvs,Q33,Uzbekistan,ordinal,social_attitudes,False,2,confirmatory
-wvs,Q33,Singapore,ordinal,social_attitudes,False,3,confirmatory
-wvs,Q33,Hong Kong SAR,ordinal,social_attitudes,False,4,oracle_only
-wvs,Q33,Zimbabwe,ordinal,social_attitudes,False,5,oracle_only
-wvs,Q33,Egypt,ordinal,social_attitudes,False,6,oracle_only
-wvs,Q33,Cyprus,ordinal,social_attitudes,False,7,oracle_only
-wvs,Q33,Canada,ordinal,social_attitudes,False,8,oracle_only
-wvs,Q33,410,ordinal,social_attitudes,False,9,oracle_only
-wvs,Q33,Australia,ordinal,social_attitudes,False,10,oracle_only
+wvs,Q56,Armenia,ordinal,wellbeing,False,8,oracle_only
+wvs,Q56,Zimbabwe,ordinal,wellbeing,False,9,oracle_only
+wvs,Q56,Morocco,ordinal,wellbeing,False,10,oracle_only
+wvs,Q33,Chile,ordinal,social_attitudes,False,1,confirmatory
+wvs,Q33,Northern Ireland,ordinal,social_attitudes,False,2,confirmatory
+wvs,Q33,Uzbekistan,ordinal,social_attitudes,False,3,confirmatory
+wvs,Q33,Thailand,ordinal,social_attitudes,False,4,oracle_only
+wvs,Q33,Pakistan,ordinal,social_attitudes,False,5,oracle_only
+wvs,Q33,Turkey,ordinal,social_attitudes,False,6,oracle_only
+wvs,Q33,Australia,ordinal,social_attitudes,False,7,oracle_only
+wvs,Q33,Hong Kong SAR,ordinal,social_attitudes,False,8,oracle_only
+wvs,Q33,Russia,ordinal,social_attitudes,False,9,oracle_only
+wvs,Q33,United States,ordinal,social_attitudes,False,10,oracle_only

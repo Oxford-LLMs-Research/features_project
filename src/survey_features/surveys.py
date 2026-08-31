@@ -24,6 +24,15 @@ SURVEY_COUNTRY_COL: dict[str, str] = {
 }
 
 
+# Country codes present in the data but missing from the metadata label dict,
+# keyed by country column (2026-08-31: WVS ships 1,245 South Korea rows under
+# ISO numeric 410 with no label — cells would otherwise be named "410" and the
+# country-named prompt condition would show the model a bare number).
+COUNTRY_LABEL_FIXES: dict[str, dict[str, int | str]] = {
+    "B_COUNTRY": {"South Korea": 410},
+}
+
+
 def load_survey(survey_id: str, config_path: str) -> tuple[pd.DataFrame, dict]:
     """Load survey data + metadata via synthetic_sampling, then apply the
     registered cleaning amendments (2026-08-31, docs/pre_paper_run_decisions.md):
@@ -159,6 +168,8 @@ def build_country_code_map(
                 except ValueError:
                     meta_map[name] = code_str
             break
+    for name, code in COUNTRY_LABEL_FIXES.get(country_col, {}).items():
+        meta_map.setdefault(name, code)
 
     if data is None or not meta_map:
         return meta_map

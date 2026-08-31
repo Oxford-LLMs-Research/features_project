@@ -9,7 +9,7 @@ n_confirmatory_countries: 3
 n_questions: 120
 n_oracle_cells: 1103
 n_confirmatory_cells: 360
-n_unique_countries: 128
+n_unique_countries: 132
 notes: 'Nested country rule: seeded permutation per question (WVS region-round-robin);
   first min(10, roster) = oracle set, first 3 = LLM confirmatory. Confirmatory countries
   fixed before oracles run. Transportability pairs are chosen later from oracle_only+confirmatory
@@ -2463,12 +2463,12 @@ surveys:
       - Indonesia
       - Tajikistan
       - United States
-      - Greece
-      - Armenia
-      - China
-      - Bangladesh
-      - Czechia
-      - Colombia
+      - Netherlands
+      - India
+      - Macao SAR
+      - Maldives
+      - Serbia
+      - Guatemala
       countries_confirmatory:
       - New Zealand
       - Indonesia
@@ -2481,7 +2481,7 @@ surveys:
       role: core
       n_type1_pass: 54
       countries_oracle:
-      - '410'
+      - India
       - Canada
       - Iran
       - Guatemala
@@ -2490,9 +2490,9 @@ surveys:
       - Bangladesh
       - Australia
       - Thailand
-      - Mongolia
+      - China
       countries_confirmatory:
-      - '410'
+      - India
       - Canada
       - Iran
       n_eligible_countries: 54
@@ -2503,20 +2503,20 @@ surveys:
       role: core
       n_type1_pass: 66
       countries_oracle:
-      - Iraq
-      - Taiwan ROC
-      - Czechia
-      - Myanmar
-      - Canada
-      - Zimbabwe
-      - '410'
-      - Uzbekistan
-      - Bolivia
-      - Netherlands
+      - Australia
+      - Argentina
+      - Serbia
+      - Greece
+      - Singapore
+      - India
+      - Kyrgyzstan
+      - Maldives
+      - United States
+      - Egypt
       countries_confirmatory:
-      - Iraq
-      - Taiwan ROC
-      - Czechia
+      - Australia
+      - Argentina
+      - Serbia
       n_eligible_countries: 66
     - target: Q10
       type: binary
@@ -2525,20 +2525,20 @@ surveys:
       role: core
       n_type1_pass: 66
       countries_oracle:
-      - Germany
+      - Greece
       - Egypt
-      - Argentina
+      - Venezuela
       - Uzbekistan
       - Japan
-      - '410'
+      - Northern Ireland
       - Bangladesh
       - Philippines
       - Czechia
       - United States
       countries_confirmatory:
-      - Germany
+      - Greece
       - Egypt
-      - Argentina
+      - Venezuela
       n_eligible_countries: 66
     - target: Q47
       type: nominal
@@ -2547,20 +2547,20 @@ surveys:
       role: core
       n_type1_pass: 66
       countries_oracle:
-      - Ukraine
-      - Morocco
-      - Northern Ireland
+      - Russia
+      - Iraq
+      - Armenia
       - United States
-      - Mongolia
+      - Macao SAR
       - Myanmar
       - Uzbekistan
-      - Zimbabwe
-      - Venezuela
-      - Maldives
+      - Nigeria
+      - Colombia
+      - Pakistan
       countries_confirmatory:
-      - Ukraine
-      - Morocco
-      - Northern Ireland
+      - Russia
+      - Iraq
+      - Armenia
       n_eligible_countries: 66
     - target: Q287
       type: nominal
@@ -2571,18 +2571,18 @@ surveys:
       countries_oracle:
       - Tunisia
       - Australia
-      - Greece
+      - Germany
       - Kyrgyzstan
       - Vietnam
-      - China
+      - Macao SAR
       - Zimbabwe
       - India
       - Serbia
-      - Venezuela
+      - Chile
       countries_confirmatory:
       - Tunisia
       - Australia
-      - Greece
+      - Germany
       n_eligible_countries: 64
     - target: Q223
       type: nominal
@@ -2591,20 +2591,20 @@ surveys:
       role: core
       n_type1_pass: 62
       countries_oracle:
-      - Peru
+      - Nicaragua
       - Thailand
-      - India
+      - Armenia
       - Maldives
-      - Ukraine
+      - Russia
       - Australia
       - Uzbekistan
       - Germany
-      - Lebanon
-      - Mongolia
+      - Turkey
+      - Hong Kong SAR
       countries_confirmatory:
-      - Peru
+      - Nicaragua
       - Thailand
-      - India
+      - Armenia
       n_eligible_countries: 62
     - target: Q216
       type: ordinal
@@ -2613,7 +2613,7 @@ surveys:
       role: core
       n_type1_pass: 66
       countries_oracle:
-      - Mexico
+      - Chile
       - Zimbabwe
       - Maldives
       - Uzbekistan
@@ -2624,7 +2624,7 @@ surveys:
       - Philippines
       - China
       countries_confirmatory:
-      - Mexico
+      - Chile
       - Zimbabwe
       - Maldives
       n_eligible_countries: 66
@@ -2635,20 +2635,20 @@ surveys:
       role: core
       n_type1_pass: 66
       countries_oracle:
-      - Pakistan
-      - Philippines
+      - Armenia
+      - China
+      - Ecuador
+      - Bangladesh
+      - Nigeria
+      - New Zealand
       - Canada
-      - Northern Ireland
-      - Japan
-      - Netherlands
-      - Australia
-      - Czechia
-      - Tajikistan
-      - Nicaragua
+      - Great Britain
+      - Kazakhstan
+      - Morocco
       countries_confirmatory:
-      - Pakistan
-      - Philippines
-      - Canada
+      - Armenia
+      - China
+      - Ecuador
       n_eligible_countries: 66
     - target: Q159
       type: ordinal
@@ -2657,20 +2657,20 @@ surveys:
       role: core
       n_type1_pass: 65
       countries_oracle:
-      - Pakistan
-      - '410'
-      - Zimbabwe
-      - Indonesia
-      - New Zealand
-      - Tajikistan
-      - Chile
-      - United States
-      - Egypt
-      - Great Britain
+      - Iraq
+      - Myanmar
+      - Nigeria
+      - Japan
+      - Canada
+      - Brazil
+      - Andorra
+      - Czechia
+      - Northern Ireland
+      - Maldives
       countries_confirmatory:
-      - Pakistan
-      - '410'
-      - Zimbabwe
+      - Iraq
+      - Myanmar
+      - Nigeria
       n_eligible_countries: 65
     - target: Q45
       type: ordinal
@@ -2680,19 +2680,19 @@ surveys:
       n_type1_pass: 66
       countries_oracle:
       - Singapore
-      - Serbia
-      - Venezuela
+      - Ukraine
+      - Uruguay
       - Zimbabwe
       - Armenia
       - Canada
-      - Germany
+      - Cyprus
       - China
-      - New Zealand
+      - Australia
       - Tunisia
       countries_confirmatory:
       - Singapore
-      - Serbia
-      - Venezuela
+      - Ukraine
+      - Uruguay
       n_eligible_countries: 66
     - target: Q132
       type: ordinal
@@ -2703,18 +2703,18 @@ surveys:
       countries_oracle:
       - Romania
       - Tunisia
-      - Pakistan
-      - Germany
-      - Hong Kong SAR
+      - Bangladesh
+      - Netherlands
+      - Taiwan ROC
       - Singapore
-      - Armenia
+      - Northern Ireland
       - Australia
-      - Peru
+      - Venezuela
       - Kenya
       countries_confirmatory:
       - Romania
       - Tunisia
-      - Pakistan
+      - Bangladesh
       n_eligible_countries: 65
     - target: Q94
       type: ordinal
@@ -2723,20 +2723,20 @@ surveys:
       role: core
       n_type1_pass: 66
       countries_oracle:
-      - United States
+      - Canada
       - Kenya
-      - Northern Ireland
-      - Cyprus
+      - Armenia
+      - Netherlands
       - Singapore
-      - Chile
-      - Slovakia
+      - Brazil
+      - Ukraine
       - Lebanon
       - Pakistan
       - Japan
       countries_confirmatory:
-      - United States
+      - Canada
       - Kenya
-      - Northern Ireland
+      - Armenia
       n_eligible_countries: 66
     - target: Q292A
       type: ordinal
@@ -2767,20 +2767,20 @@ surveys:
       role: core
       n_type1_pass: 66
       countries_oracle:
-      - Japan
-      - Australia
-      - Philippines
+      - Indonesia
+      - Armenia
       - Uzbekistan
-      - United States
-      - Peru
-      - Czechia
-      - Egypt
-      - Kenya
-      - Bangladesh
-      countries_confirmatory:
-      - Japan
       - Australia
-      - Philippines
+      - Japan
+      - Zimbabwe
+      - Tunisia
+      - Russia
+      - Maldives
+      - Uruguay
+      countries_confirmatory:
+      - Indonesia
+      - Armenia
+      - Uzbekistan
       n_eligible_countries: 66
     - target: Q90
       type: ordinal
@@ -2790,18 +2790,18 @@ surveys:
       n_type1_pass: 65
       countries_oracle:
       - Ethiopia
-      - New Zealand
+      - Germany
       - Peru
-      - Malaysia
+      - Singapore
       - Hong Kong SAR
       - Egypt
-      - Kyrgyzstan
-      - Canada
+      - Kazakhstan
+      - United States
       - Serbia
-      - Netherlands
+      - Pakistan
       countries_confirmatory:
       - Ethiopia
-      - New Zealand
+      - Germany
       - Peru
       n_eligible_countries: 65
     - target: Q202
@@ -2813,18 +2813,18 @@ surveys:
       countries_oracle:
       - Libya
       - Kazakhstan
-      - Taiwan ROC
+      - Mongolia
       - India
       - Kenya
       - Singapore
-      - New Zealand
-      - Bangladesh
-      - Ukraine
-      - Peru
+      - Australia
+      - Maldives
+      - Romania
+      - Brazil
       countries_confirmatory:
       - Libya
       - Kazakhstan
-      - Taiwan ROC
+      - Mongolia
       n_eligible_countries: 66
     - target: Q190
       type: ordinal
@@ -2833,20 +2833,20 @@ surveys:
       role: core
       n_type1_pass: 66
       countries_oracle:
-      - China
-      - United States
-      - Armenia
-      - Jordan
-      - Kyrgyzstan
-      - Slovakia
-      - Myanmar
+      - Nigeria
+      - Hong Kong SAR
+      - Cyprus
+      - Malaysia
       - Australia
-      - Peru
-      - Pakistan
+      - Jordan
+      - Romania
+      - Kazakhstan
+      - Brazil
+      - Northern Ireland
       countries_confirmatory:
-      - China
-      - United States
-      - Armenia
+      - Nigeria
+      - Hong Kong SAR
+      - Cyprus
       n_eligible_countries: 66
     - target: Q56
       type: ordinal
@@ -2855,20 +2855,20 @@ surveys:
       role: core
       n_type1_pass: 66
       countries_oracle:
-      - Slovakia
+      - Romania
       - China
-      - Argentina
-      - Greece
+      - Peru
+      - Germany
       - Canada
       - Bangladesh
       - Tajikistan
-      - India
-      - Ethiopia
-      - Egypt
+      - Armenia
+      - Zimbabwe
+      - Morocco
       countries_confirmatory:
-      - Slovakia
+      - Romania
       - China
-      - Argentina
+      - Peru
       n_eligible_countries: 66
     - target: Q33
       type: ordinal
@@ -2877,20 +2877,20 @@ surveys:
       role: core
       n_type1_pass: 66
       countries_oracle:
-      - Pakistan
+      - Chile
+      - Northern Ireland
       - Uzbekistan
-      - Singapore
-      - Hong Kong SAR
-      - Zimbabwe
-      - Egypt
-      - Cyprus
-      - Canada
-      - '410'
+      - Thailand
+      - Pakistan
+      - Turkey
       - Australia
+      - Hong Kong SAR
+      - Russia
+      - United States
       countries_confirmatory:
-      - Pakistan
+      - Chile
+      - Northern Ireland
       - Uzbekistan
-      - Singapore
       n_eligible_countries: 66
     spares:
     - target: Q239
@@ -2901,10 +2901,10 @@ surveys:
       n_type1_pass: 66
       countries_oracle:
       - Singapore
-      - Netherlands
-      - Northern Ireland
+      - Great Britain
+      - India
       - Egypt
-      - Czechia
+      - Ukraine
       - Australia
       - Japan
       - Nigeria
@@ -2912,8 +2912,8 @@ surveys:
       - Kazakhstan
       countries_confirmatory:
       - Singapore
-      - Netherlands
-      - Northern Ireland
+      - Great Britain
+      - India
       n_eligible_countries: 66
     - target: Q149
       type: binary
@@ -2922,20 +2922,20 @@ surveys:
       role: spare
       n_type1_pass: 66
       countries_oracle:
-      - United States
-      - Venezuela
-      - Bangladesh
-      - Iran
-      - Romania
-      - Thailand
-      - New Zealand
-      - Nigeria
-      - Mongolia
+      - Singapore
+      - Lebanon
       - India
+      - Puerto Rico
+      - New Zealand
+      - Canada
+      - Kyrgyzstan
+      - Great Britain
+      - Russia
+      - Pakistan
       countries_confirmatory:
-      - United States
-      - Venezuela
-      - Bangladesh
+      - Singapore
+      - Lebanon
+      - India
       n_eligible_countries: 66
     - target: Q156
       type: nominal
@@ -2944,18 +2944,18 @@ surveys:
       role: spare
       n_type1_pass: 66
       countries_oracle:
-      - Philippines
+      - Myanmar
       - Turkey
-      - Kazakhstan
+      - Cyprus
       - Armenia
-      - Brazil
-      - Nigeria
-      - Romania
-      - Netherlands
-      - Bangladesh
-      - Australia
+      - Ecuador
+      - Ethiopia
+      - Russia
+      - Maldives
+      - New Zealand
+      - Hong Kong SAR
       countries_confirmatory:
-      - Philippines
+      - Myanmar
       - Turkey
-      - Kazakhstan
+      - Cyprus
       n_eligible_countries: 66

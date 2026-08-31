@@ -121,10 +121,16 @@ are the same wave. Cleaning amendments live in `survey_features.surveys`
 recomputes type-1 estimability fresh instead of preserving stored counts).
 Re-frozen frame: **1,278 questions (49 gate-flagged); 1,179 draw-eligible (44
 gate-flagged)** — supersedes 1,283/1,178. Registered draw (seed 20260831):
-**120 questions, 1,103 oracle cells, 360 confirmatory cells, 128 unique
+**120 questions, 1,103 oracle cells, 360 confirmatory cells, 132 unique
 countries** in `data/confirmatory_grid.yaml` / `_cells.csv`; Asian Barometer
 went from 66 to 169 oracle cells (most items now 8–9 estimable countries).
 Isolated seeding held: only the Asian draw moved between freezes.
+Same-day label fix: WVS ships 1,245 South Korea respondents under bare ISO
+code 410 with no metadata label — cells were being named "410" and the
+country-named prompt would have shown the model a number.
+`COUNTRY_LABEL_FIXES` in `survey_features.surveys` patches the map; only the
+WVS permutations changed on the re-emit (South Korea now sorts and
+region-stratifies correctly).
 Consequences for caches: **regenerate the Afrobarometer embeddings** (all three
 models — old ones embed the removed OTHER variables) and **never reuse any
 pre-fix Asian Barometer oracle cell** (their feature pools were half dead
