@@ -89,7 +89,7 @@ If you add a cache, give it an identity field.
 4. DK/refused are answers; structural missingness → NaN (`surveys.py` taxonomy).
 5. Target type detection is fallible — check `TARGET_TYPE_OVERRIDES` when adding targets.
 6. The disambiguator is not deterministic at temperature 0; cached maps are the reproducibility unit.
-7. Windows: Ray disabled in oracle fit; spawned workers need `_ensure_src_on_pythonpath`.
+7. Windows: Ray disabled in oracle fit; spawned workers need `_ensure_src_on_pythonpath`. `FASTAI` is excluded (`EXCLUDED_MODEL_TYPES`) so Dropbox locks on `.tmp/*.pth` cannot starve the time_limit.
 8. Prefer conda `miniconda3` if `.venv` lacks AutoGluon.
 9. Baselines are model-independent and cached per (cell, k).
 10. The live `outputs/` tree is the shared Dropbox folder `features_project/outputs`,

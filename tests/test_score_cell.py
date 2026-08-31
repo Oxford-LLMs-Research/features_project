@@ -95,3 +95,16 @@ def test_score_cols_does_not_duplicate_existing_columns():
 ])
 def test_headline_metrics_are_in_the_schema(col):
     assert col in SCORE_COLS
+
+
+def test_completed_cells_skips_error_stubs(tmp_path):
+    from survey_features.score_cell import _completed_cells
+
+    p = tmp_path / "scores.csv"
+    p.write_text(
+        "survey,target,country,error\n"
+        "wvs,Q1,Kenya,\n"
+        "wvs,Q2,Kenya,RuntimeError: boom\n",
+        encoding="utf-8",
+    )
+    assert _completed_cells(p) == {("wvs", "Q1", "Kenya")}
