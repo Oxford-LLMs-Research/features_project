@@ -4,7 +4,10 @@
 # there; decisions ledger: docs/pre_paper_run_decisions.md). Consumed by the draw
 # script (make_confirmatory_grid.py). Edit only with a new registered ruling.
 
-frozen: 2026-08-19
+frozen: 2026-08-31   # re-freeze: Asian Barometer case-twin coalesce + other-specify
+                     # removal (cleaning amendments in survey_features.surveys,
+                     # ruling in docs/pre_paper_run_decisions.md). Original freeze
+                     # 2026-08-19; rules below unchanged.
 
 eligibility:
   # a question enters the frame iff ALL of:
@@ -38,6 +41,10 @@ rescue_whitelist:
   - {survey: ess_wave_11,     variable: alcfreq, why: alcohol frequency (behavior)}
   - {survey: ess_wave_11,     variable: fnsdfml, why: family meals frequency (behavior)}
 
-# Resulting counts on the 2026-08-19 inventory refresh:
-#   frame (>=1 estimable country): 1283 questions (42 gate-flagged)
-#   draw-eligible (>=3):           1178 questions (37 gate-flagged)
+# Resulting counts on the 2026-08-31 inventory refresh (Asian coalesce fixed the
+# artifactual 3-country ceiling: ~185 Asian items now estimable in up to 9
+# countries; other-specify columns left the universe entirely):
+#   frame (>=1 estimable country): 1278 questions (49 gate-flagged)
+#   draw-eligible (>=3):           1179 questions (44 gate-flagged)
+# Superseded 2026-08-19 counts: 1283 / 1178 (42 / 37 gate-flagged), computed on
+# the split Asian columns — do not compare Asian-level numbers across freezes.

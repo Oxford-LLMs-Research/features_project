@@ -25,7 +25,9 @@ SURVEY_COUNTRY_COL: dict[str, str] = {
 
 
 def load_survey(survey_id: str, config_path: str) -> tuple[pd.DataFrame, dict]:
-    """Load survey data + metadata via synthetic_sampling."""
+    """Load survey data + metadata via synthetic_sampling, then apply the
+    registered cleaning amendments (2026-08-31, docs/pre_paper_run_decisions.md):
+    Asian Barometer case-twin coalesce and other-specify column removal."""
     try:
         from synthetic_sampling.config.base import DataPaths
         from synthetic_sampling.loaders.survey_loader import SurveyLoader
@@ -37,7 +39,99 @@ def load_survey(survey_id: str, config_path: str) -> tuple[pd.DataFrame, dict]:
 
     paths = DataPaths.from_yaml(config_path)
     loader = SurveyLoader(paths=paths, verbose=False)
-    return loader.load_survey(survey_id)
+    data, metadata = loader.load_survey(survey_id)
+    data = coalesce_case_twin_columns(data, metadata, survey_id)
+    data, metadata = drop_other_specify(data, metadata, survey_id)
+    return data, metadata
+
+
+# ── Registered cleaning amendments (2026-08-31) ───────────────────────────────
+# Rationale + evidence: docs/pre_paper_run_decisions.md "Confirmatory grid draw".
+# Both run inside load_survey; target_universe_screen.py applies them explicitly
+# because it drives the loader's internals directly.
+
+# Other-specify columns are response-coding appendages of a base question
+# ("Other (specify): ___"), not questions: junk as targets, skip-pattern leakage
+# as features for their own base item. Patterns are survey-specific on purpose —
+# ESS *oth items (dscroth, dngoth, medtroth) are genuine checkbox variables and
+# must NOT match. Both patterns require a non-empty stem.
+OTHER_SPECIFY_PATTERNS: dict[str, re.Pattern] = {
+    "afrobarometer": re.compile(r".OTHER$"),
+    "asianbarometer": re.compile(r".other_?(clarify)?$", re.IGNORECASE),
+}
+
+
+def _merge_case_twin(a: pd.Series, b: pd.Series) -> pd.Series:
+    """Fill a's missing entries from b (zero row overlap in practice)."""
+    if isinstance(a.dtype, pd.CategoricalDtype) and isinstance(b.dtype, pd.CategoricalDtype):
+        cats = list(a.cat.categories) + [
+            c for c in b.cat.categories if c not in set(a.cat.categories)
+        ]
+        return a.cat.set_categories(cats).fillna(b.cat.set_categories(cats))
+    return a.astype(object).combine_first(b.astype(object))
+
+
+def coalesce_case_twin_columns(
+    data: pd.DataFrame, metadata: dict, survey_id: str
+) -> pd.DataFrame:
+    """
+    Asian Barometer's merged file holds each question twice: uppercase columns for
+    one release batch (Indonesia/Taiwan/Philippines), lowercase for the other
+    (Mongolia/Cambodia/Vietnam/Australia/Korea/Thailand) — same wave, zero row
+    overlap, matching value labels. Coalesce every case-twin group into the
+    metadata-cased name (fallback: the variant with more data). Without this, the
+    survey looks like a 3-country instrument and half the feature pool is dead
+    columns in every cell.
+    """
+    if survey_id != "asianbarometer":
+        return data
+    meta_names = set(flatten_metadata(metadata))
+    groups: dict[str, list[str]] = {}
+    for c in map(str, data.columns):
+        groups.setdefault(c.lower(), []).append(c)
+    merged: dict[str, pd.Series] = {}
+    drop: list[str] = []
+    for variants in groups.values():
+        if len(variants) < 2:
+            continue
+        in_meta = [c for c in variants if c in meta_names]
+        if len(in_meta) == 1:
+            keep = in_meta[0]
+        else:
+            keep = max(variants, key=lambda c: (int(data[c].notna().sum()), c))
+        s = data[keep]
+        for c in sorted(v for v in variants if v != keep):
+            s = _merge_case_twin(s, data[c])
+            drop.append(c)
+        merged[keep] = s
+    if not merged:
+        return data
+    data = data.drop(columns=drop)
+    for k, s in merged.items():
+        data[k] = s
+    return data.copy()
+
+
+def drop_other_specify(
+    data: pd.DataFrame, metadata: dict, survey_id: str
+) -> tuple[pd.DataFrame, dict]:
+    """Remove other-specify columns from data AND metadata (metadata feeds the
+    LLM feature menu, embeddings, and the target-universe inventory)."""
+    pat = OTHER_SPECIFY_PATTERNS.get(survey_id)
+    if pat is None:
+        return data, metadata
+    cols = [c for c in map(str, data.columns) if pat.search(c)]
+    if cols:
+        data = data.drop(columns=cols)
+    cleaned_meta: dict = {}
+    for section, vars_dict in metadata.items():
+        if isinstance(vars_dict, dict):
+            cleaned_meta[section] = {
+                k: v for k, v in vars_dict.items() if not pat.search(str(k))
+            }
+        else:
+            cleaned_meta[section] = vars_dict
+    return data, cleaned_meta
 
 
 def build_country_code_map(

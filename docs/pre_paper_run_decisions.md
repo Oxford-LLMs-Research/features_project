@@ -112,8 +112,24 @@ frozen counts). Decisions, superseding the memo's 15×3 where they differ:
   permutation come from a child RNG keyed by (seed, survey[, target]) — a
   re-freeze that changes one survey's pool does not reshuffle the others.
 
-**Status: the 2026-08-31 draw output is provisional and unregistered.** Two data
-rulings must land first, then the inventory refresh → frame re-freeze → re-draw:
+**Status: RESOLVED same day — both rulings implemented, frame re-frozen, grid
+drawn and registered.** User confirmed (questionnaire in
+`Dropbox/features_project/data/questioneers`) that the two Asian release batches
+are the same wave. Cleaning amendments live in `survey_features.surveys`
+(`coalesce_case_twin_columns`, `drop_other_specify`, both applied inside
+`load_survey`; `target_universe_screen.py` applies them explicitly and now
+recomputes type-1 estimability fresh instead of preserving stored counts).
+Re-frozen frame: **1,278 questions (49 gate-flagged); 1,179 draw-eligible (44
+gate-flagged)** — supersedes 1,283/1,178. Registered draw (seed 20260831):
+**120 questions, 1,103 oracle cells, 360 confirmatory cells, 128 unique
+countries** in `data/confirmatory_grid.yaml` / `_cells.csv`; Asian Barometer
+went from 66 to 169 oracle cells (most items now 8–9 estimable countries).
+Isolated seeding held: only the Asian draw moved between freezes.
+Consequences for caches: **regenerate the Afrobarometer embeddings** (all three
+models — old ones embed the removed OTHER variables) and **never reuse any
+pre-fix Asian Barometer oracle cell** (their feature pools were half dead
+columns); the ARC v4 map recomputes everything anyway. The original rulings,
+kept for the record:
 
 1. **Asian Barometer case-twin coalesce (data bug, discovered 2026-08-31).** The
    merged file holds each question twice — uppercase columns for one release batch

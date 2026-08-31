@@ -70,10 +70,11 @@ TYPE_FLOOR = 2
 N_ORACLE_COUNTRIES = 10
 N_CONFIRMATORY_COUNTRIES = 3
 
-# Registered counts from the 2026-08-19 frame freeze; the draw refuses to run
-# if the rules reproduce anything else (frame drift = re-freeze first).
-EXPECT_FRAME = 1283
-EXPECT_DRAW_ELIGIBLE = 1178
+# Registered counts from the 2026-08-31 re-freeze (post Asian case-twin coalesce
+# and other-specify removal); the draw refuses to run if the rules reproduce
+# anything else (frame drift = re-freeze first).
+EXPECT_FRAME = 1278
+EXPECT_DRAW_ELIGIBLE = 1179
 
 SURVEYS = [
     "afrobarometer",

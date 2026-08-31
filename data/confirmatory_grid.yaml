@@ -1,0 +1,2961 @@
+grid: confirmatory_2026-08
+seed: 20260831
+frame_frozen: 2026-08-31
+n_questions_per_survey: 20
+n_spares_per_survey: 3
+type_floor: 2
+n_oracle_countries: 10
+n_confirmatory_countries: 3
+n_questions: 120
+n_oracle_cells: 1103
+n_confirmatory_cells: 360
+n_unique_countries: 128
+notes: 'Nested country rule: seeded permutation per question (WVS region-round-robin);
+  first min(10, roster) = oracle set, first 3 = LLM confirmatory. Confirmatory countries
+  fixed before oracles run. Transportability pairs are chosen later from oracle_only+confirmatory
+  cells by the registered max-disagreement rule. Replacement rule: same-survey same-type
+  spare, else next unused spare; log in registry.'
+surveys:
+  afrobarometer:
+    questions:
+    - target: Q92A
+      type: binary
+      section: wellbeing
+      gate: true
+      role: core
+      n_type1_pass: 36
+      countries_oracle:
+      - Zimbabwe
+      - São Tomé and Príncipe
+      - Congo-Brazzaville
+      - Tanzania
+      - Benin
+      - Côte d'Ivoire
+      - Burkina Faso
+      - Kenya
+      - Morocco
+      - Botswana
+      countries_confirmatory:
+      - Zimbabwe
+      - São Tomé and Príncipe
+      - Congo-Brazzaville
+      n_eligible_countries: 36
+    - target: Q67A
+      type: binary
+      section: contemporary_issues
+      gate: true
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Kenya
+      - Angola
+      - Eswatini
+      - Gabon
+      - Morocco
+      - Uganda
+      - Nigeria
+      - Mali
+      - Benin
+      - Seychelles
+      countries_confirmatory:
+      - Kenya
+      - Angola
+      - Eswatini
+      n_eligible_countries: 39
+    - target: Q43A
+      type: binary
+      section: institutional_trust
+      gate: true
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Cabo Verde
+      - Mozambique
+      - Tanzania
+      - São Tomé and Príncipe
+      - Cameroon
+      - Gabon
+      - Côte d'Ivoire
+      - Ghana
+      - Congo-Brazzaville
+      - Mauritius
+      countries_confirmatory:
+      - Cabo Verde
+      - Mozambique
+      - Tanzania
+      n_eligible_countries: 39
+    - target: Q91A
+      type: nominal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 37
+      countries_oracle:
+      - Liberia
+      - Senegal
+      - Mauritius
+      - Cameroon
+      - Ghana
+      - Zambia
+      - Eswatini
+      - Burkina Faso
+      - Ethiopia
+      - Congo-Brazzaville
+      countries_confirmatory:
+      - Liberia
+      - Senegal
+      - Mauritius
+      n_eligible_countries: 37
+    - target: Q51B
+      type: nominal
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Morocco
+      - Senegal
+      - Togo
+      - Mali
+      - Burkina Faso
+      - Gambia
+      - South Africa
+      - Cameroon
+      - Sierra Leone
+      - Liberia
+      countries_confirmatory:
+      - Morocco
+      - Senegal
+      - Togo
+      n_eligible_countries: 39
+    - target: Q72D
+      type: nominal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Zimbabwe
+      - Mauritania
+      - Eswatini
+      - Gambia
+      - Liberia
+      - Mauritius
+      - Cabo Verde
+      - Sudan
+      - Nigeria
+      - Congo-Brazzaville
+      countries_confirmatory:
+      - Zimbabwe
+      - Mauritania
+      - Eswatini
+      n_eligible_countries: 39
+    - target: Q46J
+      type: ordinal
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Cameroon
+      - Tanzania
+      - São Tomé and Príncipe
+      - Angola
+      - Niger
+      - Sierra Leone
+      - Senegal
+      - Guinea
+      - Gambia
+      - Zimbabwe
+      countries_confirmatory:
+      - Cameroon
+      - Tanzania
+      - São Tomé and Príncipe
+      n_eligible_countries: 39
+    - target: Q72C
+      type: ordinal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Madagascar
+      - Cabo Verde
+      - Sudan
+      - Mozambique
+      - Seychelles
+      - Morocco
+      - Gambia
+      - Cameroon
+      - Guinea
+      - Tanzania
+      countries_confirmatory:
+      - Madagascar
+      - Cabo Verde
+      - Sudan
+      n_eligible_countries: 39
+    - target: Q10B
+      type: ordinal
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Benin
+      - Uganda
+      - Cameroon
+      - Sierra Leone
+      - Lesotho
+      - Eswatini
+      - Mauritius
+      - Togo
+      - Tanzania
+      - Congo-Brazzaville
+      countries_confirmatory:
+      - Benin
+      - Uganda
+      - Cameroon
+      n_eligible_countries: 39
+    - target: Q90I
+      type: ordinal
+      section: demographics
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Guinea
+      - Zambia
+      - Côte d'Ivoire
+      - Ethiopia
+      - Tunisia
+      - Benin
+      - Namibia
+      - Seychelles
+      - Mauritius
+      - Mozambique
+      countries_confirmatory:
+      - Guinea
+      - Zambia
+      - Côte d'Ivoire
+      n_eligible_countries: 39
+    - target: Q51A
+      type: ordinal
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Gabon
+      - Cameroon
+      - Angola
+      - Sierra Leone
+      - Mozambique
+      - Mauritius
+      - Tanzania
+      - Seychelles
+      - Mali
+      - Benin
+      countries_confirmatory:
+      - Gabon
+      - Cameroon
+      - Angola
+      n_eligible_countries: 39
+    - target: Q88B
+      type: ordinal
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Ghana
+      - Lesotho
+      - Cabo Verde
+      - Madagascar
+      - Cameroon
+      - São Tomé and Príncipe
+      - Uganda
+      - Guinea
+      - Tunisia
+      - Niger
+      countries_confirmatory:
+      - Ghana
+      - Lesotho
+      - Cabo Verde
+      n_eligible_countries: 39
+    - target: Q6D
+      type: ordinal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Sudan
+      - Mauritius
+      - Morocco
+      - Namibia
+      - Senegal
+      - Togo
+      - Zambia
+      - Botswana
+      - Tunisia
+      - Cameroon
+      countries_confirmatory:
+      - Sudan
+      - Mauritius
+      - Morocco
+      n_eligible_countries: 39
+    - target: Q14C
+      type: ordinal
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Tanzania
+      - Morocco
+      - Zimbabwe
+      - Madagascar
+      - Mauritius
+      - Senegal
+      - Gambia
+      - Namibia
+      - Benin
+      - Angola
+      countries_confirmatory:
+      - Tanzania
+      - Morocco
+      - Zimbabwe
+      n_eligible_countries: 39
+    - target: Q44D
+      type: ordinal
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Mali
+      - Gabon
+      - Malawi
+      - Tunisia
+      - Côte d'Ivoire
+      - Lesotho
+      - Botswana
+      - Guinea
+      - Mozambique
+      - Sierra Leone
+      countries_confirmatory:
+      - Mali
+      - Gabon
+      - Malawi
+      n_eligible_countries: 39
+    - target: Q66A
+      type: ordinal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Senegal
+      - Gambia
+      - Liberia
+      - Guinea
+      - Nigeria
+      - Zambia
+      - Gabon
+      - Cameroon
+      - Burkina Faso
+      - Kenya
+      countries_confirmatory:
+      - Senegal
+      - Gambia
+      - Liberia
+      n_eligible_countries: 39
+    - target: Q11E
+      type: ordinal
+      section: political_participation
+      gate: true
+      role: core
+      n_type1_pass: 35
+      countries_oracle:
+      - Togo
+      - Botswana
+      - Zimbabwe
+      - Congo-Brazzaville
+      - Guinea
+      - Mauritania
+      - Côte d'Ivoire
+      - South Africa
+      - Liberia
+      - Cameroon
+      countries_confirmatory:
+      - Togo
+      - Botswana
+      - Zimbabwe
+      n_eligible_countries: 35
+    - target: Q90H
+      type: ordinal
+      section: demographics
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Burkina Faso
+      - Ethiopia
+      - Mauritius
+      - Seychelles
+      - Congo-Brazzaville
+      - Togo
+      - Sudan
+      - South Africa
+      - São Tomé and Príncipe
+      - Côte d'Ivoire
+      countries_confirmatory:
+      - Burkina Faso
+      - Ethiopia
+      - Mauritius
+      n_eligible_countries: 39
+    - target: Q87D
+      type: ordinal
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 39
+      countries_oracle:
+      - Sudan
+      - São Tomé and Príncipe
+      - Zambia
+      - Uganda
+      - Morocco
+      - Malawi
+      - Liberia
+      - Namibia
+      - Angola
+      - Seychelles
+      countries_confirmatory:
+      - Sudan
+      - São Tomé and Príncipe
+      - Zambia
+      n_eligible_countries: 39
+    - target: Q88A
+      type: ordinal
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 37
+      countries_oracle:
+      - Liberia
+      - Niger
+      - Mauritania
+      - Sierra Leone
+      - Gambia
+      - Ethiopia
+      - Sudan
+      - Gabon
+      - Madagascar
+      - Benin
+      countries_confirmatory:
+      - Liberia
+      - Niger
+      - Mauritania
+      n_eligible_countries: 37
+    spares:
+    - target: Q6B
+      type: ordinal
+      section: wellbeing
+      gate: false
+      role: spare
+      n_type1_pass: 39
+      countries_oracle:
+      - Lesotho
+      - Burkina Faso
+      - Eswatini
+      - Sierra Leone
+      - Kenya
+      - Malawi
+      - Guinea
+      - São Tomé and Príncipe
+      - Benin
+      - Senegal
+      countries_confirmatory:
+      - Lesotho
+      - Burkina Faso
+      - Eswatini
+      n_eligible_countries: 39
+    - target: Q76A
+      type: binary
+      section: political_attitudes
+      gate: false
+      role: spare
+      n_type1_pass: 38
+      countries_oracle:
+      - Guinea
+      - Ethiopia
+      - Madagascar
+      - Gabon
+      - Malawi
+      - Burkina Faso
+      - South Africa
+      - São Tomé and Príncipe
+      - Togo
+      - Senegal
+      countries_confirmatory:
+      - Guinea
+      - Ethiopia
+      - Madagascar
+      n_eligible_countries: 38
+    - target: Q13
+      type: nominal
+      section: political_participation
+      gate: false
+      role: spare
+      n_type1_pass: 39
+      countries_oracle:
+      - Congo-Brazzaville
+      - Mauritania
+      - Benin
+      - Sudan
+      - Botswana
+      - Tunisia
+      - Nigeria
+      - Burkina Faso
+      - Angola
+      - Ghana
+      countries_confirmatory:
+      - Congo-Brazzaville
+      - Mauritania
+      - Benin
+      n_eligible_countries: 39
+  arabbarometer:
+    questions:
+    - target: Q301C
+      type: binary
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 3
+      countries_oracle:
+      - Mauritania
+      - Iraq
+      - Morocco
+      countries_confirmatory:
+      - Mauritania
+      - Iraq
+      - Morocco
+      n_eligible_countries: 3
+    - target: Q104
+      type: binary
+      section: social_attitudes
+      gate: true
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Palestine
+      - Mauritania
+      - Iraq
+      - Tunisia
+      - Morocco
+      - Lebanon
+      - Jordan
+      - Kuwait
+      countries_confirmatory:
+      - Palestine
+      - Mauritania
+      - Iraq
+      n_eligible_countries: 8
+    - target: Q501D
+      type: binary
+      section: political_participation
+      gate: true
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Iraq
+      - Tunisia
+      - Kuwait
+      - Lebanon
+      - Jordan
+      - Palestine
+      - Morocco
+      - Mauritania
+      countries_confirmatory:
+      - Iraq
+      - Tunisia
+      - Kuwait
+      n_eligible_countries: 8
+    - target: Q276
+      type: nominal
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Lebanon
+      - Morocco
+      - Iraq
+      - Tunisia
+      - Kuwait
+      - Palestine
+      - Jordan
+      - Mauritania
+      countries_confirmatory:
+      - Lebanon
+      - Morocco
+      - Iraq
+      n_eligible_countries: 8
+    - target: Q112B
+      type: nominal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 7
+      countries_oracle:
+      - Tunisia
+      - Palestine
+      - Lebanon
+      - Mauritania
+      - Morocco
+      - Jordan
+      - Iraq
+      countries_confirmatory:
+      - Tunisia
+      - Palestine
+      - Lebanon
+      n_eligible_countries: 7
+    - target: Q548_2
+      type: nominal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Lebanon
+      - Kuwait
+      - Mauritania
+      - Morocco
+      - Iraq
+      - Tunisia
+      - Jordan
+      - Palestine
+      countries_confirmatory:
+      - Lebanon
+      - Kuwait
+      - Mauritania
+      n_eligible_countries: 8
+    - target: Q404
+      type: nominal
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Kuwait
+      - Morocco
+      - Mauritania
+      - Lebanon
+      - Tunisia
+      - Iraq
+      - Jordan
+      - Palestine
+      countries_confirmatory:
+      - Kuwait
+      - Morocco
+      - Mauritania
+      n_eligible_countries: 8
+    - target: Q303B_1
+      type: ordinal
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 6
+      countries_oracle:
+      - Tunisia
+      - Mauritania
+      - Morocco
+      - Iraq
+      - Jordan
+      - Lebanon
+      countries_confirmatory:
+      - Tunisia
+      - Mauritania
+      - Morocco
+      n_eligible_countries: 6
+    - target: Q731_5
+      type: ordinal
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Palestine
+      - Jordan
+      - Iraq
+      - Kuwait
+      - Mauritania
+      - Morocco
+      - Tunisia
+      - Lebanon
+      countries_confirmatory:
+      - Palestine
+      - Jordan
+      - Iraq
+      n_eligible_countries: 8
+    - target: Q869F
+      type: ordinal
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 5
+      countries_oracle:
+      - Mauritania
+      - Jordan
+      - Iraq
+      - Morocco
+      - Tunisia
+      countries_confirmatory:
+      - Mauritania
+      - Jordan
+      - Iraq
+      n_eligible_countries: 5
+    - target: Q274A
+      type: ordinal
+      section: wellbeing
+      gate: true
+      role: core
+      n_type1_pass: 7
+      countries_oracle:
+      - Morocco
+      - Tunisia
+      - Mauritania
+      - Lebanon
+      - Palestine
+      - Iraq
+      - Jordan
+      countries_confirmatory:
+      - Morocco
+      - Tunisia
+      - Mauritania
+      n_eligible_countries: 7
+    - target: Q540B_1
+      type: ordinal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Jordan
+      - Lebanon
+      - Mauritania
+      - Kuwait
+      - Palestine
+      - Iraq
+      - Morocco
+      - Tunisia
+      countries_confirmatory:
+      - Jordan
+      - Lebanon
+      - Mauritania
+      n_eligible_countries: 8
+    - target: Q204_2
+      type: ordinal
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Tunisia
+      - Mauritania
+      - Kuwait
+      - Palestine
+      - Iraq
+      - Morocco
+      - Jordan
+      - Lebanon
+      countries_confirmatory:
+      - Tunisia
+      - Mauritania
+      - Kuwait
+      n_eligible_countries: 8
+    - target: Q606_2
+      type: ordinal
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 7
+      countries_oracle:
+      - Jordan
+      - Palestine
+      - Iraq
+      - Lebanon
+      - Mauritania
+      - Morocco
+      - Tunisia
+      countries_confirmatory:
+      - Jordan
+      - Palestine
+      - Iraq
+      n_eligible_countries: 7
+    - target: Q303A
+      type: ordinal
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 6
+      countries_oracle:
+      - Lebanon
+      - Tunisia
+      - Jordan
+      - Iraq
+      - Morocco
+      - Mauritania
+      countries_confirmatory:
+      - Lebanon
+      - Tunisia
+      - Jordan
+      n_eligible_countries: 6
+    - target: Q521_6
+      type: ordinal
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 7
+      countries_oracle:
+      - Palestine
+      - Mauritania
+      - Tunisia
+      - Iraq
+      - Morocco
+      - Jordan
+      - Lebanon
+      countries_confirmatory:
+      - Palestine
+      - Mauritania
+      - Tunisia
+      n_eligible_countries: 7
+    - target: Q601_4
+      type: ordinal
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Lebanon
+      - Mauritania
+      - Palestine
+      - Jordan
+      - Kuwait
+      - Iraq
+      - Tunisia
+      - Morocco
+      countries_confirmatory:
+      - Lebanon
+      - Mauritania
+      - Palestine
+      n_eligible_countries: 8
+    - target: Q105A
+      type: ordinal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Tunisia
+      - Jordan
+      - Palestine
+      - Kuwait
+      - Morocco
+      - Iraq
+      - Lebanon
+      - Mauritania
+      countries_confirmatory:
+      - Tunisia
+      - Jordan
+      - Palestine
+      n_eligible_countries: 8
+    - target: Q540B_3
+      type: ordinal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Morocco
+      - Lebanon
+      - Jordan
+      - Tunisia
+      - Iraq
+      - Palestine
+      - Kuwait
+      - Mauritania
+      countries_confirmatory:
+      - Morocco
+      - Lebanon
+      - Jordan
+      n_eligible_countries: 8
+    - target: Q204A_5
+      type: ordinal
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Morocco
+      - Iraq
+      - Mauritania
+      - Kuwait
+      - Lebanon
+      - Tunisia
+      - Jordan
+      - Palestine
+      countries_confirmatory:
+      - Morocco
+      - Iraq
+      - Mauritania
+      n_eligible_countries: 8
+    spares:
+    - target: Q201A_31B
+      type: ordinal
+      section: institutional_trust
+      gate: false
+      role: spare
+      n_type1_pass: 4
+      countries_oracle:
+      - Mauritania
+      - Palestine
+      - Iraq
+      - Tunisia
+      countries_confirmatory:
+      - Mauritania
+      - Palestine
+      - Iraq
+      n_eligible_countries: 4
+    - target: Q546
+      type: nominal
+      section: contemporary_issues
+      gate: false
+      role: spare
+      n_type1_pass: 8
+      countries_oracle:
+      - Jordan
+      - Morocco
+      - Iraq
+      - Lebanon
+      - Kuwait
+      - Mauritania
+      - Tunisia
+      - Palestine
+      countries_confirmatory:
+      - Jordan
+      - Morocco
+      - Iraq
+      n_eligible_countries: 8
+    - target: Q103
+      type: binary
+      section: social_attitudes
+      gate: false
+      role: spare
+      n_type1_pass: 8
+      countries_oracle:
+      - Iraq
+      - Morocco
+      - Mauritania
+      - Palestine
+      - Jordan
+      - Tunisia
+      - Kuwait
+      - Lebanon
+      countries_confirmatory:
+      - Iraq
+      - Morocco
+      - Mauritania
+      n_eligible_countries: 8
+  asianbarometer:
+    questions:
+    - target: Q22
+      type: binary
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Australia
+      - Indonesia
+      - Korea
+      - Taiwan
+      - Cambodia
+      - Vietnam
+      - Philippines
+      - Mongolia
+      - Thailand
+      countries_confirmatory:
+      - Australia
+      - Indonesia
+      - Korea
+      n_eligible_countries: 9
+    - target: Q156
+      type: binary
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Thailand
+      - Indonesia
+      - Taiwan
+      - Australia
+      - Philippines
+      - Korea
+      - Vietnam
+      - Mongolia
+      - Cambodia
+      countries_confirmatory:
+      - Thailand
+      - Indonesia
+      - Taiwan
+      n_eligible_countries: 9
+    - target: Q37
+      type: binary
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 7
+      countries_oracle:
+      - Australia
+      - Philippines
+      - Mongolia
+      - Indonesia
+      - Thailand
+      - Vietnam
+      - Cambodia
+      countries_confirmatory:
+      - Australia
+      - Philippines
+      - Mongolia
+      n_eligible_countries: 7
+    - target: Q34
+      type: nominal
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - Mongolia
+      - Australia
+      - Taiwan
+      - Indonesia
+      - Cambodia
+      - Philippines
+      - Thailand
+      - Korea
+      countries_confirmatory:
+      - Mongolia
+      - Australia
+      - Taiwan
+      n_eligible_countries: 8
+    - target: Q53
+      type: nominal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Indonesia
+      - Taiwan
+      - Cambodia
+      - Australia
+      - Vietnam
+      - Philippines
+      - Korea
+      - Thailand
+      - Mongolia
+      countries_confirmatory:
+      - Indonesia
+      - Taiwan
+      - Cambodia
+      n_eligible_countries: 9
+    - target: Q162
+      type: nominal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 5
+      countries_oracle:
+      - Cambodia
+      - Thailand
+      - Taiwan
+      - Philippines
+      - Indonesia
+      countries_confirmatory:
+      - Cambodia
+      - Thailand
+      - Taiwan
+      n_eligible_countries: 5
+    - target: Q39
+      type: nominal
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 5
+      countries_oracle:
+      - Thailand
+      - Taiwan
+      - Indonesia
+      - Philippines
+      - Cambodia
+      countries_confirmatory:
+      - Thailand
+      - Taiwan
+      - Indonesia
+      n_eligible_countries: 5
+    - target: Q172b
+      type: ordinal
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Indonesia
+      - Korea
+      - Vietnam
+      - Mongolia
+      - Thailand
+      - Cambodia
+      - Philippines
+      - Taiwan
+      - Australia
+      countries_confirmatory:
+      - Indonesia
+      - Korea
+      - Vietnam
+      n_eligible_countries: 9
+    - target: Q52c
+      type: ordinal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Taiwan
+      - Thailand
+      - Philippines
+      - Korea
+      - Australia
+      - Cambodia
+      - Mongolia
+      - Vietnam
+      - Indonesia
+      countries_confirmatory:
+      - Taiwan
+      - Thailand
+      - Philippines
+      n_eligible_countries: 9
+    - target: Q59
+      type: ordinal
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Indonesia
+      - Vietnam
+      - Taiwan
+      - Cambodia
+      - Thailand
+      - Philippines
+      - Mongolia
+      - Korea
+      - Australia
+      countries_confirmatory:
+      - Indonesia
+      - Vietnam
+      - Taiwan
+      n_eligible_countries: 9
+    - target: SE14a
+      type: ordinal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Philippines
+      - Thailand
+      - Vietnam
+      - Cambodia
+      - Australia
+      - Korea
+      - Indonesia
+      - Taiwan
+      - Mongolia
+      countries_confirmatory:
+      - Philippines
+      - Thailand
+      - Vietnam
+      n_eligible_countries: 9
+    - target: Q79
+      type: ordinal
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Thailand
+      - Cambodia
+      - Indonesia
+      - Vietnam
+      - Taiwan
+      - Korea
+      - Mongolia
+      - Philippines
+      - Australia
+      countries_confirmatory:
+      - Thailand
+      - Cambodia
+      - Indonesia
+      n_eligible_countries: 9
+    - target: Q23
+      type: ordinal
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Mongolia
+      - Vietnam
+      - Korea
+      - Thailand
+      - Philippines
+      - Taiwan
+      - Australia
+      - Indonesia
+      - Cambodia
+      countries_confirmatory:
+      - Mongolia
+      - Vietnam
+      - Korea
+      n_eligible_countries: 9
+    - target: Q48
+      type: ordinal
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Korea
+      - Australia
+      - Thailand
+      - Mongolia
+      - Indonesia
+      - Philippines
+      - Cambodia
+      - Vietnam
+      - Taiwan
+      countries_confirmatory:
+      - Korea
+      - Australia
+      - Thailand
+      n_eligible_countries: 9
+    - target: Q174
+      type: ordinal
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Vietnam
+      - Philippines
+      - Thailand
+      - Indonesia
+      - Mongolia
+      - Australia
+      - Korea
+      - Taiwan
+      - Cambodia
+      countries_confirmatory:
+      - Vietnam
+      - Philippines
+      - Thailand
+      n_eligible_countries: 9
+    - target: Q52b
+      type: ordinal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Taiwan
+      - Philippines
+      - Korea
+      - Australia
+      - Mongolia
+      - Vietnam
+      - Cambodia
+      - Thailand
+      - Indonesia
+      countries_confirmatory:
+      - Taiwan
+      - Philippines
+      - Korea
+      n_eligible_countries: 9
+    - target: Q64
+      type: ordinal
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Korea
+      - Australia
+      - Taiwan
+      - Cambodia
+      - Mongolia
+      - Thailand
+      - Philippines
+      - Indonesia
+      - Vietnam
+      countries_confirmatory:
+      - Korea
+      - Australia
+      - Taiwan
+      n_eligible_countries: 9
+    - target: Q161
+      type: ordinal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Korea
+      - Philippines
+      - Cambodia
+      - Vietnam
+      - Thailand
+      - Indonesia
+      - Australia
+      - Mongolia
+      - Taiwan
+      countries_confirmatory:
+      - Korea
+      - Philippines
+      - Cambodia
+      n_eligible_countries: 9
+    - target: Q15
+      type: ordinal
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Indonesia
+      - Philippines
+      - Mongolia
+      - Korea
+      - Thailand
+      - Vietnam
+      - Australia
+      - Taiwan
+      - Cambodia
+      countries_confirmatory:
+      - Indonesia
+      - Philippines
+      - Mongolia
+      n_eligible_countries: 9
+    - target: Q28
+      type: ordinal
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 9
+      countries_oracle:
+      - Indonesia
+      - Taiwan
+      - Philippines
+      - Thailand
+      - Mongolia
+      - Vietnam
+      - Korea
+      - Cambodia
+      - Australia
+      countries_confirmatory:
+      - Indonesia
+      - Taiwan
+      - Philippines
+      n_eligible_countries: 9
+    spares:
+    - target: Q56
+      type: ordinal
+      section: values_identity
+      gate: false
+      role: spare
+      n_type1_pass: 9
+      countries_oracle:
+      - Mongolia
+      - Australia
+      - Indonesia
+      - Taiwan
+      - Thailand
+      - Philippines
+      - Vietnam
+      - Cambodia
+      - Korea
+      countries_confirmatory:
+      - Mongolia
+      - Australia
+      - Indonesia
+      n_eligible_countries: 9
+    - target: Q34a
+      type: nominal
+      section: political_participation
+      gate: false
+      role: spare
+      n_type1_pass: 8
+      countries_oracle:
+      - Cambodia
+      - Korea
+      - Philippines
+      - Taiwan
+      - Australia
+      - Thailand
+      - Mongolia
+      - Indonesia
+      countries_confirmatory:
+      - Cambodia
+      - Korea
+      - Philippines
+      n_eligible_countries: 8
+    - target: Q36
+      type: binary
+      section: political_participation
+      gate: false
+      role: spare
+      n_type1_pass: 9
+      countries_oracle:
+      - Thailand
+      - Taiwan
+      - Philippines
+      - Australia
+      - Korea
+      - Cambodia
+      - Mongolia
+      - Indonesia
+      - Vietnam
+      countries_confirmatory:
+      - Thailand
+      - Taiwan
+      - Philippines
+      n_eligible_countries: 9
+  ess_wave_11:
+    questions:
+    - target: hltphdi
+      type: binary
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 7
+      countries_oracle:
+      - Germany
+      - Ukraine
+      - Serbia
+      - Bulgaria
+      - Hungary
+      - Slovakia
+      - Croatia
+      countries_confirmatory:
+      - Germany
+      - Ukraine
+      - Serbia
+      n_eligible_countries: 7
+    - target: atncrse
+      type: binary
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Slovenia
+      - Bulgaria
+      - France
+      - Serbia
+      - Finland
+      - Iceland
+      - Austria
+      - Latvia
+      - Sweden
+      - Cyprus
+      countries_confirmatory:
+      - Slovenia
+      - Bulgaria
+      - France
+      n_eligible_countries: 30
+    - target: dscrgrp
+      type: binary
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - United Kingdom
+      - Ireland
+      - Portugal
+      - Sweden
+      - Greece
+      - Switzerland
+      - Poland
+      - Serbia
+      - Estonia
+      - Latvia
+      countries_confirmatory:
+      - United Kingdom
+      - Ireland
+      - Portugal
+      n_eligible_countries: 30
+    - target: hltphbn
+      type: binary
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Spain
+      - Finland
+      - United Kingdom
+      - Poland
+      - Hungary
+      - Belgium
+      - Estonia
+      - Slovakia
+      - Italy
+      - Germany
+      countries_confirmatory:
+      - Spain
+      - Finland
+      - United Kingdom
+      n_eligible_countries: 30
+    - target: bctprd
+      type: binary
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Iceland
+      - Norway
+      - Belgium
+      - Serbia
+      - Croatia
+      - Portugal
+      - Lithuania
+      - Montenegro
+      - Spain
+      - Slovakia
+      countries_confirmatory:
+      - Iceland
+      - Norway
+      - Belgium
+      n_eligible_countries: 30
+    - target: dscrntn
+      type: binary
+      section: social_attitudes
+      gate: true
+      role: core
+      n_type1_pass: 5
+      countries_oracle:
+      - Germany
+      - Israel
+      - Austria
+      - Italy
+      - Montenegro
+      countries_confirmatory:
+      - Germany
+      - Israel
+      - Austria
+      n_eligible_countries: 5
+    - target: nwspol
+      type: continuous
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Estonia
+      - Hungary
+      - Ireland
+      - Iceland
+      - Austria
+      - Switzerland
+      - Finland
+      - Germany
+      - Serbia
+      - Poland
+      countries_confirmatory:
+      - Estonia
+      - Hungary
+      - Ireland
+      n_eligible_countries: 30
+    - target: netustm
+      type: continuous
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Spain
+      - Netherlands
+      - Sweden
+      - Montenegro
+      - Slovakia
+      - Bulgaria
+      - Greece
+      - Belgium
+      - Lithuania
+      - Italy
+      countries_confirmatory:
+      - Spain
+      - Netherlands
+      - Sweden
+      n_eligible_countries: 30
+    - target: vteubcmb
+      type: nominal
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 8
+      countries_oracle:
+      - United Kingdom
+      - Serbia
+      - Montenegro
+      - Norway
+      - Ukraine
+      - Israel
+      - Switzerland
+      - Iceland
+      countries_confirmatory:
+      - United Kingdom
+      - Serbia
+      - Montenegro
+      n_eligible_countries: 8
+    - target: vote
+      type: nominal
+      section: political_participation
+      gate: true
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Ukraine
+      - Germany
+      - Lithuania
+      - Bulgaria
+      - France
+      - Israel
+      - Serbia
+      - Montenegro
+      - Hungary
+      - Netherlands
+      countries_confirmatory:
+      - Ukraine
+      - Germany
+      - Lithuania
+      n_eligible_countries: 30
+    - target: aesfdrk
+      type: nominal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Norway
+      - Lithuania
+      - Serbia
+      - Montenegro
+      - Cyprus
+      - Slovakia
+      - Israel
+      - Finland
+      - Spain
+      - Estonia
+      countries_confirmatory:
+      - Norway
+      - Lithuania
+      - Serbia
+      n_eligible_countries: 30
+    - target: wrclmch
+      type: ordinal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Belgium
+      - Lithuania
+      - Bulgaria
+      - Serbia
+      - Norway
+      - Portugal
+      - Israel
+      - Sweden
+      - Hungary
+      - Germany
+      countries_confirmatory:
+      - Belgium
+      - Lithuania
+      - Bulgaria
+      n_eligible_countries: 30
+    - target: freehms
+      type: ordinal
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Netherlands
+      - Iceland
+      - Poland
+      - Spain
+      - Switzerland
+      - Bulgaria
+      - Lithuania
+      - Italy
+      - Montenegro
+      - Slovenia
+      countries_confirmatory:
+      - Netherlands
+      - Iceland
+      - Poland
+      n_eligible_countries: 30
+    - target: liklead
+      type: ordinal
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Lithuania
+      - Belgium
+      - Croatia
+      - Norway
+      - Portugal
+      - Sweden
+      - United Kingdom
+      - Hungary
+      - Bulgaria
+      - Ukraine
+      countries_confirmatory:
+      - Lithuania
+      - Belgium
+      - Croatia
+      n_eligible_countries: 30
+    - target: lrscale
+      type: ordinal
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Hungary
+      - Switzerland
+      - Belgium
+      - Croatia
+      - Poland
+      - Sweden
+      - Latvia
+      - Cyprus
+      - Greece
+      - Austria
+      countries_confirmatory:
+      - Hungary
+      - Switzerland
+      - Belgium
+      n_eligible_countries: 30
+    - target: trstplc
+      type: ordinal
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Slovakia
+      - Italy
+      - Slovenia
+      - Sweden
+      - Croatia
+      - Hungary
+      - Netherlands
+      - Belgium
+      - France
+      - United Kingdom
+      countries_confirmatory:
+      - Slovakia
+      - Italy
+      - Slovenia
+      n_eligible_countries: 30
+    - target: impbemw
+      type: ordinal
+      section: demographics
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Belgium
+      - Spain
+      - Sweden
+      - Ukraine
+      - Slovenia
+      - Portugal
+      - France
+      - Serbia
+      - Croatia
+      - Netherlands
+      countries_confirmatory:
+      - Belgium
+      - Spain
+      - Sweden
+      n_eligible_countries: 30
+    - target: eatveg
+      type: ordinal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Portugal
+      - Serbia
+      - France
+      - Belgium
+      - Ireland
+      - Lithuania
+      - Hungary
+      - Spain
+      - Bulgaria
+      - Norway
+      countries_confirmatory:
+      - Portugal
+      - Serbia
+      - France
+      n_eligible_countries: 30
+    - target: psppsgva
+      type: ordinal
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Finland
+      - Italy
+      - Iceland
+      - Latvia
+      - Croatia
+      - Lithuania
+      - Portugal
+      - Ukraine
+      - Slovenia
+      - Bulgaria
+      countries_confirmatory:
+      - Finland
+      - Italy
+      - Iceland
+      n_eligible_countries: 30
+    - target: netusoft
+      type: ordinal
+      section: contemporary_issues
+      gate: true
+      role: core
+      n_type1_pass: 30
+      countries_oracle:
+      - Spain
+      - Finland
+      - Sweden
+      - Slovakia
+      - Estonia
+      - Italy
+      - Norway
+      - United Kingdom
+      - Ukraine
+      - Austria
+      countries_confirmatory:
+      - Spain
+      - Finland
+      - Sweden
+      n_eligible_countries: 30
+    spares:
+    - target: stfdem
+      type: ordinal
+      section: political_attitudes
+      gate: false
+      role: spare
+      n_type1_pass: 30
+      countries_oracle:
+      - Belgium
+      - Latvia
+      - Norway
+      - United Kingdom
+      - Serbia
+      - Ukraine
+      - Netherlands
+      - Croatia
+      - Bulgaria
+      - Poland
+      countries_confirmatory:
+      - Belgium
+      - Latvia
+      - Norway
+      n_eligible_countries: 30
+    - target: volunfp
+      type: binary
+      section: political_participation
+      gate: false
+      role: spare
+      n_type1_pass: 30
+      countries_oracle:
+      - Lithuania
+      - United Kingdom
+      - Croatia
+      - Montenegro
+      - Ukraine
+      - Portugal
+      - Spain
+      - Sweden
+      - Ireland
+      - Poland
+      countries_confirmatory:
+      - Lithuania
+      - United Kingdom
+      - Croatia
+      n_eligible_countries: 30
+    - target: sclact
+      type: nominal
+      section: social_attitudes
+      gate: false
+      role: spare
+      n_type1_pass: 30
+      countries_oracle:
+      - Portugal
+      - Israel
+      - Iceland
+      - Cyprus
+      - Austria
+      - Ireland
+      - Serbia
+      - Poland
+      - Croatia
+      - Estonia
+      countries_confirmatory:
+      - Portugal
+      - Israel
+      - Iceland
+      n_eligible_countries: 30
+  latinobarometer:
+    questions:
+    - target: P19N
+      type: binary
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - El Salvador
+      - Peru
+      - Colombia
+      - Ecuador
+      - Chile
+      - Venezuela
+      - Brasil
+      - Panama
+      - Mexico
+      - Guatemala
+      countries_confirmatory:
+      - El Salvador
+      - Peru
+      - Colombia
+      n_eligible_countries: 17
+    - target: P15STGBS
+      type: binary
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Bolivia
+      - Guatemala
+      - Uruguay
+      - Honduras
+      - Costa Rica
+      - Mexico
+      - Rep. Dominicana
+      - Paraguay
+      - Brasil
+      - El Salvador
+      countries_confirmatory:
+      - Bolivia
+      - Guatemala
+      - Uruguay
+      n_eligible_countries: 17
+    - target: P42STGBS
+      type: binary
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Guatemala
+      - Bolivia
+      - Rep. Dominicana
+      - Chile
+      - Venezuela
+      - Argentina
+      - Costa Rica
+      - Panama
+      - Colombia
+      - Uruguay
+      countries_confirmatory:
+      - Guatemala
+      - Bolivia
+      - Rep. Dominicana
+      n_eligible_countries: 17
+    - target: S20.D
+      type: binary
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 14
+      countries_oracle:
+      - Venezuela
+      - Honduras
+      - Ecuador
+      - El Salvador
+      - Peru
+      - Argentina
+      - Brasil
+      - Rep. Dominicana
+      - Colombia
+      - Guatemala
+      countries_confirmatory:
+      - Venezuela
+      - Honduras
+      - Ecuador
+      n_eligible_countries: 14
+    - target: PERPART
+      type: nominal
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Costa Rica
+      - Rep. Dominicana
+      - Argentina
+      - Ecuador
+      - El Salvador
+      - Brasil
+      - Colombia
+      - Peru
+      - Bolivia
+      - Paraguay
+      countries_confirmatory:
+      - Costa Rica
+      - Rep. Dominicana
+      - Argentina
+      n_eligible_countries: 17
+    - target: S2
+      type: nominal
+      section: demographics
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Guatemala
+      - Paraguay
+      - Ecuador
+      - Colombia
+      - Peru
+      - El Salvador
+      - Rep. Dominicana
+      - Chile
+      - Argentina
+      - Mexico
+      countries_confirmatory:
+      - Guatemala
+      - Paraguay
+      - Ecuador
+      n_eligible_countries: 17
+    - target: P27SDN
+      type: nominal
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Rep. Dominicana
+      - Argentina
+      - Uruguay
+      - Paraguay
+      - Colombia
+      - Ecuador
+      - Chile
+      - Mexico
+      - Brasil
+      - Venezuela
+      countries_confirmatory:
+      - Rep. Dominicana
+      - Argentina
+      - Uruguay
+      n_eligible_countries: 17
+    - target: P37WVSSTCS.D
+      type: ordinal
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Mexico
+      - Peru
+      - Honduras
+      - Brasil
+      - Ecuador
+      - Venezuela
+      - Paraguay
+      - Panama
+      - Colombia
+      - Guatemala
+      countries_confirmatory:
+      - Mexico
+      - Peru
+      - Honduras
+      n_eligible_countries: 17
+    - target: P61ST
+      type: ordinal
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Panama
+      - Venezuela
+      - Argentina
+      - Mexico
+      - Honduras
+      - El Salvador
+      - Chile
+      - Peru
+      - Costa Rica
+      - Paraguay
+      countries_confirmatory:
+      - Panama
+      - Venezuela
+      - Argentina
+      n_eligible_countries: 17
+    - target: P56N.D
+      type: ordinal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Mexico
+      - Venezuela
+      - Rep. Dominicana
+      - Panama
+      - Bolivia
+      - Ecuador
+      - El Salvador
+      - Guatemala
+      - Argentina
+      - Chile
+      countries_confirmatory:
+      - Mexico
+      - Venezuela
+      - Rep. Dominicana
+      n_eligible_countries: 17
+    - target: P26SDN.B
+      type: ordinal
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Mexico
+      - Honduras
+      - Uruguay
+      - Panama
+      - Paraguay
+      - Bolivia
+      - Costa Rica
+      - El Salvador
+      - Brasil
+      - Colombia
+      countries_confirmatory:
+      - Mexico
+      - Honduras
+      - Uruguay
+      n_eligible_countries: 17
+    - target: P59ST
+      type: ordinal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Honduras
+      - Panama
+      - Ecuador
+      - Brasil
+      - Chile
+      - Venezuela
+      - Bolivia
+      - El Salvador
+      - Mexico
+      - Peru
+      countries_confirmatory:
+      - Honduras
+      - Panama
+      - Ecuador
+      n_eligible_countries: 17
+    - target: P14ST.H
+      type: ordinal
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Panama
+      - Colombia
+      - Bolivia
+      - Chile
+      - Peru
+      - Rep. Dominicana
+      - Mexico
+      - Uruguay
+      - Venezuela
+      - Ecuador
+      countries_confirmatory:
+      - Panama
+      - Colombia
+      - Bolivia
+      n_eligible_countries: 17
+    - target: P44ST.C
+      type: ordinal
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Honduras
+      - Uruguay
+      - Brasil
+      - Costa Rica
+      - Ecuador
+      - Mexico
+      - Chile
+      - El Salvador
+      - Guatemala
+      - Paraguay
+      countries_confirmatory:
+      - Honduras
+      - Uruguay
+      - Brasil
+      n_eligible_countries: 17
+    - target: P37CSN.B
+      type: ordinal
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Colombia
+      - Brasil
+      - Argentina
+      - Ecuador
+      - Rep. Dominicana
+      - Venezuela
+      - El Salvador
+      - Guatemala
+      - Uruguay
+      - Chile
+      countries_confirmatory:
+      - Colombia
+      - Brasil
+      - Argentina
+      n_eligible_countries: 17
+    - target: P22ST
+      type: ordinal
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Bolivia
+      - Costa Rica
+      - Paraguay
+      - Venezuela
+      - Chile
+      - Panama
+      - Brasil
+      - Honduras
+      - Rep. Dominicana
+      - Colombia
+      countries_confirmatory:
+      - Bolivia
+      - Costa Rica
+      - Paraguay
+      n_eligible_countries: 17
+    - target: P30INN.C
+      type: ordinal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Chile
+      - Bolivia
+      - Argentina
+      - Venezuela
+      - Peru
+      - Brasil
+      - Colombia
+      - Costa Rica
+      - Panama
+      - Rep. Dominicana
+      countries_confirmatory:
+      - Chile
+      - Bolivia
+      - Argentina
+      n_eligible_countries: 17
+    - target: P62N.13
+      type: ordinal
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Bolivia
+      - Venezuela
+      - Mexico
+      - Ecuador
+      - Uruguay
+      - Argentina
+      - Peru
+      - El Salvador
+      - Colombia
+      - Rep. Dominicana
+      countries_confirmatory:
+      - Bolivia
+      - Venezuela
+      - Mexico
+      n_eligible_countries: 17
+    - target: S4
+      type: ordinal
+      section: wellbeing
+      gate: true
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Bolivia
+      - Costa Rica
+      - Uruguay
+      - Panama
+      - Chile
+      - Paraguay
+      - Peru
+      - Ecuador
+      - Honduras
+      - Venezuela
+      countries_confirmatory:
+      - Bolivia
+      - Costa Rica
+      - Uruguay
+      n_eligible_countries: 17
+    - target: P14ST.F
+      type: ordinal
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 17
+      countries_oracle:
+      - Uruguay
+      - Peru
+      - Guatemala
+      - Honduras
+      - Brasil
+      - Argentina
+      - Venezuela
+      - Ecuador
+      - Costa Rica
+      - Mexico
+      countries_confirmatory:
+      - Uruguay
+      - Peru
+      - Guatemala
+      n_eligible_countries: 17
+    spares:
+    - target: P53N.B
+      type: ordinal
+      section: contemporary_issues
+      gate: false
+      role: spare
+      n_type1_pass: 17
+      countries_oracle:
+      - Brasil
+      - Venezuela
+      - Honduras
+      - Paraguay
+      - Panama
+      - Mexico
+      - Costa Rica
+      - Argentina
+      - Rep. Dominicana
+      - Colombia
+      countries_confirmatory:
+      - Brasil
+      - Venezuela
+      - Honduras
+      n_eligible_countries: 17
+    - target: P48ST
+      type: binary
+      section: social_attitudes
+      gate: false
+      role: spare
+      n_type1_pass: 17
+      countries_oracle:
+      - Costa Rica
+      - Uruguay
+      - El Salvador
+      - Brasil
+      - Panama
+      - Peru
+      - Chile
+      - Rep. Dominicana
+      - Honduras
+      - Venezuela
+      countries_confirmatory:
+      - Costa Rica
+      - Uruguay
+      - El Salvador
+      n_eligible_countries: 17
+    - target: P58ST
+      type: nominal
+      section: wellbeing
+      gate: false
+      role: spare
+      n_type1_pass: 17
+      countries_oracle:
+      - Panama
+      - Brasil
+      - Peru
+      - Honduras
+      - Uruguay
+      - Rep. Dominicana
+      - Venezuela
+      - Bolivia
+      - Colombia
+      - Paraguay
+      countries_confirmatory:
+      - Panama
+      - Brasil
+      - Peru
+      n_eligible_countries: 17
+  wvs:
+    questions:
+    - target: Q21
+      type: binary
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 61
+      countries_oracle:
+      - New Zealand
+      - Indonesia
+      - Tajikistan
+      - United States
+      - Greece
+      - Armenia
+      - China
+      - Bangladesh
+      - Czechia
+      - Colombia
+      countries_confirmatory:
+      - New Zealand
+      - Indonesia
+      - Tajikistan
+      n_eligible_countries: 61
+    - target: Q145
+      type: binary
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 54
+      countries_oracle:
+      - '410'
+      - Canada
+      - Iran
+      - Guatemala
+      - Slovakia
+      - Kazakhstan
+      - Bangladesh
+      - Australia
+      - Thailand
+      - Mongolia
+      countries_confirmatory:
+      - '410'
+      - Canada
+      - Iran
+      n_eligible_countries: 54
+    - target: Q150
+      type: binary
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 66
+      countries_oracle:
+      - Iraq
+      - Taiwan ROC
+      - Czechia
+      - Myanmar
+      - Canada
+      - Zimbabwe
+      - '410'
+      - Uzbekistan
+      - Bolivia
+      - Netherlands
+      countries_confirmatory:
+      - Iraq
+      - Taiwan ROC
+      - Czechia
+      n_eligible_countries: 66
+    - target: Q10
+      type: binary
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 66
+      countries_oracle:
+      - Germany
+      - Egypt
+      - Argentina
+      - Uzbekistan
+      - Japan
+      - '410'
+      - Bangladesh
+      - Philippines
+      - Czechia
+      - United States
+      countries_confirmatory:
+      - Germany
+      - Egypt
+      - Argentina
+      n_eligible_countries: 66
+    - target: Q47
+      type: nominal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 66
+      countries_oracle:
+      - Ukraine
+      - Morocco
+      - Northern Ireland
+      - United States
+      - Mongolia
+      - Myanmar
+      - Uzbekistan
+      - Zimbabwe
+      - Venezuela
+      - Maldives
+      countries_confirmatory:
+      - Ukraine
+      - Morocco
+      - Northern Ireland
+      n_eligible_countries: 66
+    - target: Q287
+      type: nominal
+      section: demographics
+      gate: false
+      role: core
+      n_type1_pass: 64
+      countries_oracle:
+      - Tunisia
+      - Australia
+      - Greece
+      - Kyrgyzstan
+      - Vietnam
+      - China
+      - Zimbabwe
+      - India
+      - Serbia
+      - Venezuela
+      countries_confirmatory:
+      - Tunisia
+      - Australia
+      - Greece
+      n_eligible_countries: 64
+    - target: Q223
+      type: nominal
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 62
+      countries_oracle:
+      - Peru
+      - Thailand
+      - India
+      - Maldives
+      - Ukraine
+      - Australia
+      - Uzbekistan
+      - Germany
+      - Lebanon
+      - Mongolia
+      countries_confirmatory:
+      - Peru
+      - Thailand
+      - India
+      n_eligible_countries: 62
+    - target: Q216
+      type: ordinal
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 66
+      countries_oracle:
+      - Mexico
+      - Zimbabwe
+      - Maldives
+      - Uzbekistan
+      - Armenia
+      - United States
+      - Serbia
+      - Cyprus
+      - Philippines
+      - China
+      countries_confirmatory:
+      - Mexico
+      - Zimbabwe
+      - Maldives
+      n_eligible_countries: 66
+    - target: Q110
+      type: ordinal
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 66
+      countries_oracle:
+      - Pakistan
+      - Philippines
+      - Canada
+      - Northern Ireland
+      - Japan
+      - Netherlands
+      - Australia
+      - Czechia
+      - Tajikistan
+      - Nicaragua
+      countries_confirmatory:
+      - Pakistan
+      - Philippines
+      - Canada
+      n_eligible_countries: 66
+    - target: Q159
+      type: ordinal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 65
+      countries_oracle:
+      - Pakistan
+      - '410'
+      - Zimbabwe
+      - Indonesia
+      - New Zealand
+      - Tajikistan
+      - Chile
+      - United States
+      - Egypt
+      - Great Britain
+      countries_confirmatory:
+      - Pakistan
+      - '410'
+      - Zimbabwe
+      n_eligible_countries: 65
+    - target: Q45
+      type: ordinal
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 66
+      countries_oracle:
+      - Singapore
+      - Serbia
+      - Venezuela
+      - Zimbabwe
+      - Armenia
+      - Canada
+      - Germany
+      - China
+      - New Zealand
+      - Tunisia
+      countries_confirmatory:
+      - Singapore
+      - Serbia
+      - Venezuela
+      n_eligible_countries: 66
+    - target: Q132
+      type: ordinal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 65
+      countries_oracle:
+      - Romania
+      - Tunisia
+      - Pakistan
+      - Germany
+      - Hong Kong SAR
+      - Singapore
+      - Armenia
+      - Australia
+      - Peru
+      - Kenya
+      countries_confirmatory:
+      - Romania
+      - Tunisia
+      - Pakistan
+      n_eligible_countries: 65
+    - target: Q94
+      type: ordinal
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 66
+      countries_oracle:
+      - United States
+      - Kenya
+      - Northern Ireland
+      - Cyprus
+      - Singapore
+      - Chile
+      - Slovakia
+      - Lebanon
+      - Pakistan
+      - Japan
+      countries_confirmatory:
+      - United States
+      - Kenya
+      - Northern Ireland
+      n_eligible_countries: 66
+    - target: Q292A
+      type: ordinal
+      section: institutional_trust
+      gate: false
+      role: core
+      n_type1_pass: 13
+      countries_oracle:
+      - Libya
+      - Nicaragua
+      - Kyrgyzstan
+      - Kenya
+      - Myanmar
+      - Morocco
+      - Venezuela
+      - Tajikistan
+      - Zimbabwe
+      - Philippines
+      countries_confirmatory:
+      - Libya
+      - Nicaragua
+      - Kyrgyzstan
+      n_eligible_countries: 13
+    - target: Q210
+      type: ordinal
+      section: political_participation
+      gate: false
+      role: core
+      n_type1_pass: 66
+      countries_oracle:
+      - Japan
+      - Australia
+      - Philippines
+      - Uzbekistan
+      - United States
+      - Peru
+      - Czechia
+      - Egypt
+      - Kenya
+      - Bangladesh
+      countries_confirmatory:
+      - Japan
+      - Australia
+      - Philippines
+      n_eligible_countries: 66
+    - target: Q90
+      type: ordinal
+      section: political_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 65
+      countries_oracle:
+      - Ethiopia
+      - New Zealand
+      - Peru
+      - Malaysia
+      - Hong Kong SAR
+      - Egypt
+      - Kyrgyzstan
+      - Canada
+      - Serbia
+      - Netherlands
+      countries_confirmatory:
+      - Ethiopia
+      - New Zealand
+      - Peru
+      n_eligible_countries: 65
+    - target: Q202
+      type: ordinal
+      section: contemporary_issues
+      gate: false
+      role: core
+      n_type1_pass: 66
+      countries_oracle:
+      - Libya
+      - Kazakhstan
+      - Taiwan ROC
+      - India
+      - Kenya
+      - Singapore
+      - New Zealand
+      - Bangladesh
+      - Ukraine
+      - Peru
+      countries_confirmatory:
+      - Libya
+      - Kazakhstan
+      - Taiwan ROC
+      n_eligible_countries: 66
+    - target: Q190
+      type: ordinal
+      section: values_identity
+      gate: false
+      role: core
+      n_type1_pass: 66
+      countries_oracle:
+      - China
+      - United States
+      - Armenia
+      - Jordan
+      - Kyrgyzstan
+      - Slovakia
+      - Myanmar
+      - Australia
+      - Peru
+      - Pakistan
+      countries_confirmatory:
+      - China
+      - United States
+      - Armenia
+      n_eligible_countries: 66
+    - target: Q56
+      type: ordinal
+      section: wellbeing
+      gate: false
+      role: core
+      n_type1_pass: 66
+      countries_oracle:
+      - Slovakia
+      - China
+      - Argentina
+      - Greece
+      - Canada
+      - Bangladesh
+      - Tajikistan
+      - India
+      - Ethiopia
+      - Egypt
+      countries_confirmatory:
+      - Slovakia
+      - China
+      - Argentina
+      n_eligible_countries: 66
+    - target: Q33
+      type: ordinal
+      section: social_attitudes
+      gate: false
+      role: core
+      n_type1_pass: 66
+      countries_oracle:
+      - Pakistan
+      - Uzbekistan
+      - Singapore
+      - Hong Kong SAR
+      - Zimbabwe
+      - Egypt
+      - Cyprus
+      - Canada
+      - '410'
+      - Australia
+      countries_confirmatory:
+      - Pakistan
+      - Uzbekistan
+      - Singapore
+      n_eligible_countries: 66
+    spares:
+    - target: Q239
+      type: ordinal
+      section: political_attitudes
+      gate: false
+      role: spare
+      n_type1_pass: 66
+      countries_oracle:
+      - Singapore
+      - Netherlands
+      - Northern Ireland
+      - Egypt
+      - Czechia
+      - Australia
+      - Japan
+      - Nigeria
+      - United States
+      - Kazakhstan
+      countries_confirmatory:
+      - Singapore
+      - Netherlands
+      - Northern Ireland
+      n_eligible_countries: 66
+    - target: Q149
+      type: binary
+      section: political_attitudes
+      gate: false
+      role: spare
+      n_type1_pass: 66
+      countries_oracle:
+      - United States
+      - Venezuela
+      - Bangladesh
+      - Iran
+      - Romania
+      - Thailand
+      - New Zealand
+      - Nigeria
+      - Mongolia
+      - India
+      countries_confirmatory:
+      - United States
+      - Venezuela
+      - Bangladesh
+      n_eligible_countries: 66
+    - target: Q156
+      type: nominal
+      section: political_attitudes
+      gate: false
+      role: spare
+      n_type1_pass: 66
+      countries_oracle:
+      - Philippines
+      - Turkey
+      - Kazakhstan
+      - Armenia
+      - Brazil
+      - Nigeria
+      - Romania
+      - Netherlands
+      - Bangladesh
+      - Australia
+      countries_confirmatory:
+      - Philippines
+      - Turkey
+      - Kazakhstan
+      n_eligible_countries: 66

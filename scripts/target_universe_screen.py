@@ -37,6 +37,8 @@ from survey_features.surveys import (
     _substantive_values,
     build_admin_cols,
     clean_question_columns,
+    coalesce_case_twin_columns,
+    drop_other_specify,
     out_of_scale_codes,
     substantive_numeric_mask,
     to_ordinal_codes,
@@ -126,6 +128,10 @@ def screen_survey(sid: str, variables: list[str], types: dict[str, str]) -> dict
     data = loader._load_data(config)
     data = loader._preprocess(data, config)
     metadata = json.loads((META_DIR / SURVEY_META[sid]).read_text(encoding="utf-8"))
+    # Registered cleaning amendments (2026-08-31): this script drives the loader's
+    # internals directly, so it must apply what load_survey applies.
+    data = coalesce_case_twin_columns(data, metadata, sid)
+    data, metadata = drop_other_specify(data, metadata, sid)
     ccol = SURVEY_COUNTRY_COL[sid]
     admin_cols = build_admin_cols(metadata, ccol)
     cleaned = clean_question_columns(data, ccol, admin_cols, metadata)
@@ -195,6 +201,15 @@ def screen_survey(sid: str, variables: list[str], types: dict[str, str]) -> dict
                 if float(rng.max()) >= GATE_RANGE:
                     gate.add(a)
 
+    # Type-1 estimability per country, recomputed fresh (the coalesce fix makes
+    # the previously stored counts wrong for Asian Barometer).
+    n_pass = {v: 0 for v in present}
+    print(f"  type-1 recompute over {n_cty} countries x {len(present)} vars", flush=True)
+    for _, gdf in cleaned.groupby(ccol, observed=True):
+        for v in present:
+            if type1_pass(gdf[v], v, metadata, types[v]):
+                n_pass[v] += 1
+
     out = {}
     for v in variables:
         rec = {
@@ -204,6 +219,8 @@ def screen_survey(sid: str, variables: list[str], types: dict[str, str]) -> dict
             "skip": v in followup or v in gate,
             "n_countries": n_cty,
             "n_fielded": n_fielded.get(v, 0),
+            "n_type1_pass": n_pass.get(v, 0),
+            "n_type1_fail": n_cty - n_pass.get(v, 0),
             "median_struct_na": None,
             "median_struct_na_fielded": None,
         }
@@ -239,10 +256,9 @@ def main() -> None:
     cells_pass = cells_fail = 0
     for r in rows:
         sc = screens[r["survey"]][r["variable"]]
-        # Keep previously computed type-1 cell counts; this pass only refreshes skip.
-        keep_type1 = {k: r[k] for k in ("n_type1_pass", "n_type1_fail") if k in r}
+        # Type-1 counts are recomputed by screen_survey (2026-08-31: the Asian
+        # case-twin coalesce invalidates the stored counts).
         r.update(sc)
-        r.update(keep_type1)
         if sc["skip_followup"]:
             n_follow += 1
         if sc["skip_gate"]:
