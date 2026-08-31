@@ -92,7 +92,8 @@ Sorted by **Stage**, then status.
 | end-to-end | [`main-freetext`](#main-freetext--confirmatory-free-text-arm-c) | complete | Free-text + dual-layer map is the confirmatory instrument | `outputs/selectors/` |
 | end-to-end | [`confirmatory-zoo`](#confirmatory-zoo--multi-selector-lock) | design | Not run | — |
 | end-to-end | [`prelim-json-grid`](#prelim-json-grid--strict-json-appendix) | superseded | JSON-era magnitudes are a floor, not the estimate | snapshots / `outputs/grid/` |
-| elicitation | [`prompt-sensitivity`](#prompt-sensitivity--selector-system-message) | complete | Keep confirmatory social_scientist system prompt | `outputs/experiments/prompt_sensitivity/` |
+| elicitation | [`prompt-sensitivity-v2`](#prompt-sensitivity-v2--role-and-referent-framing) | design | Framing vs replicate noise; 24×3 grid; lock pending | `outputs/experiments/prompt_sensitivity_v2/` |
+| elicitation | [`prompt-sensitivity`](#prompt-sensitivity--selector-system-message) | superseded | v1 system-message-only; confirmatory lock superseded by v2 | `outputs/experiments/prompt_sensitivity/` |
 | extraction | [`extract-swap-minimax`](#extract-swap-minimax--minimax-extract--nemotron-disambig) | complete | MiniMax extract ≈ Qwen on PI/VoR; dearer — keep Qwen default | `outputs/experiments/pipeline_role_swap/minimax_nemotron/` |
 | extraction | [`extract-type-pilot`](#extract-type-pilot--type-taxonomy-wording) | complete (pilot) | Type-prompt wording pilot | `outputs/experiments/extract_type_pilot*` |
 | grid | [`leakage-audit`](#leakage-audit--genuine-cell-screen) | complete | Drop type-1 / leakage only; keep type-2/3 signal | `outputs/cache/audits/leakage_audit.csv` |
@@ -110,11 +111,55 @@ Sorted by **Stage**, then status.
 
 ## Active / complete
 
+### `prompt-sensitivity-v2` — role and referent framing
+
+| Field | Value |
+|-------|-------|
+| **Status** | design |
+| **Stage** | elicitation |
+| **Dates** | designed 2026-08-19 |
+| **Code** | grid [`scripts/make_prompt_sensitivity_v2_grid.py`](../scripts/make_prompt_sensitivity_v2_grid.py); cells [`data/prompt_sensitivity_v2_cells.yaml`](../data/prompt_sensitivity_v2_cells.yaml); packs in [`prompts.py`](../src/survey_features/prompts.py) / [`elicitation.py`](../src/survey_features/elicitation.py); run [`scripts/run_prompt_sensitivity_v2.py`](../scripts/run_prompt_sensitivity_v2.py) |
+| **Commit** | — (record the SHA that produces first `outputs/experiments/prompt_sensitivity_v2/` artifacts) |
+| **Compute** | LLM: Nebius selectors `deepseek-ai/DeepSeek-V4-Pro`, `moonshotai/Kimi-K2.6`, `MiniMaxAI/MiniMax-M3`, `NousResearch/Hermes-4-405B` (reasoning **off** if the API allows; 2-cell probe first if sticky). Extractor Qwen and disambiguator Nemotron **fixed**. Local: v4 quick oracles, one bag for every survey (`medium_quality`, `FASTAI` excluded only). Asian Barometer is the slow tail (60s/fold dies before models finish; 180s/fold ~50–70 min) — not a different bag. **Parked 2026-08-20:** three remaining Asian cells (Q102 Indonesia, Q102 Taiwan, Q137 Indonesia); score Stage 1 + t1/t2 on the v4 subset (`--v4-only`). |
+| **Inputs** | [`data/prompt_sensitivity_v2_cells.yaml`](../data/prompt_sensitivity_v2_cells.yaml) (seed 20260819); contract-v4 oracles for those 72 cells (compute after freeze; reuse any Phase A overlap); then `leakage_audit.py --with-data` on this 72 only. Do **not** reuse v1 scores or v3 oracles. |
+| **Outputs** | intended `outputs/experiments/prompt_sensitivity_v2/<selector>/<pack>/[r<n>/|t<n>/]{freetext,extracted,maps}/`; `scores_<selector>_<pack>[_r<n>|_t<n>].csv` |
+
+**Rationale.** To test whether the confirmatory wording (`You are a social science researcher.` + `respondent`) boxes selectors into survey-research space relative to `analyst`+`person` and to no system prompt, and whether that movement exceeds two draws of the default pack, on a theme-balanced 24×3 grid scored against country-named prompts (the same grain as the oracle).
+
+**Result.** —
+
+**Design (locked before first write).**
+
+Grid: 24 questions × 3 countries = 72 cells; 18 unique countries (shared 3-country panel per survey). Two questions per survey in each **theme stratum** (political–institutional vs everyday/person). Seed 20260819, independent of the confirmatory draw. Stage 1 condition: **country_provided only**. After oracles, leakage/unestimable cells are replaced from the same-survey-same-stratum spare — no hand swaps.
+
+Packs (replicate r1/r2 is two gens of the default at temperature 0, not a new wording):
+
+| Pack | System | User referent |
+|------|--------|----------------|
+| `scientist_respondent` r1, r2 | `You are a social science researcher.` | `respondents` / `respondent` |
+| `analyst_person` | `You are an analyst.` | `people` / `person` |
+| `none_respondent` | *(omit)* | default `respondent` wording |
+
+**Temperature sidecar** (not in Stage 1, not in `--all`, not in the lock-rule floor): two further gens of `scientist_respondent` only, folders `t1/` and `t2/`, temperature **1.0** (native softmax), recorded as `run_kind: temperature`. t1 vs t2 estimates sampling noise of the default wording; do not compare a temp-0 pack contrast to this floor.
+
+Selectors: DeepSeek-V4-Pro, Kimi-K2.6, MiniMax-M3, Hermes-4-405B. Extractor/disambiguator/`PIPE_TYPES` unchanged (`instrument_methodology` and `population_statistic` are counted, not mapped).
+
+**Primary** (vs default r1–r2 floor), clustered by question, pooled and by theme stratum:
+
+- Soft Jaccard on all extracted items (MiniLM dual-embed, Hungarian 1-1, τ = 0.75; 0.65/0.85 robustness), plus within-type
+- Hard Jaccard on mapped `expanded_codes`
+- Four-way type shares. `instrument_methodology` is the survey-methods tell. `population_statistic` is prior/macro request rate — not a capability verdict
+- Textbook share among mapped codes
+
+**Secondary:** type-matched captured importance and VoR on v4 oracles (mean and median Δ, share Δ>0, PI↔VoR concordance, by survey). Do not decide from mean Δ alone.
+
+**Stop / lock rules.** Keep the confirmatory default unless the alternative beats the replicate floor **and** has the same sign on ≥2 of 4 selectors **and** the same direction in **both** theme strata **and** does not hurt VoR/captured importance. Do not switch on one-model evidence. If composition moves and scores do not: keep the default; report a methods paragraph. Stage 2 (scientist+person vs analyst+respondent) runs only if Stage 1 exceeds the floor.
+
 ### `prompt-sensitivity` — selector system message
 
 | Field | Value |
 |-------|-------|
-| **Status** | complete |
+| **Status** | superseded |
 | **Stage** | elicitation |
 | **Dates** | designed 2026-08-09; ran 2026-08-09; analyzed 2026-08-11 |
 | **Code** | [`scripts/run_prompt_sensitivity.py`](../scripts/run_prompt_sensitivity.py); analysis [`scripts/analyze_stack_experiments.py`](../scripts/analyze_stack_experiments.py); arms in [`prompts.py`](../src/survey_features/prompts.py) / [`elicitation.py`](../src/survey_features/elicitation.py); cells [`data/prompt_sensitivity_cells.yaml`](../data/prompt_sensitivity_cells.yaml) |
@@ -125,7 +170,7 @@ Sorted by **Stage**, then status.
 
 **Rationale.** To test whether the confirmatory system message (“You are a social science researcher.”) constrains selector feature essays relative to no system message or a neutral “helpful assistant,” holding extractor/disambiguator fixed.
 
-**Result.** Keep confirmatory `social_scientist`. At `k_spec=model`, kimi `helpful` lifts mean PI/VoR vs scientist, but deepseek_v4 `helpful` loses PI (−0.045) — not consistent across selectors. `none` does not win both endpoints. Digests: `scripts/analyze_stack_experiments.py` → `outputs/experiments/_analysis/` (incl. `registry_contrast_blocks.md`).
+**Result.** v1 only varied the system message. Maps rewrote (Jaccard ≈ 0.35) while VoR was noisy and selectors disagreed on `helpful`. The confirmatory-prompt **lock is superseded** by [`prompt-sensitivity-v2`](#prompt-sensitivity-v2--role-and-referent-framing); do not cite v1 scores (v3 oracles, compromised cells). Digests remain in `outputs/experiments/_analysis/`.
 
 **Contrast detail** (vs `social_scientist`; `k_spec=model`).
 

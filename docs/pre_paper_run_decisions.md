@@ -14,10 +14,10 @@ report median, share Δ>0, PI↔VoR concordance, and by-condition / by-survey st
 
 | Knob | Decision | Why |
 |------|----------|-----|
-| **System prompt** | Keep `"You are a social science researcher."` (`social_scientist`) | `helpful` wins mean PI+VoR on **kimi** only (80% PI>0 but 9/20 PI↔VoR conflicts); on **deepseek_v4** mean PI −0.045 with only 43% PI>0. `none` does not win both endpoints on both selectors. |
+| **System prompt** | Provisional: keep `"You are a social science researcher."` until [`prompt-sensitivity-v2`](experiments_registry.md#prompt-sensitivity-v2--role-and-referent-framing) | v1 (`helpful` / `none`) only changed the system line, used v3 oracles, and disagreed across two selectors. v2 tests role+referent against a replicate floor. |
 | **Extractor** | Keep Qwen default; MiniMax OK as capacity alternate | [`extract-swap-minimax`](experiments_registry.md#extract-swap-minimax--minimax-extract--nemotron-disambig): mean Δ PI +0.013 / VoR ≈0 but only 42% pairs PI>0 (WVS pulls the mean); MiniMax extract still ~$0.13 vs ~$0.02. |
 | **Disambiguator** | Keep Nemotron | Flash-as-disambig slow/costly; mean PI −0.096 masks near-50/50 share>0; no Qwen+Flash follow-up. |
-| **Instrument / oracle / embedder** | Unchanged | Free-text Arm C + dual-layer maps; contract-v4 oracles only (v3 retired 2026-08-19); MiniLM default. |
+| **Instrument / oracle / embedder** | Unchanged except AutoGluon bag | Free-text Arm C + dual-layer maps; contract-v4 oracles only (v3 retired 2026-08-19); MiniLM default. **Exclude `FASTAI`** (`NeuralNetFastAI`) from every oracle fit — it burns the wall-clock budget on Dropbox-locked `.pth` files and does not carry the ranking. |
 | **Targets: no demographics** (2026-08-19) | Demographic variables are **features and the textbook baseline, never prediction targets**. Frame: 1,525 → 1,233 questions (−292 demographic targets; 1,133 with ≥3 draw-eligible countries) — still ~14× the 90 the draw needs. Operational rule: exclude `section == demographics` (universe inventory / `targets.yaml` tagging); borderline items (e.g. self-rated religiosity sitting in an SE/demographic block) are resolved at the frame-freeze flag review with the default *facts about the respondent's situation are out; attitudes, evaluations, and behaviors stay*, wherever the section label disagrees with content. | Three reasons. (1) The research question is whether models understand the predictive structure of attitudes and behaviors — demographics are the *predictors* in that story; predicting them answers nothing the paper asks. (2) They are the main structural leakage source: 6 of 13 era-3 flagged leakage cells were demographic targets (Q263 immigrant ← country of birth; rtrd ← main activity; SE7a ← SE7 worship attendance — all near-duplicates inside demographic modules). (3) The value metric degenerates: value-over-textbook scores picks against a demographic feature list, so for a demographic target the null baseline *is* the target's own module. |
 
 No confirmatory `config.py` / `prompts.py` defaults need changing for these knobs.
@@ -88,6 +88,12 @@ skip cells already present in an old file).
 
 ## Ranked backlog before the confirmatory paper run
 
+0. **`prompt-sensitivity-v2` (stack lock).** Registered 2026-08-19. Freeze is
+   [`data/prompt_sensitivity_v2_cells.yaml`](../data/prompt_sensitivity_v2_cells.yaml)
+   (24 questions × 3 countries). Next: v4 oracles for those 72 cells → leakage
+   screen on that 72 → gen/extract/map/score. Do not start Phase C until Stage 1
+   either clears the default prompt or forces a change.
+
 1. **Build the confirmatory grid fresh; compute v4 oracles only for it** — code
    done 2026-08-19 (v4 is the only contract; typed self-contained audit; absolute
    near-duplicate rule; regression type-1). Do **not** blanket-recompute the 89
@@ -119,7 +125,7 @@ skip cells already present in an old file).
 
 ## Explicit non-goals right now
 
-- Expanding the 12-cell prompt-sensitivity factorial
 - Promoting MiniMax or Flash into confirmatory defaults
 - Switching the default system prompt to `helpful` on kimi-only evidence
+- ~~Expanding the 12-cell prompt-sensitivity factorial~~ (retracted 2026-08-19: replaced by registered `prompt-sensitivity-v2`, not an expansion of the v1 12-cell file)
 - ~~Rebuilding era-3 oracles~~ (retracted 2026-08-19: the v3→v4 recompute of all 89 grid cells is now REQUIRED — v3 is a dev byproduct and nothing may cite it)
