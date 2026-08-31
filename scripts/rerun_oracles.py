@@ -18,6 +18,13 @@ Usage:
     python scripts/rerun_oracles.py --dry-run
     python scripts/rerun_oracles.py                      # all cells, background-friendly
     python scripts/rerun_oracles.py --survey wvs --limit 3
+
+Cluster (SLURM array over the registered grid; see scripts/arc/run_oracles.sbatch):
+    python scripts/rerun_oracles.py --cells-csv data/confirmatory_grid_cells.csv \
+        --shard 3/8 --processes 12
+--shard i/N takes the i-th of N contiguous slices of the CSV (file order is
+grouped by survey, so a slice mostly loads one survey frame). Shards are cut
+BEFORE the done-check, so a resubmitted task reclaims exactly its own cells.
 """
 
 from __future__ import annotations
@@ -73,6 +80,28 @@ def cells_from_yaml(path: Path) -> list[tuple[str, str, str]]:
     if not out:
         raise SystemExit(f"No cells in {path}")
     return out
+
+
+def cells_from_csv(path: Path) -> list[tuple[str, str, str]]:
+    """(survey, target, country) from a flat grid CSV (confirmatory_grid_cells.csv)."""
+    d = pd.read_csv(path)
+    missing = {"survey", "target", "country"} - set(d.columns)
+    if missing:
+        raise SystemExit(f"{path} lacks columns: {sorted(missing)}")
+    if not len(d):
+        raise SystemExit(f"No cells in {path}")
+    return [(str(r.survey), str(r.target), str(r.country)) for r in d.itertuples()]
+
+
+def shard_slice(items: list, spec: str) -> list:
+    """The i-th of N contiguous slices ("i/N", 0-based)."""
+    try:
+        i, n = (int(x) for x in spec.split("/"))
+    except ValueError:
+        raise SystemExit(f"--shard must look like 3/8, got {spec!r}")
+    if not (0 <= i < n):
+        raise SystemExit(f"--shard index {i} out of range for {n} shards")
+    return items[len(items) * i // n: len(items) * (i + 1) // n]
 
 
 def cells_from_audit(outputs_dir: Path) -> list[tuple[str, str, str]]:
@@ -139,6 +168,16 @@ def main() -> None:
         ),
     )
     ap.add_argument(
+        "--cells-csv", type=Path, default=None,
+        help="Flat grid CSV (survey,target,country[,...]), e.g. the registered "
+             "data/confirmatory_grid_cells.csv. Mutually exclusive with --cells-yaml.",
+    )
+    ap.add_argument(
+        "--shard", default=None,
+        help="i/N (0-based): process only the i-th of N contiguous slices of the "
+             "cell list — one SLURM array task per slice.",
+    )
+    ap.add_argument(
         "--processes", type=int, default=0,
         help=(
             "Fit cells in separate PROCESSES (0 = off) — the safe concurrency: each "
@@ -159,12 +198,20 @@ def main() -> None:
         raise SystemExit("DATA_CONFIG_PATH is not set in .env")
 
     outputs_dir = Path(args.output_dir) if args.output_dir else OUTPUTS_DIR
+    if args.cells_yaml and args.cells_csv:
+        raise SystemExit("--cells-yaml and --cells-csv are mutually exclusive")
     if args.cells_yaml:
         cells = cells_from_yaml(args.cells_yaml)
         grid_src = str(args.cells_yaml)
+    elif args.cells_csv:
+        cells = cells_from_csv(args.cells_csv)
+        grid_src = str(args.cells_csv)
     else:
         cells = cells_from_audit(outputs_dir)
         grid_src = "leakage audit"
+    if args.shard:
+        cells = shard_slice(cells, args.shard)
+        grid_src += f" [shard {args.shard}: {len(cells)} cells]"
     if args.survey:
         cells = [c for c in cells if c[0] in set(args.survey)]
     todo = [c for c in cells
