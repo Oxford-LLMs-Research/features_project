@@ -10,6 +10,43 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+# Process-local MiniLM vectors for near-duplicate exclusion. Keyed by
+# (id(model), text) so a worker reuses embeddings across cells of the same survey
+# instead of re-encoding hundreds of question texts every time.
+_text_embedding_cache: dict[tuple[int, str], np.ndarray] = {}
+
+
+def _encode_texts(model: object, texts: list[str]) -> np.ndarray:
+    """Embed texts, filling from the process cache and encoding only cache misses."""
+    if not texts:
+        return np.empty((0, 0), dtype=np.float32)
+
+    encode_fn = model.encode
+    out: list[np.ndarray | None] = [None] * len(texts)
+    missing: list[str] = []
+    missing_idx: list[int] = []
+    model_id = id(model)
+    for i, text in enumerate(texts):
+        cached = _text_embedding_cache.get((model_id, text))
+        if cached is not None:
+            out[i] = cached
+        else:
+            missing.append(text)
+            missing_idx.append(i)
+
+    if missing:
+        unique = list(dict.fromkeys(missing))
+        encoded = np.asarray(encode_fn(unique, show_progress_bar=False))
+        if encoded.ndim == 1:
+            encoded = encoded.reshape(1, -1)
+        by_text = {text: encoded[j] for j, text in enumerate(unique)}
+        for text, emb in by_text.items():
+            _text_embedding_cache[(model_id, text)] = emb
+        for i, text in zip(missing_idx, missing):
+            out[i] = by_text[text]
+
+    return np.vstack(out)
+
 
 def build_feature_pool(
     df: pd.DataFrame,
@@ -55,8 +92,8 @@ def build_feature_pool(
             for c in candidates
         ]
 
-        target_emb = similarity_model.encode([target_text])
-        candidate_emb = similarity_model.encode(candidate_texts)
+        target_emb = _encode_texts(similarity_model, [target_text])
+        candidate_emb = _encode_texts(similarity_model, candidate_texts)
         similarities = cosine_similarity(target_emb, candidate_emb).flatten()
 
         similar_cols = [c for c, sim in zip(candidates, similarities) if sim > similarity_threshold]

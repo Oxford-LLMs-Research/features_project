@@ -543,13 +543,18 @@ def _existing_header(out_csv: Path) -> list[str] | None:
 
 
 def _completed_cells(out_csv: Path) -> set[tuple[str, str, str]]:
-    """(survey, target, country) already present in a partial scores CSV."""
+    """(survey, target, country) already present in a partial scores CSV.
+
+    Rows whose ``error`` field is nonempty are crash stubs, not successes — a
+    later run must retry them (pipeline_audit resume semantics).
+    """
     if not out_csv.is_file():
         return set()
     with open(out_csv, newline="", encoding="utf-8") as f:
         return {
             (r.get("survey", ""), r.get("target", ""), r.get("country", ""))
             for r in csv.DictReader(f)
+            if not (r.get("error") or "").strip()
         }
 
 

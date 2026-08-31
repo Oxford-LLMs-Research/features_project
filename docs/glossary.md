@@ -128,6 +128,44 @@ A and B are done (2026-08); C is pending the v4 oracle re-run and grid refresh.
 **Implies:** "pilot" numbers are for design decisions only — never quote them as
 results.
 
+## prompt pack (prompt-sensitivity v2)
+
+**What:** a locked pair of selector wordings — the system line (role) plus the user
+template's referent (`respondent` vs `person`). Stage 1 packs are
+`scientist_respondent` (current default), `analyst_person` (the bundled
+alternative), and `none_respondent` (no system line, current user prompt).
+Two generations of `scientist_respondent` are replicates of one pack, not a
+fourth wording. **Why:** the first prompt study only changed the system line and
+could not test whether "respondent" boxed models into survey-research space.
+**Fits:** elicitation-stage experiment `prompt-sensitivity-v2`; confirmatory
+default stays `scientist_respondent` until that study reports. **Implies:** do
+not describe Arm 2 as a system-only swap; `person` replaces `respondent` in the
+user prompt as well.
+
+## temperature run (t1 / t2)
+
+**What:** two extra generations of the default prompt pack
+(`scientist_respondent`) at temperature 1.0, stored under `t1/` and `t2/` —
+not `r3`/`r4`. Each gen JSON records `run_kind: temperature` and the
+temperature used. **Why:** r1/r2 are greedy (temperature 0), so they can be
+almost identical and understate sampling noise; t1/t2 measure how much the
+same wording wanders when the model samples. **Fits:** a sidecar on
+`prompt-sensitivity-v2`, not a Stage-1 lock job and not a prompt-wording
+arm. **Implies:** do not put t1–t2 in the lock-rule denominator for the
+temp-0 pack contrasts; r1 vs t1 is a temperature contrast, not a replicate.
+`--all` does not launch them.
+
+## theme stratum (prompt-sensitivity v2)
+
+**What:** the two question-content bins the v2 grid forces to be equal: 
+political–institutional (political attitudes, institutional trust, political
+participation) vs everyday/person (social attitudes, wellbeing, values/identity).
+**Why:** a grid that is almost all political items would make a social-scientist
+role look native even if it boxed everyday questions. **Fits:** 24 questions =
+6 surveys × 2 strata × 2 items, scored pooled *and* by stratum. **Implies:** a
+prompt change for the confirmatory run requires the same direction in both
+strata, not a grand mean that the two themes disagree on.
+
 ## --run-tag
 
 **What:** a `run_main.py` flag that writes map/score outputs under

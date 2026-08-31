@@ -24,7 +24,8 @@ never eat a result and a Dropbox hiccup can never corrupt code.
 - `src/survey_features/` — all shared logic; the module map is in
   `src/survey_features/__init__.py`. Paths are built ONLY by `layout.py` helpers.
 - `scripts/` — thin orchestration entry points (`run_main.py` runs the confirmatory
-  pipeline; `compute_oracle.py`/`rerun_oracles.py` build oracles;
+  pipeline; `run_prompt_sensitivity_v2.py` runs the v2 prompt-pack factorial;
+  `compute_oracle.py`/`rerun_oracles.py` build oracles;
   `leakage_audit.py` classifies cells; `target_universe_screen.py` screens candidate
   targets).
 - `tests/` — pytest suite (pure helpers, no network, no Dropbox writes).
@@ -33,7 +34,8 @@ never eat a result and a Dropbox hiccup can never corrupt code.
 - `data/` — the small, tracked **inputs** that define what the study runs on:
   - `targets.yaml` — the candidate target questions per survey (the target universe).
   - `pilot_cells.csv` — the explicit cell list used by the Phase A pilot.
-  - `prompt_sensitivity_cells.yaml` — cell sample for the prompt-sensitivity study.
+  - `prompt_sensitivity_cells.yaml` — cell sample for prompt-sensitivity **v1** (superseded).
+  - `prompt_sensitivity_v2_cells.yaml` — frozen 24×3 grid for prompt-sensitivity v2.
   - `nebius_pricing.json` — per-model API prices for cost tracking.
   - `_target_universe_inventory.json` — *gitignored by design* (830 KB, regenerated
     by `scripts/target_universe_screen.py`); the leading underscore marks it derived.

@@ -22,6 +22,8 @@ from .config import OUTPUTS_DIR, ROOT
 
 # Process-local, one per worker: the survey frame and its derived maps.
 _survey_cache: dict[str, tuple] = {}
+# MiniLM for near-duplicate exclusion — one load per worker, not per cell.
+_similarity_models: dict[float, object | None] = {}
 
 
 def _ensure_src_on_pythonpath() -> None:
@@ -71,6 +73,10 @@ def compute_one_cell(spec: dict[str, Any]) -> dict:
         data, metadata, ccol, admin_cols, meta_flat, ccodes = _survey_assets(survey)
         import pandas as pd
 
+        threshold = float(spec.get("similarity_threshold", 0.85))
+        if threshold not in _similarity_models:
+            _similarity_models[threshold] = load_similarity_model(threshold)
+
         oracle_df, feature_pool, meta_out = compute_oracle(
             data=data,
             metadata=metadata,
@@ -79,7 +85,7 @@ def compute_one_cell(spec: dict[str, Any]) -> dict:
             country_col=ccol,
             admin_cols=admin_cols,
             metadata_flat=meta_flat,
-            similarity_model=load_similarity_model(spec.get("similarity_threshold", 0.85)),
+            similarity_model=_similarity_models[threshold],
             tmp_root=tmp_dir(outputs_dir),
             n_repeats=spec.get("n_repeats", 5),
             runtime_mode=spec.get("runtime_mode", "balanced"),

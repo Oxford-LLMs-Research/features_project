@@ -182,6 +182,12 @@ AUTOGLUON_RUNTIME_MODES = {
     "best": {"preset": "best_quality", "time_limit": 600},
 }
 
+# NeuralNetFastAI writes .pth under Dropbox outputs/.tmp, hits WinError 32, burns
+# the wall-clock time_limit, then is skipped. Trees rank the oracle; keep FASTAI out
+# of every cell so the bag does not depend on Dropbox locks. Not a contract bump:
+# split/metric/type rules are unchanged; cells record this in oracle_meta.json.
+EXCLUDED_MODEL_TYPES = ("FASTAI",)
+
 ENFORCE_IDENTICAL_FEATURE_POOL = False
 MAX_MISSINGNESS_THRESHOLD = 0.2
 MIN_NORMALIZED_FEATURE_ENTROPY = 0.0
@@ -189,14 +195,17 @@ MIN_CLASS_COUNT = 5
 
 
 def load_similarity_model(similarity_threshold: float) -> object | None:
-    """Embedding model for the oracle's semantic near-duplicate exclusion filter."""
+    """Embedding model for the oracle's semantic near-duplicate exclusion filter.
+
+    Reuses the process-local SentenceTransformer cache in ``retrieval`` so a
+    worker that fits many cells does not reconstruct MiniLM on every cell.
+    """
     if similarity_threshold <= 0 or similarity_threshold >= 1:
         return None
-    from sentence_transformers import SentenceTransformer
-
     from .config import DEFAULT_EMBEDDING_MODEL
+    from .retrieval import get_sentence_transformer
 
-    return SentenceTransformer(DEFAULT_EMBEDDING_MODEL)
+    return get_sentence_transformer(DEFAULT_EMBEDDING_MODEL)
 
 
 def resolve_runtime_config(runtime_mode: str, autogluon_time_limit: int) -> tuple[str, int]:
@@ -467,6 +476,7 @@ def _fit_and_rank(train_data, select_data, score_data, run_output_dir, *,
         # and blows the wall-clock time_limit (onboarding.md #5).
         **({"num_cpus": int(num_cpus)} if num_cpus else {}),
         verbosity=ag_verbosity,
+        excluded_model_types=list(EXCLUDED_MODEL_TYPES),
         # Both lines: keep Ray out — it deadlocks/crashes on Windows and silently drops
         # models (onboarding.md #5.7). Importance doesn't need stacking anyway.
         dynamic_stacking=False,
@@ -643,6 +653,7 @@ def _assemble_outputs_cv(select_merged, score_merged, *, target_var, country_cod
         "problem_type": problem_type,
         "target_type": ttype,
         "cv_folds": int(cv_folds),
+        "excluded_model_types": list(EXCLUDED_MODEL_TYPES),
         "fold_fit_sizes": [int(n) for n in fold_sizes],
         "n_cv": int(len(y) - n_eval - n_score),
         "n_eval_reserve": int(n_eval),

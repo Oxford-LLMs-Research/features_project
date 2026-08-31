@@ -142,6 +142,61 @@ def prompt_sensitivity_scores_path(
     return prompt_sensitivity_root(outputs_dir) / f"scores_{selector_key}_{arm}.csv"
 
 
+def prompt_sensitivity_v2_root(outputs_dir: Path = OUTPUTS_DIR) -> Path:
+    """outputs/experiments/prompt_sensitivity_v2/"""
+    return experiments_dir(outputs_dir) / "prompt_sensitivity_v2"
+
+
+def _prompt_sensitivity_v2_draw_folder(
+    replicate: int | None,
+    temperature_draw: int | None,
+) -> str | None:
+    """rN (greedy replicate) or tN (temperature sidecar). Never both."""
+    if replicate is not None and temperature_draw is not None:
+        raise ValueError("replicate and temperature_draw are mutually exclusive")
+    if temperature_draw is not None:
+        if temperature_draw not in (1, 2):
+            raise ValueError("temperature_draw must be 1 or 2")
+        return f"t{int(temperature_draw)}"
+    if replicate is not None:
+        return f"r{int(replicate)}"
+    return None
+
+
+def prompt_sensitivity_v2_dirs(
+    selector_key: str,
+    pack: str,
+    replicate: int | None = None,
+    outputs_dir: Path = OUTPUTS_DIR,
+    *,
+    temperature_draw: int | None = None,
+) -> tuple[Path, Path, Path]:
+    """(freetext, extracted, maps) under prompt_sensitivity_v2/<selector>/<pack>[/rN|/tN]/."""
+    base = prompt_sensitivity_v2_root(outputs_dir) / selector_key / pack
+    folder = _prompt_sensitivity_v2_draw_folder(replicate, temperature_draw)
+    if folder is not None:
+        base = base / folder
+    return base / "freetext", base / "extracted", base / "maps"
+
+
+def prompt_sensitivity_v2_scores_path(
+    selector_key: str,
+    pack: str,
+    replicate: int | None = None,
+    outputs_dir: Path = OUTPUTS_DIR,
+    disambiguator: str = "nemotron",
+    *,
+    temperature_draw: int | None = None,
+) -> Path:
+    """scores_<selector>_<pack>[_rN|_tN]_<disambiguator>.csv under the v2 experiment root."""
+    tag = f"{selector_key}_{pack}"
+    folder = _prompt_sensitivity_v2_draw_folder(replicate, temperature_draw)
+    if folder is not None:
+        tag = f"{tag}_{folder}"
+    tag = f"{tag}_{disambiguator}"
+    return prompt_sensitivity_v2_root(outputs_dir) / f"scores_{tag}.csv"
+
+
 def pipeline_role_swap_root(outputs_dir: Path = OUTPUTS_DIR) -> Path:
     """outputs/experiments/pipeline_role_swap/"""
     return experiments_dir(outputs_dir) / "pipeline_role_swap"

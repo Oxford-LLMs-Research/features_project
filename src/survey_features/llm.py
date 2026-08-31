@@ -232,6 +232,7 @@ def make_generate_fn(
     usage_log_ref: list[TokenUsageLog | None] | None = None,
     max_retries: int = 5,
     on_error: str = "raise",
+    extra_body: dict[str, Any] | None = None,
 ) -> tuple[Any, str]:
     """
     Build a generate_fn and return it together with the model name.
@@ -247,6 +248,8 @@ def make_generate_fn(
 
     ``max_retries`` transient-error attempts with linear backoff (2s, 4s, ...).
     ``on_error``: "raise" (re-raise after retries) or "empty" (return "").
+    ``extra_body`` is forwarded to the chat-completions call (e.g. Hermes
+    ``chat_template_kwargs.enable_thinking=false``).
 
     Returns:
         (generate_fn, model_name)
@@ -263,11 +266,15 @@ def make_generate_fn(
     client = OpenAI(base_url=base_url, api_key=api_key)
 
     def _create(use_model: str, messages: list[dict], max_tokens: int, temperature: float):
+        kwargs: dict[str, Any] = {}
+        if extra_body:
+            kwargs["extra_body"] = extra_body
         return client.chat.completions.create(
             model=use_model,
             messages=messages,
             max_tokens=max_tokens,
             temperature=temperature,
+            **kwargs,
         )
 
     def generate_fn(

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prompt-sensitivity v2</title>
+  <style>
+    :root {
+      --bg: #f6f6f4;
+      --surface: #fff;
+      --text: #1a1a1a;
+      --muted: #5c5c5c;
+      --line: #e2e2dc;
+      --accent: #2563eb;
+      --info: #1d4ed8;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --ok: #047857;
+      --bar: #3b82f6;
+      --bar2: #64748b;
+      --bar3: #0f766e;
+      --bar4: #d97706;
+      --add: #047857;
+      --del: #b91c1c;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #121212;
+        --surface: #1c1c1c;
+        --text: #ededed;
+        --muted: #a3a3a3;
+        --line: #2e2e2e;
+        --accent: #60a5fa;
+        --info: #93c5fd;
+        --warn: #fbbf24;
+        --danger: #f87171;
+        --ok: #34d399;
+        --bar: #60a5fa;
+        --bar2: #94a3b8;
+        --bar3: #2dd4bf;
+        --bar4: #f59e0b;
+        --add: #34d399;
+        --del: #f87171;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.45 system-ui, -apple-system, Segoe UI, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 20px 64px; }
+    h1 { font-size: 24px; font-weight: 650; margin: 0 0 8px; }
+    h2 { font-size: 18px; font-weight: 650; margin: 0 0 8px; }
+    h3 { font-size: 15px; font-weight: 650; margin: 0 0 8px; }
+    p { margin: 0; }
+    code {
+      font: 0.92em/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    .stack { display: flex; flex-direction: column; gap: 24px; }
+    .gap8 { gap: 8px; }
+    .gap12 { gap: 12px; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 800px) {
+      .stats, .two { grid-template-columns: 1fr; }
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 14px 16px;
+    }
+    .stat .v { font-size: 22px; font-weight: 650; letter-spacing: -0.02em; }
+    .stat .l { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+    }
+    .card-h {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .card-h .trail { color: var(--muted); font-weight: 500; }
+    .card-b { padding: 12px 14px; }
+    .callout {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--ok);
+      padding: 12px 14px;
+      background: var(--surface);
+    }
+    .callout.warn { border-left-color: var(--warn); }
+    .callout h3 { margin-bottom: 4px; }
+    .pill {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      padding: 5px 10px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .pill.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 550; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .chart { width: 100%; height: 240px; }
+    .chart.sm { height: 220px; }
+    hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+    .formula {
+      font-weight: 650;
+      font-size: 15px;
+    }
+    .excerpt {
+      font: 12.5px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+      background: var(--bg);
+      padding: 12px;
+      margin: 0;
+    }
+    .diff {
+      font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      margin: 0;
+    }
+    .diff .del { color: var(--del); }
+    .diff .add { color: var(--add); }
+    .hidden { display: none; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .legend i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin-right: 6px;
+      vertical-align: -1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap stack">
+    <div class="stack gap8">
+      <h1>Prompt-sensitivity v2</h1>
+      <p class="muted">Role and referent framing. Designed 19 Aug 2026. Contract-v4 oracles. Standalone copy of the report, 28 Aug 2026. Open this file in a browser. No network required.</p>
+    </div>
+
+    <div class="callout">
+      <h3>Do not switch the prompt</h3>
+      <p>MiniMax and Hermes name different features when the role line and the word “respondent” change. DeepSeek and Kimi already do that between two draws of the same prompt. No alternative sits above both default draws on VoR. The confirmatory run — the locked paper measurement — keeps <code>You are a social science researcher.</code> plus <code>respondent</code> as a fail-to-beat, not as proof that wording cannot matter.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="v">72 → 68 → 62</div><div class="l">Drawn / scored / with VoR</div></div>
+      <div class="stat"><div class="v">4</div><div class="l">Selectors (Qwen extract, Nemotron map)</div></div>
+      <div class="stat"><div class="v">21</div><div class="l">Questions behind the 62 VoR cells</div></div>
+      <div class="stat"><div class="v">35–55%</div><div class="l">Cells where an alternative has higher VoR</div></div>
+    </div>
+    <p class="small muted">72 cells drawn. 68 in every Stage-1 score file (dropped: Asian Barometer Q102 × Indonesia, ESS stfeco × France). 62 have a VoR; six other Asian cells have mapped codes but NaN Spearman. Those six are also where Hermes lists changed most.</p>
+
+    <div class="stack gap12">
+      <h2>Why this study existed</h2>
+      <p>A <strong>selector</strong> is the LLM under test: it reads a survey question and names what it would want to know in order to predict the answer. A <strong>prompt pack</strong> is a locked pair of wordings — the system role plus <code>respondent</code> vs <code>person</code> in the user prompt. The confirmatory run needs that pair chosen before it starts.</p>
+      <p>The first prompt study only swapped the system line, never touched “respondent,” and had no same-prompt noise floor. v2 asks whether the current wording pulls models into survey-research space relative to an analyst+person bundle and to no system prompt — and whether that shows up as better predictions.</p>
+      <p>What we expected, if the boxing were real and useful: more asks about the questionnaire itself, a larger list-rewrite on everyday questions than on political ones, and a VoR gain. We switch only if an alternative both rewrites the lists and predicts better. Lists that change while VoR stays put are a methods paragraph.</p>
+    </div>
+
+    <hr />
+
+    <div class="stack gap12">
+      <h2>What we actually ran</h2>
+      <p>Country-named prompts only — the same grain as the oracle (the data-derived ranking of which other questions predict the target). Extractor (Qwen) and disambiguator (Nemotron) stay fixed. Temperature 0 for the lock jobs. Two extra draws of the default at temperature 1.0 (t1/t2) sit on the Jaccard chart as sampling noise; they are not the bar an alternative has to beat.</p>
+      <table>
+        <thead><tr><th>Pack</th><th>System line</th><th>User referent</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>scientist_respondent r1, r2</td><td>You are a social science researcher.</td><td>respondents / respondent</td><td>Current default. Two greedy draws, not a fourth wording.</td></tr>
+          <tr><td>analyst_person</td><td>You are an analyst.</td><td>people / person</td><td>Role and referent move together.</td></tr>
+          <tr><td>none_respondent</td><td>(omit)</td><td>respondent (unchanged)</td><td>No system line; same user prompt as the default.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="card">
+        <div class="card-h">Country-named user prompt: default vs analyst_person <span class="trail">+3 / −3</span></div>
+        <div class="card-b">
+          <pre class="diff"><span class="del">− System: You are a social science researcher.</span>
+<span class="add">+ System: You are an analyst.</span>
+
+<span class="del">− A survey asks respondents in {country}: "{question}"</span>
+<span class="add">+ A survey asks people in {country}: "{question}"</span>
+
+<span class="del">− You want to predict how a respondent in {country} will answer. What information about the respondent would you need?</span>
+<span class="add">+ You want to predict how a person in {country} will answer. What information about the person would you need?</span></pre>
+        </div>
+      </div>
+      <p class="small muted">none_respondent drops the system line and keeps the default user template. Hermes calls pass enable_thinking: false.</p>
+
+      <h3>Grid</h3>
+      <p>A <strong>cell</strong> is one (survey, target question, country). 24 questions × 3 countries, seed 20260819, independent of the confirmatory draw. Two questions per survey in each theme stratum (political–institutional vs everyday/person) so a social-scientist role cannot look native just because the grid is all political items. Selectors: DeepSeek-V4-Pro, Kimi-K2.6, MiniMax-M3, Hermes-4-405B.</p>
+      <table>
+        <thead><tr><th>Survey</th><th>Countries</th><th>Political</th><th>Everyday</th></tr></thead>
+        <tbody>
+          <tr><td>Afrobarometer</td><td>Benin, Guinea, Togo</td><td>Q46E, Q53C</td><td>Q87E, Q52A</td></tr>
+          <tr><td>Arab Barometer</td><td>Jordan, Morocco, Tunisia</td><td>Q201A_2, Q701H_1</td><td>Q105A, Q129A_1</td></tr>
+          <tr><td>Asian Barometer</td><td>Indonesia, Philippines, Taiwan</td><td>Q174, Q102</td><td>Q21, Q137</td></tr>
+          <tr><td>ESS wave 11</td><td>Finland, France, Greece</td><td>stfeco, psppipla</td><td>eatveg, eqparlv</td></tr>
+          <tr><td>Latinobarómetro</td><td>Brasil, Ecuador, Panama</td><td>P16ST, P26SDN.D</td><td>S20.G, S20.J</td></tr>
+          <tr><td>WVS</td><td>Ethiopia, Kyrgyzstan, Myanmar</td><td>Q291UN3, Q292C</td><td>Q173, Q183</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr />
+
+    <div class="stack gap12">
+      <h2>Do the named features change?</h2>
+      <p>Soft Jaccard is the overlap of two extracted feature lists, allowing paraphrase. Embed each item twice (the label, and “label: context”). Pair items one-to-one (Hungarian matching) when the better of those two cosines is at least 0.75. If m pairs match:</p>
+      <p class="formula">Soft Jaccard = m / (|A| + |B| − m)</p>
+      <p>1 means the lists name the same things; 0 means nothing matched. Mapped survey codes use ordinary set overlap (|A ∩ B| / |A ∪ B|) — mentioned once below, not charted.</p>
+
+      <h3>Mean Soft Jaccard by selector</h3>
+      <div id="chart-jaccard"></div>
+      <p class="small muted">X: selector · Y: mean Soft Jaccard, 0–1 · Source: ps_v2_digest.md, 68 cells. A pack bar below the r1–r2 bar means the wording changed the list more than a second greedy draw.</p>
+
+      <p>MiniMax and Hermes sit clearly below their r1–r2 bar. DeepSeek and Kimi do not: two greedy draws already overlap only 0.27–0.29, and the pack bars are in the same place. Temperature 1.0 is noisier still (Hermes t1–t2 = 0.37 vs greedy 0.64), so a 0.02 dip is not a prompt finding. MiniMax and Hermes rewrite more on everyday questions than on political ones — the direction the boxing hypothesis predicted. Mapped codes tell the same story for those two models; DeepSeek’s codes actually overlap slightly more under the alternatives than under r1–r2 (labels reworded, variables not).</p>
+      <p>Almost every extracted item is a respondent attribute on every pack. The survey-methods tell (asks about wording, interviewer, mode) is rare. Kimi used it on 20 of 68 default cells and 6 of 68 analyst cells. That is the whole “un-boxing” of type mix, and those items are not mapped to questions, so they cannot help VoR.</p>
+    </div>
+
+    <hr />
+
+    <div class="stack gap12">
+      <h2>Does prediction get better?</h2>
+      <p><strong>Value-over-random (VoR)</strong> is how much better a downstream model predicts with the selector’s features than with a random set of the same size. Spearman for ordinal targets, log-loss for binary/nominal; above zero means the selector beat random. r1 and r2 sit on the chart so replicate bounce is in the same units. These means are 62 cells nested in 21 questions — not 62 independent trials.</p>
+      <div class="callout warn">
+        <h3>Six Asian cells have no VoR</h3>
+        <p>Q174 in Indonesia, Philippines, and Taiwan; Q137 in Philippines and Taiwan; Q102 in Philippines. Spearman fields are NaN; captured importance and k still exist. For Hermes, list-rewrite on those six is larger than on the 62 that have VoR. The score comparison is the milder subset of the rewrite.</p>
+      </div>
+
+      <h3>Mean VoR by selector and pack</h3>
+      <div id="chart-vor"></div>
+      <p class="small muted">X: selector · Y: mean VoR · Source: ps_v2_score_cells.csv, model-chosen k, 62 cells. Kimi is about 0.11–0.13 on every pack; Hermes about 0.04–0.08. No alternative steps above both default draws.</p>
+
+      <h3>Share of cells where the alternative has higher VoR than the default</h3>
+      <div id="chart-win"></div>
+      <p class="small muted">X: selector · Y: percent of 62 cells (21 questions) · Source: same, pack vs that cell’s r1/r2 mean. At question grain, analyst_person has a majority of countries winning on 33% of questions for every selector. DeepSeek none_respondent wins more cells (55%) but has lower mean VoR (0.070 vs 0.085 / 0.106) — small wins, larger losses.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Selector</th>
+            <th class="num">Default r1 / r2 VoR</th>
+            <th class="num">analyst VoR</th>
+            <th class="num">none VoR</th>
+            <th class="num">Cells analyst higher</th>
+            <th class="num">Cells none higher</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>DeepSeek</td><td class="num">0.085 / 0.106</td><td class="num">0.098</td><td class="num">0.070</td><td class="num">47%</td><td class="num">55%</td></tr>
+          <tr><td>Kimi</td><td class="num">0.131 / 0.116</td><td class="num">0.119</td><td class="num">0.107</td><td class="num">39%</td><td class="num">45%</td></tr>
+          <tr><td>MiniMax</td><td class="num">0.103 / 0.098</td><td class="num">0.079</td><td class="num">0.091</td><td class="num">40%</td><td class="num">42%</td></tr>
+          <tr><td>Hermes</td><td class="num">0.050 / 0.076</td><td class="num">0.049</td><td class="num">0.044</td><td class="num">35%</td><td class="num">45%</td></tr>
+        </tbody>
+      </table>
+
+      <h3>How many features were named</h3>
+      <div id="chart-k"></div>
+      <p class="small muted">X: selector · Y: mean mapped codes per cell · Source: same, 68 cells. MiniMax names ~19 on the default and ~16–17 on the alternatives; Kimi ~17 vs ~15. VoR compares each list to a random list of that same length, so a shorter list can look worse without any single item being worse.</p>
+    </div>
+
+    <hr />
+
+    <div class="stack gap12">
+      <h2>Decision</h2>
+      <p>Applied as: keep the default unless an alternative both rewrites lists more than a greedy rerun <strong>and</strong> has VoR above both default draws (not a coin-flip of cell wins). That is the readable form of the pre-registered stop rule, not the original “sign of mean delta” clause.</p>
+      <table>
+        <thead><tr><th>Gate</th><th>analyst_person</th><th>none_respondent</th></tr></thead>
+        <tbody>
+          <tr><td>Lists rewrite more than r1 vs r2</td><td>MiniMax and Hermes yes; DeepSeek and Kimi no</td><td>Same</td></tr>
+          <tr><td>VoR above both default draws</td><td>No (higher on 35–47% of cells)</td><td>No (higher on 42–55% of cells)</td></tr>
+          <tr><td>Decision</td><td>Keep default</td><td>Keep default</td></tr>
+        </tbody>
+      </table>
+      <p>Role and referent were bundled; we did not test which word did the MiniMax/Hermes rewrite. Stage 2 (crossing them) was gated on a VoR gain and does not run. Report the rewrite in methods. Do not treat prompt wording as an untested threat, and do not claim we searched the whole prompt space.</p>
+      <p class="muted">Still before the confirmatory sweep: draw the paper grid, v4 oracles for those cells, leakage screen, lock the selector zoo. This study only closes the prompt gate.</p>
+    </div>
+
+    <hr />
+
+    <div class="stack gap12">
+      <h2>Printed examples</h2>
+      <p>Same extractor. The first two tabs are high-movement cells (among the lowest Soft Jaccards on the grid) so you can see a rewrite. The third is a stable DeepSeek cell on the same question as the Kimi methods tab.</p>
+      <div class="row" id="tabs">
+        <button class="pill on" data-tab="everyday">High-movement — Hermes, vegetables, France</button>
+        <button class="pill" data-tab="political">High-movement — MiniMax, inequality, Benin</button>
+        <button class="pill" data-tab="stable">Stable — DeepSeek, GBV shame, Guinea</button>
+        <button class="pill" data-tab="methods">Methods tell — Kimi, same question</button>
+      </div>
+
+      <div id="ex-everyday" class="stack gap12">
+        <p>High-movement cell. ESS <code>eatveg</code> in France — “How often do you eat vegetables or salad, excluding potatoes but including frozen vegetables?” Hermes Soft Jaccard vs r1 = 0.30 on this cell.</p>
+        <div class="two">
+          <div class="card">
+            <div class="card-h">Hermes · scientist_respondent r1 <span class="trail">16 items</span></div>
+            <div class="card-b">
+              <pre class="excerpt">1. Demographics: age, gender, education, income
+2. Health and lifestyle: BMI, activity, smoking, alcohol
+3. Diet: vegetarian/vegan, allergies, cultural/religious practices
+4. Household: marital status, children, household size
+5. Place: region, urban or rural</pre>
+              <p class="small muted" style="margin-top:8px">All typed respondent_attribute.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h">Hermes · analyst_person <span class="trail">14 items</span></div>
+            <div class="card-b">
+              <pre class="excerpt">1. Demographics: age, gender, income, education
+2. Lifestyle: occupation, living situation, physical activity
+3. Diet: vegetarian/vegan, allergies, cultural/religious
+4. Access: proximity to food stores, local vegetable availability
+5. Taste preferences, cooking skills</pre>
+              <p class="small muted" style="margin-top:8px">BMI / smoking / alcohol drop; shops, cooking, and occupation appear. A different list, not a synonym swap.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="ex-political" class="stack gap12 hidden">
+        <p>High-movement cell. Afrobarometer <code>Q46E</code> in Benin — “How well or badly would you say the current government is handling narrowing the gap between the rich and poor?” MiniMax names 32 extracted items on the default and 22 under analyst_person.</p>
+        <div class="two">
+          <div class="card">
+            <div class="card-h">MiniMax · scientist_respondent r1 <span class="trail">32 items</span></div>
+            <div class="card-b"><pre class="excerpt">## 1. Demographic Characteristics
+- Age, gender, education, marital status, household size
+- Religion (Christian, Muslim, traditional)
+- Ethnicity (Fon, Yoruba, Adja, Bariba, Dendi, …)
+
+## 2. Socioeconomic Status
+- Income, employment, urban vs rural (Cotonou vs countryside)
+- Subjective social class
+… then political attitudes, media, local conditions.</pre></div>
+          </div>
+          <div class="card">
+            <div class="card-h">MiniMax · analyst_person <span class="trail">22 items</span></div>
+            <div class="card-b"><pre class="excerpt">## Personal Economic Situation
+- Income, employment, hardship, government social programs
+
+## Political Orientation
+- Party, voting history, trust in institutions
+- Views on President Talon
+
+## Demographics
+- Age, education, gender, urban vs rural
+… shorter demographic tail.</pre></div>
+          </div>
+        </div>
+        <p class="small muted">A tighter political model, not a better one: MiniMax VoR on analyst_person (0.079) sits with the two default draws (0.103 / 0.098), not above them.</p>
+      </div>
+
+      <div id="ex-stable" class="stack gap12 hidden">
+        <p>Stable cell — what a 0.02-class Jaccard dip looks like. Same question as the Kimi tab: Afrobarometer <code>Q53C</code> in Guinea, community shame after a woman reports gender-based violence. DeepSeek Soft Jaccard vs r1 = 0.46; r1 vs r2 = 0.52. The pack did not rewrite more than a second greedy draw.</p>
+        <div class="two">
+          <div class="card">
+            <div class="card-h">DeepSeek · scientist_respondent r1 <span class="trail">18 items</span></div>
+            <div class="card-b"><pre class="excerpt">Core demographics: sex, age, education, urban/rural,
+region, marital status, socioeconomic status, religion,
+religiosity, media exposure.
+
+Then attitudes: acceptance of wife-beating, gender-role
+beliefs, trust in institutions, whether they know a GBV
+victim.</pre></div>
+          </div>
+          <div class="card">
+            <div class="card-h">DeepSeek · analyst_person <span class="trail">17 items</span></div>
+            <div class="card-b"><pre class="excerpt">Demographic factors: gender, age, education, urban/rural,
+region/ethnic group, religion and religiosity, income,
+employment, marital status.
+
+Then: personal GBV experience, knowledge of cases,
+exposure to campaigns.</pre></div>
+          </div>
+        </div>
+        <p class="small muted">Same scientific object: who the person is, plus contact with the issue. The analyst essay is shorter (1,800 vs 6,000 characters) and still extracts almost the same list. That is DeepSeek/Kimi “movement” on this grid.</p>
+      </div>
+
+      <div id="ex-methods" class="stack gap12 hidden">
+        <p>Same cell as the DeepSeek tab, Kimi only. Under the social-scientist prompt Kimi sometimes asks about the interview itself. That type is counted, not mapped to a survey question. 20 of 68 default cells had at least one such item; 6 of 68 under analyst_person.</p>
+        <div class="card">
+          <div class="card-h">Kimi · scientist_respondent r1 — methods paragraph</div>
+          <div class="card-b">
+            <pre class="excerpt">Survey mode effects: In Guinea, responses to sensitive gender
+questions may differ by interviewer gender, privacy level, and
+whether the interview was conducted in French or a local
+language (Pular, Maninka, Susu, etc.).
+
+Community-level aggregates: the average response of other
+respondents in the same cluster (a proxy for true community
+norms)…</pre>
+            <p class="small" style="margin-top:8px">Extracted as interviewer_gender, interview_privacy_level, survey_language, plus a population-level cluster mean. None of those become a respondent question, so they cannot help VoR. The analyst pack on this cell: 18 items, all respondent attributes; the methods paragraph is gone.</p>
+          </div>
+        </div>
+        <p>Kimi VoR on analyst_person (0.119) sits between the two default draws (0.131 / 0.116). Removing unmappable asks does not produce a better feature set. If a reviewer claims the social-scientist line forced questionnaire thinking, this is the exhibit: a Kimi-only type shift, small, not useful.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CATS = ["DeepSeek", "Kimi", "MiniMax", "Hermes"];
+    const COLORS = ["var(--bar)", "var(--bar2)", "var(--bar3)", "var(--bar4)"];
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    function fmt(v, digits, suffix) {
+      const n = Number(v);
+      const t = Number.isInteger(n) && digits == null ? String(n) : n.toFixed(digits ?? 2);
+      return t + (suffix || "");
+    }
+
+    function barChart(cats, series, opts) {
+      const w = 720, h = opts.height || 240, padL = 8, padR = 8, padT = 22, padB = 28;
+      const innerW = w - padL - padR, innerH = h - padT - padB;
+      const n = cats.length, g = series.length;
+      const yMax = opts.yMax || Math.max(1, ...series.flatMap((s) => s.data));
+      const groupW = innerW / n;
+      const barW = Math.min(22, (groupW * 0.78) / g);
+      let bars = "";
+      if (opts.ref != null) {
+        const y = padT + innerH - (opts.ref / yMax) * innerH;
+        bars += `<line x1="${padL}" x2="${w - padR}" y1="${y}" y2="${y}" stroke="var(--warn)" stroke-dasharray="4 3" />`;
+        bars += `<text x="${w - padR}" y="${y - 4}" text-anchor="end" font-size="10" fill="var(--warn)">${esc(opts.refLabel || "")}</text>`;
+      }
+      series.forEach((s, si) => {
+        s.data.forEach((v, i) => {
+          const bh = (v / yMax) * innerH;
+          const x = padL + i * groupW + (groupW - barW * g) / 2 + si * barW;
+          const y = padT + innerH - bh;
+          bars += `<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(0, bh)}" fill="${s.color || COLORS[si]}" />`;
+          if (opts.showValues) {
+            bars += `<text x="${x + barW / 2}" y="${y - 4}" text-anchor="middle" font-size="9" fill="currentColor">${esc(fmt(v, opts.digits, opts.suffix))}</text>`;
+          }
+        });
+      });
+      const labels = cats.map((c, i) =>
+        `<text x="${padL + i * groupW + groupW / 2}" y="${h - 8}" text-anchor="middle" font-size="11" fill="var(--muted)">${esc(c)}</text>`
+      ).join("");
+      const legend = series.map((s, i) =>
+        `<span><i style="background:${s.color || COLORS[i]}"></i>${esc(s.name)}</span>`
+      ).join("");
+      return `<div class="legend">${legend}</div><svg class="chart${opts.small ? " sm" : ""}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">${bars}${labels}</svg>`;
+    }
+
+    document.getElementById("chart-jaccard").innerHTML = barChart(CATS, [
+      { name: "r1 vs r2 (same prompt, twice)", data: [0.285, 0.273, 0.414, 0.639] },
+      { name: "analyst_person vs default", data: [0.26, 0.256, 0.321, 0.488] },
+      { name: "none_respondent vs default", data: [0.271, 0.252, 0.333, 0.496] },
+      { name: "t1 vs t2 (same prompt, temp 1.0)", data: [0.205, 0.231, 0.252, 0.368] },
+    ], { yMax: 0.8, digits: 2, showValues: true });
+
+    document.getElementById("chart-vor").innerHTML = barChart(CATS, [
+      { name: "default r1", data: [0.085, 0.131, 0.103, 0.05] },
+      { name: "default r2", data: [0.106, 0.116, 0.098, 0.076] },
+      { name: "analyst_person", data: [0.098, 0.119, 0.079, 0.049] },
+      { name: "none_respondent", data: [0.07, 0.107, 0.091, 0.044] },
+    ], { yMax: 0.16, digits: 3, showValues: true });
+
+    document.getElementById("chart-win").innerHTML = barChart(CATS, [
+      { name: "analyst_person higher", data: [47, 39, 40, 35] },
+      { name: "none_respondent higher", data: [55, 45, 42, 45] },
+    ], { yMax: 100, digits: 0, suffix: "%", showValues: true, small: true, height: 220, ref: 50, refLabel: "half the cells" });
+
+    document.getElementById("chart-k").innerHTML = barChart(CATS, [
+      { name: "default r1", data: [13.4, 16.9, 19.3, 10.6] },
+      { name: "default r2", data: [12.9, 17.2, 19.4, 10.8] },
+      { name: "analyst_person", data: [14.2, 15.5, 16.4, 10.3] },
+      { name: "none_respondent", data: [14.2, 15.3, 17.4, 10.0] },
+    ], { yMax: 22, digits: 1, showValues: true, small: true, height: 220 });
+
+    const panels = ["everyday", "political", "stable", "methods"];
+    document.getElementById("tabs").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-tab]");
+      if (!btn) return;
+      const id = btn.getAttribute("data-tab");
+      document.querySelectorAll("#tabs .pill").forEach((b) => b.classList.toggle("on", b === btn));
+      panels.forEach((p) => {
+        document.getElementById("ex-" + p).classList.toggle("hidden", p !== id);
+      });
+    });
+  </script>
+</body>
+</html>

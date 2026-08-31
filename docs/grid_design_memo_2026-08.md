@@ -31,6 +31,33 @@ the cell-to-cell spread (SD ≈ 0.19–0.20 in value-over-textbook, log loss) in
 Measured on the last full run's 47 clean cells (23 questions, both selectors pooled);
 the pilot's 26 cells give the same picture.
 
+**Robustness — is the between-question share just a scale artifact?** (checked
+2026-08-19 after the objection that questions sit on different scales — log-loss
+differences grow with a question's class count/entropy, so raw-unit spread between
+questions could reflect units, not substance.) Four cuts on the same data say no:
+
+1. *Rescale each question by its own scale* (`value_over_textbook_ll / |textbook_ll|`,
+   i.e. proportional improvement): between-question share 70.5% — unchanged from the
+   raw 70.6%.
+2. *Hold scale constant*: binary-only questions (identical 2-class family) show the
+   **highest** between-question share of all, 89.7% (7 questions, 4 multi-country).
+3. *Typed, contract-v4 evidence*: the Phase A pilot's ordinal cells scored the
+   type-matched way (`value_over_textbook_rho`, a bounded Spearman difference —
+   comparable across questions by construction) give 84% between-question (6
+   questions × 2 countries).
+4. Scale correlates with effect *magnitudes* (corr ≈ 0.56 with |question mean|) but
+   explains almost none of the signed question means (R² ≈ 0.02) — questions differ
+   in direction and substance, not just units.
+
+A sign-only version (`VoT > 0`) drops to ~45% between-question, but binarizing
+discards magnitude and mechanically pumps Bernoulli noise into the within term — it
+does not support the scale story. Caveats that stand: cluster counts are small
+(4–16 multi-country questions per cut), so the exact 72/28 is imprecise even though
+every cut points the same way; and the headline numbers are era-3-derived — restate
+this decomposition from typed v4 scores once the sampled grid's first cells exist,
+and define the paper's estimand per target type (log-loss VoT for binary/nominal,
+Spearman VoT for ordinal) rather than pooling raw log-loss units across class counts.
+
 Consequence: **adding countries to a question barely adds information about the average
 effect; adding questions does.** Two cells of the same question are ~72% redundant. So
 for the same budget, a wide-and-shallow grid beats the square 5×5 preset:
@@ -78,8 +105,11 @@ Three anchors, all from data:
 late) the detectable effect drifts to ~0.044 — still under the +0.05 bar. Draw is
 type-stratified within survey (proportional to the frame with a floor of 2 per answer
 type, so every type is reportable and the log-loss/rank metric families stay balanced),
-demographics on, skip items off, leakage- and minimum-signal-excluded, with 3 pre-listed
-spare questions per survey and a registered replacement rule (same survey, same type).
+**demographics excluded as targets** (decision 2026-08-19, `pre_paper_run_decisions.md`
+— they stay as features and as the textbook baseline), skip items off,
+leakage-flagged targets excluded (the retired accuracy min-signal rule is NOT a frame
+filter), with 3 pre-listed spare questions per survey and a registered replacement
+rule (same survey, same type).
 
 ## Q2 — Transportability stratum: how many screened questions × countries?
 
@@ -104,7 +134,16 @@ swap pairs per selector; pooling 9 selectors:
 **Decision: 30 transportability questions, selected from the 90 confirmatory questions
 by their measured heterogeneity (which comes free from the confirmatory oracles): 12
 high / 8 mid / 10 low, extended from 3 to 6 countries (5 where Asian Barometer caps
-out) = +90 cells.** The target effect of +0.02 is detectable in the high bin at 80%
+out) = +90 cells.** **Low-bin gate (added 2026-08-19):** het ≈ 0 conflates "structure
+genuinely shared" with "oracle too noisy to tell" (the screen's own definition:
+het = within-country reliability − between-country agreement, so both terms being low
+also gives het ≈ 0). A question is eligible for the low bin — the negative control —
+only if its within-country reliability (the het screen's `within` term, on the
+balanced v4 oracles) is at or above the median across the 90 confirmatory questions;
+the frozen numeric value is recorded in the registry entry when the bins are computed.
+Questions failing the floor are ineligible for the low bin (replace with the
+next-lowest-het question that passes). Without this gate the negative control is
+biased toward null mechanically — unmeasurable questions would pass it for free. The target effect of +0.02 is detectable in the high bin at 80%
 power under the conservative clustering assumption. The legacy screen suggests the top
 tercile starts around het ≈ +0.08, and ~30 of 90 questions should land there — so
 choosing 12 leaves margin for screening noise; if fewer than 12 usable high-het
@@ -120,6 +159,36 @@ Two honesty notes, both consequential for registration:
   strictly more efficient than the binned difference, which becomes descriptive.
 - Swaps exist only in the country-named condition, so this stratum's claims are
   condition-specific by construction.
+
+### Scope: what "cross-country" means in this design (made explicit 2026-08-19)
+
+Every heterogeneity and adaptation measurement here holds the **instrument
+constant**: oracle importance structures are only comparable across countries that
+answered the *same questionnaire*, so heterogeneity, the low/high bins, and the swap
+contrast are all defined **within a survey**. Because the surveys are regional
+(Latinobarometro = Latin America, Afrobarometer = Africa, Arab Barometer = MENA,
+Asian Barometer = Asia, ESS = Europe), within-survey country variation is mostly
+**within-region** variation. Three consequences to state and act on:
+
+1. **Claims wording.** The adaptation result is about within-region country
+   variation with the instrument fixed. "Universal" (low bin) means *no measurable
+   variation across that survey's country span* — a target can be universal within
+   Latin America and still vary globally. Do not write "models adapt across the
+   world's diversity" from this design; within-region spans compress true
+   heterogeneity, which also makes the test conservative.
+2. **WVS is the one cross-region instrument.** Only WVS asks the same battery
+   globally, so WVS questions are the only cells where wide (cross-region)
+   heterogeneity is directly testable with the instrument held constant.
+   **Rule added to the draw:** for WVS questions in the transportability stratum,
+   the 6 countries are drawn region-stratified (no two from the same region until
+   all represented regions are covered), so the one instrument that can span
+   regions actually does. Report het distributions per survey, with WVS flagged as
+   the wide-span anchor.
+3. **Cross-survey generalization is a different test, deliberately deferred.**
+   Comparing the *same concept* asked *differently* across surveys (trust,
+   religiosity, …) requires construct-level mapping, not variable-level importance
+   — that is the registered post-first-run item (Test-2 / construct-level
+   importance in `pre_paper_run_decisions.md`), not something this grid claims.
 
 ## Q3 — Selector zoo: how many models, and what about DeepSeek-V4-Flash?
 
@@ -193,15 +262,24 @@ leaves the short boundary-paper exit open).
 
 ## The grid to approve
 
-1. **Frame:** type-1 targets, demographics on, skip items off (~1,525 questions);
-   leakage- and minimum-signal-excluded.
+1. **Frame:** type-1-passing targets, **demographics excluded as targets** (features
+   and textbook baseline only — see `pre_paper_run_decisions.md` stack locks), skip
+   items off, leakage-flagged excluded: **1,233 questions** (1,133 with ≥3
+   draw-eligible countries; was ~1,525 with demographics in).
 2. **Confirmatory stratum:** 15 questions per survey × 6 surveys, type-stratified
-   within survey (proportional with floor 2 per answer type), × 3 countries drawn
-   uniformly from each question's eligible countries, registered seed = **270 cells**;
-   3 spares per survey with a same-survey-same-type replacement rule.
+   within survey (proportional with floor 2 per answer type **where the survey
+   fields ≥ 2 eligible questions of that type; else take all it has** — on the
+   demographics-free frame only ESS fields continuous at all, exactly 2, and
+   binary pools are thin in Afrobarometer (6) and Arab Barometer (4), so those
+   floor strata are near-censuses, not samples — checked 2026-08-19), × 3 countries
+   drawn uniformly from each question's eligible countries, registered seed =
+   **270 cells**; 3 spares per survey with a same-survey-same-type replacement rule
+   (spares must exist for a type to use its floor; continuous has no spares).
 3. **Transportability stratum:** 30 of those 90 questions by measured heterogeneity —
-   12 high / 8 mid / 10 low (negative controls) — extended to 6 countries (5 for Asian
-   Barometer) = **+90 cells**; top-up from frame only if the high bin comes up short.
+   12 high / 8 mid / 10 low (negative controls; low-bin membership additionally
+   requires within-country oracle reliability at or above the 90-question median,
+   see Q2 gate) — extended to 6 countries (5 for Asian Barometer) = **+90 cells**;
+   top-up from frame only if the high bin comes up short.
 4. **Selectors (9):** Kimi-K3 (2-cell probe first), Kimi-K2.6, DeepSeek-V4-Pro,
    GLM-5.1, Qwen3.5-397B, Nemotron-Ultra-550B, MiniMax-M3, Nemotron-Super-120B,
    gpt-oss-120b. **DeepSeek-V4-Flash dropped** (failure mode correlated with condition).
@@ -218,14 +296,39 @@ One entry, stage `end-to-end`, status `design`, with:
   unprompted condition, pooled selectors; standard errors clustered by question;
   surveys reported as strata. Smallest effect of interest +0.05 (this memo's anchors);
   grid powered to 0.040.
+- **Primary 1 heterogeneity (registered reported result, not a test):** questions ask
+  genuinely different things, so ~72% of cell-to-cell variance is between questions —
+  that spread is substance, not nuisance. Report the between-question distribution of
+  the effect alongside its mean: share of questions with value-over-textbook > 0,
+  between-question SD, and the per-target-type strata (log-loss effects for
+  binary/nominal, Spearman effects for ordinal — never pooled across metric families).
+  A grand mean alone would misrepresent a heterogeneous answer to "do models capture
+  predictive structure."
 - **Primary 2 (transportability):** mean own-vs-swapped gain in log loss, high-het bin,
   country condition, pooled selectors, clustered by question; low bin registered as
-  negative control (CI must cover 0).
+  negative control (CI must cover 0), with low-bin membership reliability-gated
+  (Q2 gate) so "no adaptation signal" cannot be manufactured by oracle noise.
 - **Secondary:** continuous dose-response slope of swap gain on balanced-oracle
   heterogeneity (30 questions); condition contrast (country-named vs unprompted);
   capability curve via within-cell paired selector contrasts ordered by model tier;
   breadth-vs-precision (model-k vs fixed k=5). Binned high-vs-low reported as
   descriptive only.
+- **Secondary (behavioral adaptation battery, 30 transportability questions):**
+  three layers, one x-axis each, separating *adaptation* from *stereotyping/hedging*
+  and *rigidity*. (1) Country-request rate in the unprompted arm (share of cells
+  whose extracted features name country/nationality — text level, pre-mapping, since
+  country is unmappable within a cell) regressed on Δ_oracle from the registered
+  `pooled-country-value` experiment — the pooled value of the country column, the
+  correct ground truth for "should the model ask" (level + structure; structure-het
+  is the wrong x-axis here). (2) Pick differentiation across countries in the
+  country-named arm (1 − Jaccard of mapped codes) regressed on structure
+  heterogeneity — slope > 0 with low intercept = adaptation; high flat intercept =
+  stereotyping; flat zero = rigid. (3) Swap gain (Primary 2) = differentiation
+  paying off in value. Cross-arm consistency check: for an adaptive selector the
+  same questions drive all three layers. Read slopes/intercepts, not cells — pick
+  lists carry extraction jitter (map Jaccard across arms ≈ 0.35). Pilot-grade fact
+  motivating layer 1: era-3 request rates 24–50% unprompted vs 4–12% country-named,
+  uncorrelated with structure-het (r ≈ −0.02).
 - **Frozen before launch:** variance inputs and detectable-effect table (this memo);
   exclusion rules (leakage flag, minimum-signal, provider-caused missingness only —
   don't-know/refused are genuine answers); Flash exclusion; sampling seed and

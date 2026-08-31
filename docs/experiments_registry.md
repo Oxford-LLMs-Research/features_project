@@ -92,13 +92,15 @@ Sorted by **Stage**, then status.
 | end-to-end | [`main-freetext`](#main-freetext--confirmatory-free-text-arm-c) | complete | Free-text + dual-layer map is the confirmatory instrument | `outputs/selectors/` |
 | end-to-end | [`confirmatory-zoo`](#confirmatory-zoo--multi-selector-lock) | design | Not run | — |
 | end-to-end | [`prelim-json-grid`](#prelim-json-grid--strict-json-appendix) | superseded | JSON-era magnitudes are a floor, not the estimate | snapshots / `outputs/grid/` |
-| elicitation | [`prompt-sensitivity`](#prompt-sensitivity--selector-system-message) | complete | Keep confirmatory social_scientist system prompt | `outputs/experiments/prompt_sensitivity/` |
+| elicitation | [`prompt-sensitivity-v2`](#prompt-sensitivity-v2--role-and-referent-framing) | design | Framing vs replicate noise; 24×3 grid; lock pending | `outputs/experiments/prompt_sensitivity_v2/` |
+| elicitation | [`prompt-sensitivity`](#prompt-sensitivity--selector-system-message) | superseded | v1 system-message-only; confirmatory lock superseded by v2 | `outputs/experiments/prompt_sensitivity/` |
 | extraction | [`extract-swap-minimax`](#extract-swap-minimax--minimax-extract--nemotron-disambig) | complete | MiniMax extract ≈ Qwen on PI/VoR; dearer — keep Qwen default | `outputs/experiments/pipeline_role_swap/minimax_nemotron/` |
 | extraction | [`extract-type-pilot`](#extract-type-pilot--type-taxonomy-wording) | complete (pilot) | Type-prompt wording pilot | `outputs/experiments/extract_type_pilot*` |
 | grid | [`leakage-audit`](#leakage-audit--genuine-cell-screen) | complete | Drop type-1 / leakage only; keep type-2/3 signal | `outputs/cache/audits/leakage_audit.csv` |
 | mapping | [`pipeline-role-swap`](#pipeline-role-swap--minimax-extract--flash-disambig) | complete | Joint MiniMax+Flash rejected; Flash-as-disambig not followed up | `outputs/experiments/pipeline_role_swap/minimax_flash/` |
 | mapping | [`subitem-mapping`](#subitem-mapping--dual-layer-pilot) | complete → promoted | Dual-layer locked into main | `outputs/experiments/subitem_mapping/` |
-| oracle | [`oracle-v3`](#oracle-v3--measurement-level-honest-split) | complete | Era-3 oracle is the current ground truth | `outputs/cache/cells/` |
+| oracle | [`oracle-v3`](#oracle-v3--measurement-level-honest-split) | superseded | Era-3 oracle retired 2026-08-19; contract v4 is current (onboarding §3) | `outputs/cache/cells_v3/` (archive) |
+| scoring | [`pooled-country-value`](#pooled-country-value--is-country-worth-requesting) | design | Not run — pooled value of the country column vs selector country-requests | — |
 | retrieval | [`embedding-sensitivity`](#embedding-sensitivity--sentence-transformer-swap) | complete | Embedder swap moves maps more than scores | `outputs/experiments/embedding_sensitivity/` |
 | retrieval | [`ensemble-mapping`](#ensemble-mapping--minilm--mpnet-union) | complete (not promoted) | Union retrieval lifts Jaccard; small VoR gain | `outputs/experiments/ensemble_mapping/` |
 | retrieval | [`underscore-label-embed`](#underscore-label-embed--feature-label-tokenization) | complete (ad-hoc) | `_` vs spaces barely moves MiniLM vectors | chat-only |
@@ -109,11 +111,55 @@ Sorted by **Stage**, then status.
 
 ## Active / complete
 
+### `prompt-sensitivity-v2` — role and referent framing
+
+| Field | Value |
+|-------|-------|
+| **Status** | design |
+| **Stage** | elicitation |
+| **Dates** | designed 2026-08-19 |
+| **Code** | grid [`scripts/make_prompt_sensitivity_v2_grid.py`](../scripts/make_prompt_sensitivity_v2_grid.py); cells [`data/prompt_sensitivity_v2_cells.yaml`](../data/prompt_sensitivity_v2_cells.yaml); packs in [`prompts.py`](../src/survey_features/prompts.py) / [`elicitation.py`](../src/survey_features/elicitation.py); run [`scripts/run_prompt_sensitivity_v2.py`](../scripts/run_prompt_sensitivity_v2.py) |
+| **Commit** | — (record the SHA that produces first `outputs/experiments/prompt_sensitivity_v2/` artifacts) |
+| **Compute** | LLM: Nebius selectors `deepseek-ai/DeepSeek-V4-Pro`, `moonshotai/Kimi-K2.6`, `MiniMaxAI/MiniMax-M3`, `NousResearch/Hermes-4-405B` (reasoning **off** if the API allows; 2-cell probe first if sticky). Extractor Qwen and disambiguator Nemotron **fixed**. Local: v4 quick oracles, one bag for every survey (`medium_quality`, `FASTAI` excluded only). Asian Barometer is the slow tail (60s/fold dies before models finish; 180s/fold ~50–70 min) — not a different bag. **Parked 2026-08-20:** three remaining Asian cells (Q102 Indonesia, Q102 Taiwan, Q137 Indonesia); score Stage 1 + t1/t2 on the v4 subset (`--v4-only`). |
+| **Inputs** | [`data/prompt_sensitivity_v2_cells.yaml`](../data/prompt_sensitivity_v2_cells.yaml) (seed 20260819); contract-v4 oracles for those 72 cells (compute after freeze; reuse any Phase A overlap); then `leakage_audit.py --with-data` on this 72 only. Do **not** reuse v1 scores or v3 oracles. |
+| **Outputs** | intended `outputs/experiments/prompt_sensitivity_v2/<selector>/<pack>/[r<n>/|t<n>/]{freetext,extracted,maps}/`; `scores_<selector>_<pack>[_r<n>|_t<n>].csv` |
+
+**Rationale.** To test whether the confirmatory wording (`You are a social science researcher.` + `respondent`) boxes selectors into survey-research space relative to `analyst`+`person` and to no system prompt, and whether that movement exceeds two draws of the default pack, on a theme-balanced 24×3 grid scored against country-named prompts (the same grain as the oracle).
+
+**Result.** —
+
+**Design (locked before first write).**
+
+Grid: 24 questions × 3 countries = 72 cells; 18 unique countries (shared 3-country panel per survey). Two questions per survey in each **theme stratum** (political–institutional vs everyday/person). Seed 20260819, independent of the confirmatory draw. Stage 1 condition: **country_provided only**. After oracles, leakage/unestimable cells are replaced from the same-survey-same-stratum spare — no hand swaps.
+
+Packs (replicate r1/r2 is two gens of the default at temperature 0, not a new wording):
+
+| Pack | System | User referent |
+|------|--------|----------------|
+| `scientist_respondent` r1, r2 | `You are a social science researcher.` | `respondents` / `respondent` |
+| `analyst_person` | `You are an analyst.` | `people` / `person` |
+| `none_respondent` | *(omit)* | default `respondent` wording |
+
+**Temperature sidecar** (not in Stage 1, not in `--all`, not in the lock-rule floor): two further gens of `scientist_respondent` only, folders `t1/` and `t2/`, temperature **1.0** (native softmax), recorded as `run_kind: temperature`. t1 vs t2 estimates sampling noise of the default wording; do not compare a temp-0 pack contrast to this floor.
+
+Selectors: DeepSeek-V4-Pro, Kimi-K2.6, MiniMax-M3, Hermes-4-405B. Extractor/disambiguator/`PIPE_TYPES` unchanged (`instrument_methodology` and `population_statistic` are counted, not mapped).
+
+**Primary** (vs default r1–r2 floor), clustered by question, pooled and by theme stratum:
+
+- Soft Jaccard on all extracted items (MiniLM dual-embed, Hungarian 1-1, τ = 0.75; 0.65/0.85 robustness), plus within-type
+- Hard Jaccard on mapped `expanded_codes`
+- Four-way type shares. `instrument_methodology` is the survey-methods tell. `population_statistic` is prior/macro request rate — not a capability verdict
+- Textbook share among mapped codes
+
+**Secondary:** type-matched captured importance and VoR on v4 oracles (mean and median Δ, share Δ>0, PI↔VoR concordance, by survey). Do not decide from mean Δ alone.
+
+**Stop / lock rules.** Keep the confirmatory default unless the alternative beats the replicate floor **and** has the same sign on ≥2 of 4 selectors **and** the same direction in **both** theme strata **and** does not hurt VoR/captured importance. Do not switch on one-model evidence. If composition moves and scores do not: keep the default; report a methods paragraph. Stage 2 (scientist+person vs analyst+respondent) runs only if Stage 1 exceeds the floor.
+
 ### `prompt-sensitivity` — selector system message
 
 | Field | Value |
 |-------|-------|
-| **Status** | complete |
+| **Status** | superseded |
 | **Stage** | elicitation |
 | **Dates** | designed 2026-08-09; ran 2026-08-09; analyzed 2026-08-11 |
 | **Code** | [`scripts/run_prompt_sensitivity.py`](../scripts/run_prompt_sensitivity.py); analysis [`scripts/analyze_stack_experiments.py`](../scripts/analyze_stack_experiments.py); arms in [`prompts.py`](../src/survey_features/prompts.py) / [`elicitation.py`](../src/survey_features/elicitation.py); cells [`data/prompt_sensitivity_cells.yaml`](../data/prompt_sensitivity_cells.yaml) |
@@ -124,7 +170,7 @@ Sorted by **Stage**, then status.
 
 **Rationale.** To test whether the confirmatory system message (“You are a social science researcher.”) constrains selector feature essays relative to no system message or a neutral “helpful assistant,” holding extractor/disambiguator fixed.
 
-**Result.** Keep confirmatory `social_scientist`. At `k_spec=model`, kimi `helpful` lifts mean PI/VoR vs scientist, but deepseek_v4 `helpful` loses PI (−0.045) — not consistent across selectors. `none` does not win both endpoints. Digests: `scripts/analyze_stack_experiments.py` → `outputs/experiments/_analysis/` (incl. `registry_contrast_blocks.md`).
+**Result.** v1 only varied the system message. Maps rewrote (Jaccard ≈ 0.35) while VoR was noisy and selectors disagreed on `helpful`. The confirmatory-prompt **lock is superseded** by [`prompt-sensitivity-v2`](#prompt-sensitivity-v2--role-and-referent-framing); do not cite v1 scores (v3 oracles, compromised cells). Digests remain in `outputs/experiments/_analysis/`.
 
 **Contrast detail** (vs `social_scientist`; `k_spec=model`).
 
@@ -291,7 +337,7 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 
 | Field | Value |
 |-------|-------|
-| **Status** | complete (current ground truth) |
+| **Status** | superseded (2026-08-19: contract v4 is the only contract; v3 was a dev byproduct — do not cite or build on its caches, see onboarding §3) |
 | **Stage** | oracle |
 | **Dates** | contract v3 rebuild 2026-08 (`21c780d` lineage) |
 | **Code** | [`scripts/rerun_oracles.py`](../scripts/rerun_oracles.py), [`scripts/compute_oracle.py`](../scripts/compute_oracle.py); [`src/survey_features/oracle.py`](../src/survey_features/oracle.py), [`oracle_pool.py`](../src/survey_features/oracle_pool.py). Audit: [`pipeline_audit_2026-08.md`](pipeline_audit_2026-08.md) |
@@ -457,10 +503,61 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 | **Code** | [`scripts/run_main.py`](../scripts/run_main.py) + `config.SELECTORS` |
 | **Commit** | — (record when the zoo is actually swept) |
 | **Compute** | LLM API per selector; local score |
-| **Inputs** | era-3 oracles + genuine grid + textbook |
+| **Inputs** | contract-v4 oracles for the sampled grid + typed leakage screen + textbook |
 | **Outputs** | `outputs/selectors/scores_<selector>.csv` (canonical or `--run-tag`) |
 
 **Rationale.** To test the confirmatory free-text + dual-layer stack across a locked set of selector models under identical extractor, disambiguator, and scoring contracts.
+
+**Result.** —
+
+---
+
+### `pooled-country-value` — is country worth requesting?
+
+| Field | Value |
+|-------|-------|
+| **Status** | design |
+| **Stage** | scoring |
+| **Dates** | designed 2026-08-19; runs after the confirmatory sweep |
+| **Code** | intended `scripts/run_pooled_country_value.py`; reuses [`evaluate_feature_set`](../src/survey_features/evaluation.py) unchanged (pooled rows + a whitelist flag for the country column in the pool builder) |
+| **Commit** | — (record at first artifact write) |
+| **Compute** | local CPU only (XGB on pooled rows); no LLM calls |
+| **Inputs** | the 30 transportability targets (grid memo Q2) with their 6-country microdata pooled **within survey**; balanced v4 oracles for those targets; unprompted-arm mapped picks from the confirmatory sweep; heterogeneity bins + within-country reliability from the het screen |
+| **Outputs** | `outputs/experiments/pooled_country_value/pooled_scores.csv` (one row per target × feature-set × ±country), digest in `experiments/_analysis/` |
+
+**Rationale.** Inside a (target, country) cell, country has zero variance — it can
+never be a feature — so the pipeline cannot say whether a selector *should* have
+asked for the respondent's country. Yet selectors do ask: in the unprompted
+condition they request a country/nationality feature in 24–50% of cells (vs 4–12%
+when the country is named), and on era-3 data that request rate is uncorrelated
+with *structure* heterogeneity (r ≈ −0.02) — which looked like indiscriminate
+hedging until we noticed the ground truth was wrong: requesting country is rational
+wherever country shifts the *level* of the target, even when the predictive
+structure is identical everywhere. This experiment measures the correct ground
+truth — the pooled predictive value of the country column, levels and structure
+combined — and asks whether selectors request country where it actually pays.
+
+**Design.** For each of the 30 transportability targets, stack its 6 countries'
+rows (same questionnaire — within-survey pooling only, per the grid memo's scope
+note). Score each feature set twice with the standard typed evaluator — once with
+the country column whitelisted in, once out; Δ(country) = the pooled value of
+knowing the country for that set. Sets: oracle top-k (Δ_oracle = ground truth
+"was country worth requesting"), the selector's unprompted picks (one set per
+target: the modal mapped set across its cells — registered collapse rule;
+unprompted picks are country-blind by construction, so per-cell copies differ only
+by extraction jitter), textbook, and matched-k random.
+
+**Predictions (registered before looking).** (1) Δ_oracle > 0 for most attitude
+targets (country level-shifts are near-universal) — if not, country-requesting is
+over-hedging even in level terms. (2) A knowledgeable selector's country-request
+rate (unprompted arm) rises with Δ_oracle — this replaces the structure-het x-axis
+that wrongly suggested hedging. (3) Crossing Δ_oracle with structure-het separates
+regimes: high-Δ/low-het = "levels differ, mechanism shared" (the same-pattern-
+different-drivers scenario made measurable); high-het targets should additionally
+show pick differentiation and swap gains (grid memo, transportability primary).
+**Guard:** pooled permutation importance of country lumps level shifts with
+structural change — never read Δ(country) alone as "structure varies"; that claim
+belongs to the het measure and the swap contrast.
 
 **Result.** —
 
