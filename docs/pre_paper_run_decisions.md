@@ -86,6 +86,57 @@ skip cells already present in an old file).
 
 ---
 
+## Confirmatory grid draw — mechanism decided 2026-08-31
+
+Implemented in [`scripts/make_confirmatory_grid.py`](../scripts/make_confirmatory_grid.py)
+(draws from the frozen frame; refuses to run if the frame rules stop reproducing the
+frozen counts). Decisions, superseding the memo's 15×3 where they differ:
+
+- **20 questions per survey** (was 15). Tightens the smallest detectable pooled
+  effect from 0.040 to 0.034 and buys insurance against the budgeted 15–20% cell
+  attrition; the marginal cost (~90 more LLM cells) is small because countries, not
+  questions, were the expensive axis being cut.
+- **Type-stratified allocation**: proportional to the survey's draw-eligible pool
+  with a floor of 2 per answer type present (memo rule); sections ("themes") are
+  spread inside each type by round-robin rather than hard quotas. 3 spares per
+  survey; replacement = same survey, same type, first unused spare (else next
+  unused spare of any type; log the substitution).
+- **Nested country rule** (see glossary): one seeded permutation of each question's
+  estimable countries (WVS ordered region-round-robin so every prefix spans
+  regions); first min(10, roster) = **oracle set** (computed on the ARC cluster,
+  selector-independent), first 3 = **LLM confirmatory countries**, fixed *before*
+  any oracle heterogeneity exists. Heterogeneity later selects transportability
+  swap *pairs* from the oracled set (registered max-disagreement rule, to be added
+  to the registry with the het screen), never the headline countries.
+- **Isolated seeding**: each survey's question draw and each question's country
+  permutation come from a child RNG keyed by (seed, survey[, target]) — a
+  re-freeze that changes one survey's pool does not reshuffle the others.
+
+**Status: the 2026-08-31 draw output is provisional and unregistered.** Two data
+rulings must land first, then the inventory refresh → frame re-freeze → re-draw:
+
+1. **Asian Barometer case-twin coalesce (data bug, discovered 2026-08-31).** The
+   merged file holds each question twice — uppercase columns for one release batch
+   (Indonesia, Taiwan, Philippines; 4,272 respondents), lowercase for the other
+   (Mongolia, Cambodia, Vietnam, Australia, Korea, Thailand; 7,380) — with zero
+   row overlap and identical value labels where scales are shared (Q53/q53).
+   221 twin pairs. Consequence: the inventory's estimability counts are wrong for
+   ~185 of 248 Asian items (`n_countries=9` but `n_type1_pass=3`), the "Asian is
+   a 3-country survey" ceiling is an artifact, and every Asian cell's oracle
+   feature pool was effectively half dead columns. Fix: case-insensitive coalesce
+   in the cleaning path before anything else consumes the frame.
+2. **Other-specify columns out of the question frame.** Verbatim/post-code
+   appendages of a base question (Afrobarometer `*OTHER`, 13 sibling pairs; Asian
+   `*other`/`*other_clarify` variants) are response-coding artifacts, not
+   questions: as targets they are junk, as features for their own base question
+   they are skip-pattern leakage (three drawn targets — Afro Q96, Asian Q34/Q53 —
+   currently have their sibling sitting in the feature pool). Drop them from the
+   cleaned question columns per survey-specific pattern. ESS `*oth` items
+   (dscroth, dngoth, medtroth) are genuine checkbox variables and stay.
+
+Both are cleaning-contract changes: they must land **before** the ARC oracle map so
+the whole map is computed on one feature universe.
+
 ## Ranked backlog before the confirmatory paper run
 
 0. **`prompt-sensitivity-v2` (stack lock).** Registered 2026-08-19. Freeze is

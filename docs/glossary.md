@@ -174,3 +174,17 @@ re-runs never clobber baseline artifacts. **Fits:** anything citable needs eithe
 run-tag or an experiment registration (see `CONTRIBUTING.md`). **Implies:** an
 untagged run writes canonical files — only do that for the confirmatory pipeline
 itself.
+
+## nested country rule
+
+**What:** the confirmatory grid draws one seeded random ordering of each drawn
+question's estimable countries; the first up-to-10 (roster permitting) get oracles
+computed, and the first 3 of those are the countries the LLM pipeline actually runs
+on. **Why:** oracles are cheap on a cluster and selector-independent, so measuring
+many countries costs little — but the LLM subsample must be committed *before* any
+oracle heterogeneity is seen, or the headline claim is open to a
+picked-the-interesting-countries objection. **Fits:** the wide oracle layer feeds
+the heterogeneity screen and the transportability pair selection; the narrow first-3
+layer is the confirmatory LLM grid (`role == "confirmatory"` in
+`data/confirmatory_grid_cells.csv`). **Implies:** heterogeneity may inform which
+*pairs* get country-swap scoring, never which countries enter the headline estimate.
