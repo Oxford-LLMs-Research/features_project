@@ -55,6 +55,11 @@ export OMP_NUM_THREADS="${THREADS}"
 export OPENBLAS_NUM_THREADS="${THREADS}"
 export MKL_NUM_THREADS="${THREADS}"
 export NUMEXPR_NUM_THREADS="${THREADS}"
+# A worker that dies with no output is either SIGKILL (cgroup OOM) or a native
+# crash. faulthandler makes the second case print a C-level traceback on SIGSEGV/
+# SIGABRT/SIGBUS; silence after this is enabled therefore means OOM, not a crash.
+export PYTHONFAULTHANDLER=1
+
 echo "[sbatch] task ${SLURM_ARRAY_TASK_ID}/${N_SHARDS}: ${PROCS} workers x ${THREADS} threads"
 
 python scripts/rerun_oracles.py \
