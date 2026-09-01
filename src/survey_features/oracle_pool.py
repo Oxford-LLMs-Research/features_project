@@ -5,7 +5,11 @@ Processes, not threads: concurrent fits in one process share a native OpenMP run
 and can wedge the interpreter; a worker process that dies takes one cell only. Mirrors
 score_cell.run_score_jobs. Costs one survey load + frame in memory per worker; cells
 are dispatched grouped by survey so each worker reuses its loaded frame.
-Incident history: docs/onboarding.md §5.
+
+A worker killed by a SIGNAL (cgroup OOM, native crash) is different from one that
+raises: it breaks the whole executor and fails every pending future, so run_oracle_pool
+rebuilds the pool around the unrun cells at halved concurrency rather than losing the
+batch. Incident history: docs/onboarding.md §5.
 """
 
 from __future__ import annotations
@@ -15,6 +19,7 @@ import os
 import sys
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
 from typing import Any
 
@@ -121,33 +126,45 @@ def compute_one_cell(spec: dict[str, Any]) -> dict:
         }
 
 
-def run_oracle_pool(specs: list[dict[str, Any]], processes: int) -> tuple[int, int]:
-    """Fit every spec across `processes` worker processes. Returns (done, failed).
+def _drain_pool(
+    specs: list[dict[str, Any]], workers: int, offset: int, total: int
+) -> tuple[int, int, list[dict[str, Any]]]:
+    """Run `specs` in one fresh pool. Returns (done, failed, leftover).
 
-    Specs are ordered by survey so each worker tends to reuse one loaded frame. A worker
-    that dies takes its cell with it and nothing else — the pool reports the failure and
-    the remaining cells continue, which is exactly what the thread version could not do.
+    `leftover` is the specs that never ran because the pool broke — a worker killed
+    by a signal (cgroup OOM, native crash) poisons the executor, so every pending
+    future raises BrokenProcessPool regardless of its own cell. Those are requeued,
+    not counted as failures.
     """
-    specs = sorted(specs, key=lambda s: (s["survey"], s["target"], s["country"]))
     done = failed = 0
-    total = len(specs)
-    t0 = time.time()
-    _ensure_src_on_pythonpath()
-
-    with ProcessPoolExecutor(max_workers=max(1, processes)) as ex:
+    leftover: list[dict[str, Any]] = []
+    saw_break = False
+    with ProcessPoolExecutor(max_workers=max(1, workers)) as ex:
         futures = {ex.submit(compute_one_cell, s): s for s in specs}
         for fut in as_completed(futures):
             s = futures[fut]
             try:
                 r = fut.result()
-            except Exception as exc:  # worker died outright (OOM, native crash)
+            except BrokenProcessPool as exc:
+                # At one worker there is only one cell in flight, so the first raiser
+                # IS the culprit: fail it permanently instead of requeueing forever.
+                if workers <= 1 and not saw_break:
+                    saw_break = True
+                    failed += 1
+                    print(f"  [error] {s['target']} x {s['country']}: worker killed "
+                          f"outright at 1 worker, cell abandoned ({type(exc).__name__})",
+                          flush=True)
+                else:
+                    leftover.append(s)
+                continue
+            except Exception as exc:  # pragma: no cover — compute_one_cell catches
                 r = {"survey": s["survey"], "target": s["target"], "country": s["country"],
                      "ok": False, "error": f"worker died: {type(exc).__name__}: {exc}",
                      "secs": 0}
             if r["ok"]:
                 done += 1
                 print(
-                    f"  [{done + failed}/{total}] {r['target']} x {r['country']}  "
+                    f"  [{offset + done + failed}/{total}] {r['target']} x {r['country']}  "
                     f"{r['n_positive']}/{r['n_features']} positive, "
                     f"{r['problem_type']}, ceiling@10={r['ceiling10']}, {r['secs']:.0f}s",
                     flush=True,
@@ -155,6 +172,49 @@ def run_oracle_pool(specs: list[dict[str, Any]], processes: int) -> tuple[int, i
             else:
                 failed += 1
                 print(f"  [error] {r['target']} x {r['country']}: {r['error']}", flush=True)
+    return done, failed, leftover
+
+
+def run_oracle_pool(
+    specs: list[dict[str, Any]], processes: int, attempts: int = 4
+) -> tuple[int, int]:
+    """Fit every spec across `processes` worker processes. Returns (done, failed).
+
+    Processes, not threads, so a cell's native crash cannot wedge the parent. But a
+    worker killed by a signal breaks the WHOLE executor, failing every future still
+    pending — one OOM would otherwise cost the entire shard. So the pool is rebuilt
+    around whatever never ran, halving the worker count each time: fewer concurrent
+    fits means less peak memory, and at one worker the offending cell is isolated
+    and abandoned rather than retried forever.
+
+    Specs are ordered by survey so each worker tends to reuse one loaded frame.
+    """
+    specs = sorted(specs, key=lambda s: (s["survey"], s["target"], s["country"]))
+    done = failed = 0
+    total = len(specs)
+    t0 = time.time()
+    _ensure_src_on_pythonpath()
+
+    pending = list(specs)
+    workers = max(1, processes)
+    for attempt in range(1, attempts + 1):
+        if not pending:
+            break
+        if attempt > 1:
+            print(f"\n[pool] attempt {attempt}: {len(pending)} cells left, "
+                  f"{workers} workers", flush=True)
+        d, f, pending = _drain_pool(pending, workers, done + failed, total)
+        done += d
+        failed += f
+        if pending:
+            print(f"[pool] executor broke with {len(pending)} cells unrun "
+                  f"(worker killed by a signal — usually the cgroup OOM killer)",
+                  flush=True)
+            workers = max(1, workers // 2)
+    if pending:
+        failed += len(pending)
+        print(f"[pool] giving up on {len(pending)} cells after {attempts} attempts",
+              flush=True)
 
     mins = (time.time() - t0) / 60
     rate = (done + failed) / mins if mins else 0
