@@ -44,6 +44,19 @@ export HF_HUB_OFFLINE=1
 N_SHARDS="${N_SHARDS:-8}"      # must match the --array range above
 PROCS="${PROCS:-12}"           # process workers per node (~4 cores each at 48)
 
+# Pin native threads per worker. Without this every worker process starts an
+# OpenMP/BLAS runtime sized to the WHOLE node (48), so PROCS workers oversubscribe
+# it PROCS-fold; AutoGluon's time_limit is wall-clock, so the thrashing is paid in
+# fit quality, not just speed. Must be exported before Python starts — a forked
+# worker inherits an already-initialised runtime and cannot resize it.
+THREADS=$(( ${SLURM_CPUS_PER_TASK:-48} / PROCS ))
+[ "${THREADS}" -lt 1 ] && THREADS=1
+export OMP_NUM_THREADS="${THREADS}"
+export OPENBLAS_NUM_THREADS="${THREADS}"
+export MKL_NUM_THREADS="${THREADS}"
+export NUMEXPR_NUM_THREADS="${THREADS}"
+echo "[sbatch] task ${SLURM_ARRAY_TASK_ID}/${N_SHARDS}: ${PROCS} workers x ${THREADS} threads"
+
 python scripts/rerun_oracles.py \
     --cells-csv data/confirmatory_grid_cells.csv \
     --shard "${SLURM_ARRAY_TASK_ID}/${N_SHARDS}" \
