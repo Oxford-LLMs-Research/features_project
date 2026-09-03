@@ -159,6 +159,55 @@ kept for the record:
 Both are cleaning-contract changes: they must land **before** the ARC oracle map so
 the whole map is computed on one feature universe.
 
+## Country-blind arm is computed once per question — decided 2026-09-03
+
+The **unprompted** condition (the arm where we ask what predicts answers to a
+question *without* telling the model which country's respondents we mean) never
+puts the country in the prompt: `elicitation.freetext_messages` is called with
+`country=None`. Extraction reads only the essay, and mapping retrieves against
+the survey-wide variable pool with a target-keyed exclusion set. So for that
+condition the whole generate → extract → map chain is a pure function of
+`(survey, target)`; the country first matters at scoring, which fits against
+that country's respondents.
+
+Until now every phase keyed its work by `(survey, target, country)` with the
+condition loop *inside*, so a 3-country question paid for three identical
+pipelines — 240 of each selector's 720 confirmatory units, a third of the LLM
+bill and a third of the wall-clock.
+
+**The cost was the smaller problem.** Generation runs at temperature 0, but the
+hosted providers are not deterministic at temperature 0, so the three copies
+came back as *different essays* — of 27 multi-country targets in the Kimi-K2.6
+pilot artifacts, 8 were byte-identical across countries and 19 diverged (typical
+character similarity 0.06–0.30); for DeepSeek-V4-Pro, 0 of 27 matched.
+Afrobarometer Q18 is the clean illustration: Angola and Mali got the same 3,559
+character essay, Gabon a different 3,388 character one, same run, same minute.
+That put an unregistered generation draw inside the country-blind arm,
+**confounded with country** — i.e. inside the baseline half of every country
+contrast, which is exactly what the transportability claim is measured against.
+
+Fix: `survey_features.dedupe.SharedByQuestion` + `COUNTRY_BLIND_CONDITIONS` in
+`config.py`, wired into all four phases of `run_main.py` (`gen`, `extract`,
+`map`, `pipeline`). One computation per question, reused across its countries,
+with **per-cell artifacts still written per country** so `phase_score` and every
+analysis script are untouched. The map record is identical across siblings
+except its `country` field. Each phase now prints
+`country_blind(computed=… shared=…)`.
+
+- Country-blind essays already on disk are reused across siblings when a run
+  resumes; cells already written keep whatever they have. To collapse a
+  **pre-2026-09-03 selector directory** onto one essay per question you must
+  re-run the phase with `--force` (which bypasses the sibling lookup and
+  recomputes, still once per question).
+- Measurand statement for the paper: the unprompted arm is **one country-blind
+  feature list per question**, evaluated against each of its countries — not
+  three draws. Standard errors are clustered by question, so the within-question
+  correlation this makes structural was already priced into the registered
+  analysis.
+- If you want a generation-noise floor for this arm, buy it deliberately as a
+  registered replicate (the `prompt-sensitivity-v2` r1/r2 pattern), not as a
+  by-product of the loop nesting.
+
 ## Ranked backlog before the confirmatory paper run
 
 0. **`prompt-sensitivity-v2` (stack lock).** Registered 2026-08-19. Freeze is

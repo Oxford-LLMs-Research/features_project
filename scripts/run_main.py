@@ -13,6 +13,12 @@ accuracy-vs-majority is not a drop), unless --cells CSV
 Use --run-tag to write map/score under selectors/runs/<tag>/ without clobbering baseline.
 Gen/extract always stay under selectors/<selector>/.
 
+Country-blind conditions (config.COUNTRY_BLIND_CONDITIONS — the unprompted arm)
+never name the country, so gen/extract/map for them are computed ONCE per
+(survey, target) and shared across that question's countries; artifacts are still
+written per cell. See survey_features.dedupe for why this is a correctness fix
+and not only a cost one.
+
 Examples:
   python scripts/run_main.py --phase gen      --selector deepseek
   python scripts/run_main.py --phase extract  --selector deepseek
@@ -38,14 +44,17 @@ for _p in (str(ROOT / "src"), str(ROOT)):
 
 from survey_features.config import (  # noqa: E402
     CONDITIONS,
+    COUNTRY_BLIND_CONDITIONS,
     DEFAULT_EMBEDDING_MODEL,
     DEFAULT_SELECTOR,
     DISAMBIGUATORS,
     EXTRACTOR_MODEL,
+    GEN_MAX_TOKENS,
     OUTPUTS_DIR,
     PIPE_TYPES,
     SELECTORS,
 )
+from survey_features.dedupe import SharedByQuestion, question_siblings  # noqa: E402
 from survey_features.layout import (  # noqa: E402
     cell_tag,
     genuine_cells,
@@ -56,6 +65,9 @@ from survey_features.layout import (  # noqa: E402
 
 OUT = OUTPUTS_DIR
 FIXED_KS = [5, 10]
+
+# Cells the cluster oracles but no selector ever sees (make_confirmatory_grid.py).
+ORACLE_ONLY_ROLE = "oracle_only"
 
 # --cells override: module-level so every phase resolves the same grid without
 # threading one more parameter through five signatures.
@@ -68,6 +80,11 @@ def grid_cells(outputs_dir: Path = OUT) -> list[tuple[str, str, str]]:
     Default = genuine cells from the leakage audit (type-1 + leakage only).
     --cells CSV (columns survey,target,country) overrides it — pilot and
     frame-sampled grids are defined by an explicit cell list, not by the audit.
+
+    A `role` column, if present, is honored: rows marked ORACLE_ONLY_ROLE are
+    cluster-side oracle cells that no selector ever sees. data/confirmatory_grid_cells.csv
+    holds 1,103 rows of which only 360 are LLM cells, so without this filter
+    pointing --cells at the registered grid would silently run a 3x sweep.
     """
     if _CELLS_CSV is None:
         return genuine_cells(outputs_dir)
@@ -78,6 +95,15 @@ def grid_cells(outputs_dir: Path = OUT) -> list[tuple[str, str, str]]:
     required = {"survey", "target", "country"}
     if rows and not required.issubset(rows[0]):
         raise SystemExit(f"--cells CSV needs columns {sorted(required)}")
+    if rows and "role" in rows[0]:
+        kept = [r for r in rows if r.get("role") != ORACLE_ONLY_ROLE]
+        dropped = len(rows) - len(kept)
+        if dropped:
+            print(
+                f"[grid] {_CELLS_CSV.name}: {len(kept)} LLM cells "
+                f"(dropped {dropped} role={ORACLE_ONLY_ROLE})"
+            )
+        rows = kept
     return [(r["survey"], r["target"], r["country"]) for r in rows]
 
 
@@ -137,6 +163,8 @@ def phase_gen(selector_key, force=False, limit=None, api_workers: int = 1):
     cells = grid_cells(OUT)
     if limit:
         cells = cells[:limit]
+    siblings = question_siblings(cells)
+    shared_gen = SharedByQuestion()
     n_workers = max(1, int(api_workers))
     timing = TimingLog(default_timing_path("gen", selector_key))
     print(
@@ -162,10 +190,27 @@ def phase_gen(selector_key, force=False, limit=None, api_workers: int = 1):
                 "question_text": qtext, "selector_model": sel_model, "responses": {},
             }
             for cond in CONDITIONS:
-                messages = freetext_messages(
-                    qtext, country if cond == "country_provided" else None,
-                )
-                resp = gen(messages, max_tokens=4096, usage_phase="feature_list")
+                if cond in COUNTRY_BLIND_CONDITIONS:
+                    # Same prompt for every country of this question: generate once.
+                    resp = shared_gen.get(
+                        (survey, target, cond),
+                        compute=lambda: gen(
+                            freetext_messages(qtext, None),
+                            max_tokens=GEN_MAX_TOKENS,
+                            usage_phase="feature_list",
+                        ),
+                        reuse=None if force else (
+                            lambda c=cond: _sibling_gen_response(
+                                gen_dir, survey, target, siblings[(survey, target)], c,
+                            )
+                        ),
+                    )
+                else:
+                    resp = gen(
+                        freetext_messages(qtext, country),
+                        max_tokens=GEN_MAX_TOKENS,
+                        usage_phase="feature_list",
+                    )
                 if not resp:
                     rec.setdefault("errors", {})[cond] = "empty response after retries"
                 rec["responses"][cond] = resp
@@ -197,7 +242,10 @@ def phase_gen(selector_key, force=False, limit=None, api_workers: int = 1):
                         survey, target, country, up, cp = r
                         print(f"  [{i+1}/{len(cells)}] {survey} {target} {country}: up={up}c cp={cp}c")
 
-    print(f"[gen] done. wrote={done} skipped(existing)={skipped} -> {gen_dir}")
+    print(
+        f"[gen] done. wrote={done} skipped(existing)={skipped} "
+        f"country_blind({shared_gen.summary()}) -> {gen_dir}"
+    )
     timing.print_summary()
     usage.print_summary()
 
@@ -214,6 +262,8 @@ def phase_extract(selector_key, force=False, limit=None, api_workers: int = 1):
     cells = grid_cells(OUT)
     if limit:
         cells = cells[:limit]
+    siblings = question_siblings(cells)
+    shared_ext = SharedByQuestion()
     extract_dir.mkdir(parents=True, exist_ok=True)
     n_workers = max(1, int(api_workers))
     timing = TimingLog(default_timing_path("extract", selector_key))
@@ -244,7 +294,21 @@ def phase_extract(selector_key, force=False, limit=None, api_workers: int = 1):
                 "extractor_model": EXTRACTOR_MODEL, "features": {},
             }
             for cond in CONDITIONS:
-                feats, _raw = extract_features(responses.get(cond, ""), egen)
+                if cond in COUNTRY_BLIND_CONDITIONS:
+                    # Identical essay across this question's countries: extract once.
+                    feats = shared_ext.get(
+                        (survey, target, cond),
+                        compute=lambda c=cond: extract_features(
+                            responses.get(c, ""), egen,
+                        )[0],
+                        reuse=None if force else (
+                            lambda c=cond: _sibling_extract_features(
+                                extract_dir, survey, target, siblings[(survey, target)], c,
+                            )
+                        ),
+                    )
+                else:
+                    feats, _raw = extract_features(responses.get(cond, ""), egen)
                 rec["features"][cond] = feats
             op.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
         with done_lock:
@@ -272,18 +336,74 @@ def phase_extract(selector_key, force=False, limit=None, api_workers: int = 1):
                         survey, target, country, nfu, nfc = r
                         print(f"  [{i+1}/{len(cells)}] {survey} {target} {country}: up={nfu} cp={nfc} features")
 
-    print(f"[extract] done. wrote={done} skipped={skipped} -> {extract_dir}")
+    print(
+        f"[extract] done. wrote={done} skipped={skipped} "
+        f"country_blind({shared_ext.summary()}) -> {extract_dir}"
+    )
     timing.print_summary()
     usage.print_summary()
 
 
-def _save_map(path, survey, target, country, cond, disambig_key, cm, embedding_model):
+def _read_json(path: Path) -> dict | None:
+    """Parsed JSON artifact, or None when absent or unreadable."""
+    if not path.is_file():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _sibling_gen_response(gen_dir, survey, target, countries, cond) -> str | None:
+    """A country-blind essay this question already has from an earlier run."""
+    for country in countries:
+        rec = _read_json(gen_dir / f"{cell_tag(survey, target, country)}.json")
+        resp = ((rec or {}).get("responses") or {}).get(cond) or ""
+        if resp:
+            return resp
+    return None
+
+
+def _sibling_extract_features(extract_dir, survey, target, countries, cond) -> list | None:
+    """Ditto for the typed feature list.
+
+    An empty list is a failed extraction, not a shareable answer, so it is never
+    reused — the sibling re-extracts and pays one cheap call.
+    """
+    for country in countries:
+        rec = _read_json(extract_dir / f"{cell_tag(survey, target, country)}.json")
+        feats = ((rec or {}).get("features") or {}).get(cond)
+        if feats:
+            return feats
+    return None
+
+
+def _sibling_map_record(map_dir, disambig_key, survey, target, countries, cond) -> dict | None:
+    """Ditto for the map record. Every field except `country` is country-blind."""
+    for country in countries:
+        tag = cell_tag(survey, target, country)
+        rec = _read_json(map_dir / f"C__{disambig_key}__{tag}__{cond}.json")
+        if rec and "expanded_codes" in rec:
+            return rec
+    return None
+
+
+def _write_json(path: Path, rec: dict) -> None:
+    path.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def _map_record(survey, target, country, cond, disambig_key, cm, embedding_model) -> dict:
     from survey_features.mapping import expanded_cell_to_record
 
-    rec = expanded_cell_to_record(
+    return expanded_cell_to_record(
         survey, target, country, cond, "C", disambig_key, cm, embedding_model,
     )
-    path.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def _save_map(path, survey, target, country, cond, disambig_key, cm, embedding_model):
+    _write_json(
+        path, _map_record(survey, target, country, cond, disambig_key, cm, embedding_model)
+    )
 
 
 def phase_map(
@@ -309,6 +429,8 @@ def phase_map(
     cells = grid_cells(OUT)
     if limit:
         cells = cells[:limit]
+    siblings = question_siblings(cells)
+    shared_map = SharedByQuestion()
     map_dir.mkdir(parents=True, exist_ok=True)
     n_workers = max(1, int(map_workers))
     timing = TimingLog(default_timing_path("map", f"{selector_key}_{disambig_key}"))
@@ -340,6 +462,38 @@ def phase_map(
                 if feat_by_cond is None:
                     print(f"  ! missing extraction for {ctag}; run --phase extract first")
                     break
+                if cond in COUNTRY_BLIND_CONDITIONS:
+                    # Same features, same survey-wide pool, same exclusions for every
+                    # country of this question: disambiguate once, write per country.
+
+                    def _blind_map(c=cond):
+                        with timing.span(
+                            "cell_map_country_blind", arm="C", survey=survey,
+                            target=target, condition=c,
+                        ):
+                            cm = map_features_with_subitems(
+                                f"{target}__country_blind", "C_free",
+                                feat_by_cond.get(c, []),
+                                emb, vcodes, svars, embed, dgen, mapper_model=dmodel,
+                                excluded_codes=excluded, pipe_types=PIPE_TYPES,
+                                workers=n_workers,
+                            )
+                        return _map_record(
+                            survey, target, None, c, disambig_key, cm, emb_model,
+                        )
+
+                    blind = shared_map.get(
+                        (survey, target, cond),
+                        compute=_blind_map,
+                        reuse=None if force else (
+                            lambda c=cond: _sibling_map_record(
+                                map_dir, disambig_key, survey, target,
+                                siblings[(survey, target)], c,
+                            )
+                        ),
+                    )
+                    _write_json(op, {**blind, "country": country})
+                    continue
                 with timing.span(
                     "cell_map", arm="C", survey=survey, target=target,
                     country=country, condition=cond,
@@ -352,7 +506,7 @@ def phase_map(
                     )
                     _save_map(op, survey, target, country, cond, disambig_key, cm, emb_model)
             print(f"  [{i+1}/{len(cells)}] {survey} {target} {country} mapped ({disambig_key})")
-    print(f"[map] done -> {map_dir}")
+    print(f"[map] done. country_blind({shared_map.summary()}) -> {map_dir}")
     timing.print_summary()
     usage.print_summary()
 
@@ -392,6 +546,10 @@ def phase_pipeline(
     cells = grid_cells(OUT)
     if limit:
         cells = cells[:limit]
+    siblings = question_siblings(cells)
+    shared_gen = SharedByQuestion()
+    shared_ext = SharedByQuestion()
+    shared_map = SharedByQuestion()
     n_pipe = max(1, int(pipeline_workers))
     n_map = max(1, int(map_workers))
     timing = TimingLog(default_timing_path("pipeline", f"{selector_key}_{disambig_key}"))
@@ -439,10 +597,27 @@ def phase_pipeline(
                 "question_text": qtext, "selector_model": sel_model, "responses": {},
             }
             for cond in CONDITIONS:
-                messages = freetext_messages(
-                    qtext, country if cond == "country_provided" else None,
-                )
-                resp = gen_fn(messages, max_tokens=4096, usage_phase="feature_list")
+                if cond in COUNTRY_BLIND_CONDITIONS:
+                    # One generation per question; siblings in flight wait on the lock.
+                    resp = shared_gen.get(
+                        (survey, target, cond),
+                        compute=lambda: gen_fn(
+                            freetext_messages(qtext, None),
+                            max_tokens=GEN_MAX_TOKENS,
+                            usage_phase="feature_list",
+                        ),
+                        reuse=None if force else (
+                            lambda c=cond: _sibling_gen_response(
+                                gen_dir, survey, target, siblings[(survey, target)], c,
+                            )
+                        ),
+                    )
+                else:
+                    resp = gen_fn(
+                        freetext_messages(qtext, country),
+                        max_tokens=GEN_MAX_TOKENS,
+                        usage_phase="feature_list",
+                    )
                 if not resp:
                     rec.setdefault("errors", {})[cond] = "empty response after retries"
                 rec["responses"][cond] = resp
@@ -466,7 +641,20 @@ def phase_pipeline(
                 "extractor_model": EXTRACTOR_MODEL, "features": {},
             }
             for cond in CONDITIONS:
-                feats, _raw = extract_features(responses.get(cond, ""), extract_fn)
+                if cond in COUNTRY_BLIND_CONDITIONS:
+                    feats = shared_ext.get(
+                        (survey, target, cond),
+                        compute=lambda c=cond: extract_features(
+                            responses.get(c, ""), extract_fn,
+                        )[0],
+                        reuse=None if force else (
+                            lambda c=cond: _sibling_extract_features(
+                                extract_dir, survey, target, siblings[(survey, target)], c,
+                            )
+                        ),
+                    )
+                else:
+                    feats, _raw = extract_features(responses.get(cond, ""), extract_fn)
                 rec["features"][cond] = feats
             op.write_text(json.dumps(rec, indent=2, ensure_ascii=False), encoding="utf-8")
         _bump("ext_wrote")
@@ -485,6 +673,36 @@ def phase_pipeline(
             op = map_dir / f"C__{disambig_key}__{ctag}__{cond}.json"
             if op.is_file() and not force:
                 skipped += 1
+                continue
+            if cond in COUNTRY_BLIND_CONDITIONS:
+
+                def _blind_map(c=cond):
+                    with timing.span(
+                        "cell_map_country_blind", arm="C", survey=survey,
+                        target=target, condition=c,
+                    ):
+                        cm = map_features_with_subitems(
+                            f"{target}__country_blind", "C_free",
+                            feat_by_cond.get(c, []),
+                            emb, vcodes, svars, embed, disambig_fn, mapper_model=dmodel,
+                            excluded_codes=excluded, pipe_types=PIPE_TYPES, workers=n_map,
+                        )
+                    return _map_record(
+                        survey, target, None, c, disambig_key, cm, emb_model,
+                    )
+
+                blind = shared_map.get(
+                    (survey, target, cond),
+                    compute=_blind_map,
+                    reuse=None if force else (
+                        lambda c=cond: _sibling_map_record(
+                            map_dir, disambig_key, survey, target,
+                            siblings[(survey, target)], c,
+                        )
+                    ),
+                )
+                _write_json(op, {**blind, "country": country})
+                wrote += 1
                 continue
             with timing.span(
                 "cell_map", arm="C", survey=survey, target=target,
@@ -559,6 +777,11 @@ def phase_pipeline(
         f"extract={counts['ext_wrote']}/{counts['ext_skip']} "
         f"map_files={counts['map_wrote']}/{counts['map_skip']} "
         f"errors={counts['errors']} -> {map_dir}"
+    )
+    print(
+        f"[pipeline] country_blind shared-per-question: "
+        f"gen({shared_gen.summary()}) extract({shared_ext.summary()}) "
+        f"map({shared_map.summary()})"
     )
     timing.print_summary()
     usage.print_summary()

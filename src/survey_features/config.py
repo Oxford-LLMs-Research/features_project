@@ -86,6 +86,23 @@ DEFAULT_EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 # The two prompt conditions run for every cell.
 CONDITIONS = ["unprompted", "country_provided"]
 
+# Output budget for one selection essay. Reasoning models are NOT asked to stop
+# thinking (nothing in the pipeline sets extra_body), and thinking shares this
+# budget with the essay: on the 2026-09-03 Kimi-K3 probe 71.7% of billed output
+# was reasoning tokens, and the worst cell used 3,810 of the previous 4,096 cap.
+# Truncation would land on the longest, hardest questions and on the longer
+# country-named prompt — i.e. correlated with the manipulation, the failure mode
+# that disqualified DeepSeek-V4-Flash. Headroom is free: you are billed for
+# tokens produced, not tokens allowed.
+GEN_MAX_TOKENS = 8192
+
+# Conditions whose prompt never names the country (elicitation.freetext_messages
+# gets country=None). Their generation, extraction and mapping depend only on
+# (survey, target), so the pipeline computes them once per question and shares
+# the result across that question's countries — see survey_features.dedupe.
+# Country still enters at scoring, which fits against that country's respondents.
+COUNTRY_BLIND_CONDITIONS = frozenset({"unprompted"})
+
 # ── Textbook baseline ─────────────────────────────────────────────────────────
 # Generic predictors a researcher would list WITHOUT reading the question.
 # Frozen; ORDER matters (fixed-k takes the first k). Resolved per survey by
