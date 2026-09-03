@@ -139,7 +139,17 @@ def _drain_pool(
     done = failed = 0
     leftover: list[dict[str, Any]] = []
     saw_break = False
-    with ProcessPoolExecutor(max_workers=max(1, workers)) as ex:
+    # PROCS=6 broke 7/8 shards; PROCS=3 still broke 6/8 (barely fewer) — that ratio
+    # is wrong for aggregate peak pressure (halving concurrency should roughly halve
+    # the break rate) and instead fits a per-worker leak across cells: RSS climbs the
+    # longer one worker stays alive, so it eventually breaches the cgroup on its own
+    # timeline regardless of sibling count. max_tasks_per_child (3.11+) retires and
+    # replaces a worker periodically to bound that growth; 3.9 (local dev) lacks the
+    # kwarg, so it's only passed when the interpreter supports it.
+    pool_kwargs: dict[str, Any] = {"max_workers": max(1, workers)}
+    if sys.version_info >= (3, 11):
+        pool_kwargs["max_tasks_per_child"] = 20
+    with ProcessPoolExecutor(**pool_kwargs) as ex:
         futures = {ex.submit(compute_one_cell, s): s for s in specs}
         for fut in as_completed(futures):
             s = futures[fut]
