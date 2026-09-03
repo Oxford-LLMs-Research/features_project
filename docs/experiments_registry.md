@@ -90,7 +90,7 @@ Sorted by **Stage**, then status.
 | Stage | Slug | Status | One-line claim | Outputs |
 |-------|------|--------|----------------|---------|
 | end-to-end | [`main-freetext`](#main-freetext--confirmatory-free-text-arm-c) | complete | Free-text + dual-layer map is the confirmatory instrument | `outputs/selectors/` |
-| end-to-end | [`confirmatory-zoo`](#confirmatory-zoo--multi-selector-lock) | design | Not run | — |
+| end-to-end | [`confirmatory-zoo`](#confirmatory-zoo--multi-selector-lock) | registered | Six locked 2026-09-03 (K3, K2.6, V4-Pro, GLM-5.1, Nemotron Ultra/Super); sweep not run | — |
 | end-to-end | [`prelim-json-grid`](#prelim-json-grid--strict-json-appendix) | superseded | JSON-era magnitudes are a floor, not the estimate | snapshots / `outputs/grid/` |
 | elicitation | [`prompt-sensitivity-v2`](#prompt-sensitivity-v2--role-and-referent-framing) | design | Framing vs replicate noise; 24×3 grid; lock pending | `outputs/experiments/prompt_sensitivity_v2/` |
 | elicitation | [`prompt-sensitivity`](#prompt-sensitivity--selector-system-message) | superseded | v1 system-message-only; confirmatory lock superseded by v2 | `outputs/experiments/prompt_sensitivity/` |
@@ -497,18 +497,40 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 
 | Field | Value |
 |-------|-------|
-| **Status** | design |
+| **Status** | **registered — locked 2026-09-03, sweep not yet run** |
 | **Stage** | end-to-end |
-| **Dates** | design on `main` (`docs/main_experiment_design.md`) |
-| **Code** | [`scripts/run_main.py`](../scripts/run_main.py) + `config.SELECTORS` |
-| **Commit** | — (record when the zoo is actually swept) |
-| **Compute** | LLM API per selector; local score |
-| **Inputs** | contract-v4 oracles for the sampled grid + typed leakage screen + textbook |
+| **Dates** | design on `main` (`docs/main_experiment_design.md`); zoo locked 2026-09-03 |
+| **Code** | [`scripts/run_main.py`](../scripts/run_main.py) + `config.SELECTORS`; ID check [`scripts/audit_model_ids.py`](../scripts/audit_model_ids.py) |
+| **Commit** | `883a74c` (zoo lock + price refresh), `b398c1e` (country-blind dedupe, role filter, `GEN_MAX_TOKENS`) — record the sweep's own SHA at first `scores_*.csv` write |
+| **Compute** | LLM API per selector; local score. **480 units per selector** (360 confirmatory cells × 2 conditions, minus the 240 duplicates the country-blind dedupe removes). ~$44 for the six at the 2026-09-03 catalog; ~6.5 h wall for all six at the measured 444 units/hour. Reasoning is **left at each model's default, not disabled** — see `prompt-sensitivity-v2` Compute. |
+| **Inputs** | `data/confirmatory_grid_cells.csv` `role == confirmatory` (360 cells / 120 questions; `grid_cells()` drops `oracle_only` automatically); contract-v4 oracles for the sampled grid + typed leakage screen + textbook |
 | **Outputs** | `outputs/selectors/scores_<selector>.csv` (canonical or `--run-tag`) |
 
 **Rationale.** To test the confirmatory free-text + dual-layer stack across a locked set of selector models under identical extractor, disambiguator, and scoring contracts.
 
-**Result.** —
+**The locked six** (IDs verified against `GET /v1/models` on 2026-09-03; prices USD per 1M in/out):
+
+| Selector key | Model ID | in/out | Grid $ | Why it is in |
+|---|---|---|---|---|
+| `kimi_k3` | `moonshotai/Kimi-K3` | 3.00 / 15.00 | $19.00 measured | Frontier rung; top of the Kimi ladder |
+| `kimi` | `moonshotai/Kimi-K2.6` | 0.95 / 4.00 | $6.76 measured | Same family, previous generation; carries the pilot and prompt-sensitivity evidence |
+| `glm` | `zai-org/GLM-5.1` | 1.40 / 4.40 | ~$5.76 | Mid rung, independent lab |
+| `nemotron_ultra` | `nvidia/Nemotron-3-Ultra-550b-a55b` | 1.00 / 3.00 | ~$4.74 | Top of the Nemotron ladder |
+| `deepseek` | `deepseek-ai/DeepSeek-V4-Pro` | 1.75 / 3.50 | $4.62 measured | Prior default; fully evidenced |
+| `nemotron_super` | `nvidia/nemotron-3-super-120b-a12b` | 0.30 / 0.90 | ~$3.20 | Same family, smaller; cheap floor |
+
+Two **within-family capability ladders** (Kimi K3 > K2.6, Nemotron Ultra > Super) hold the training recipe fixed while scale/generation varies — cleaner evidence for a capability-scaling claim than any cross-lab pair, which confounds capability with lab idiosyncrasy. Four labs, a 10–25× price span, three of six with existing stack evidence. `flash` stays dropped (failure mode correlated with condition, grid memo Q3); `minimax` and `hermes` remain registered for experiments but are not in the confirmatory six.
+
+**Registered caveat — Nemotron family affinity.** Both Nemotron selectors share a model family with the **fixed disambiguator** (`nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B`), so their mapping step may enjoy an affinity the other four do not, and a capability effect along that ladder is partly confoundable with it. Cover, not decoration: re-map a sample of cells with `--disambiguator qwen235b` and check the two Nemotron selectors do not move more than the others. Registered **before** the sweep, so the check is not a response to the result.
+
+**Kimi-K3 pre-sweep probe (2026-09-03, gate cleared).** The grid memo required a probe before K3's sweep because it was budgeted at ~$120 on a feared 5× thinking tax. Probe grid `data/probe_cells.csv` (6 questions, one per survey, four answer types, 3 countries each = 18 cells / 24 units), $0.95 actual:
+
+- 2,327 output tokens per generation, **24/24 `finish_reason=stop`**, extrapolating to **~$19** for the full grid — the thinking tax is real but small: K3 writes essays the same length as K2.6 and charges 3.75× per token.
+- **71.7% of billed output is reasoning tokens** (inside `completion_tokens`, so costs already account for it); visible essay ≈ 658 tokens vs K2.6's 2,177.
+- Despite the shorter visible essay, **22.5 features extracted per unit vs K2.6's 20.4** — thinking makes the output denser, not thinner. No measurand degradation.
+- Its worst cell used 3,810 of the then-4,096 `max_tokens`; the cap is now `GEN_MAX_TOKENS = 8192` so truncation cannot correlate with question length or condition.
+
+**Result.** — (sweep not yet run; the 18 K3 probe cells are on disk and resume will skip them)
 
 ---
 
