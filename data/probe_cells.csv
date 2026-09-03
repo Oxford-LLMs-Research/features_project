@@ -1,0 +1,19 @@
+survey,target,country,type,section,gate,country_rank,role
+afrobarometer,Q91A,Liberia,nominal,wellbeing,False,1,confirmatory
+afrobarometer,Q91A,Senegal,nominal,wellbeing,False,2,confirmatory
+afrobarometer,Q91A,Mauritius,nominal,wellbeing,False,3,confirmatory
+arabbarometer,Q301C,Mauritania,binary,political_participation,False,1,confirmatory
+arabbarometer,Q301C,Iraq,binary,political_participation,False,2,confirmatory
+arabbarometer,Q301C,Morocco,binary,political_participation,False,3,confirmatory
+asianbarometer,Q172b,Indonesia,ordinal,political_attitudes,False,1,confirmatory
+asianbarometer,Q172b,Korea,ordinal,political_attitudes,False,2,confirmatory
+asianbarometer,Q172b,Vietnam,ordinal,political_attitudes,False,3,confirmatory
+ess_wave_11,nwspol,Estonia,continuous,contemporary_issues,False,1,confirmatory
+ess_wave_11,nwspol,Hungary,continuous,contemporary_issues,False,2,confirmatory
+ess_wave_11,nwspol,Ireland,continuous,contemporary_issues,False,3,confirmatory
+latinobarometer,P19N,El Salvador,binary,values_identity,False,1,confirmatory
+latinobarometer,P19N,Peru,binary,values_identity,False,2,confirmatory
+latinobarometer,P19N,Colombia,binary,values_identity,False,3,confirmatory
+wvs,Q47,Russia,nominal,wellbeing,False,1,confirmatory
+wvs,Q47,Iraq,nominal,wellbeing,False,2,confirmatory
+wvs,Q47,Armenia,nominal,wellbeing,False,3,confirmatory

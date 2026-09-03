@@ -46,6 +46,19 @@ SELECTORS: dict[str, dict[str, str]] = {
     # IDs must match the configured LLM endpoint catalog (Nebius Studio / Token Factory).
     "deepseek": {"model": "deepseek-ai/DeepSeek-V4-Pro"},
     "kimi":     {"model": "moonshotai/Kimi-K2.6"},
+    # Frontier tier, 3.00/15.00 per 1M — ~3x the next selector's output price.
+    # Probe its output length on data/probe_cells.csv BEFORE any grid sweep:
+    # the grid bill is $13 at 1.5k output tokens/unit and $89 at 12k.
+    "kimi_k3":  {"model": "moonshotai/Kimi-K3"},
+    # Confirmatory six, locked 2026-09-03. Two within-family capability ladders
+    # (Kimi K3 > K2.6; Nemotron Ultra-550B > Super-120B) plus DeepSeek and GLM.
+    # CAVEAT to disclose: both Nemotron selectors share a family with the fixed
+    # disambiguator (Nemotron-3-Nano-30B), so their mapping step may enjoy a
+    # family affinity the other four do not — cover it with the registered
+    # dual-disambiguator audit (qwen235b) on a sample of cells.
+    "glm":            {"model": "zai-org/GLM-5.1"},
+    "nemotron_ultra": {"model": "nvidia/Nemotron-3-Ultra-550b-a55b"},
+    "nemotron_super": {"model": "nvidia/nemotron-3-super-120b-a12b"},
     # Phase-A pilot onboarding (2026-08): cheap zoo entries exercising the
     # new-selector path. IDs reused from DISAMBIGUATORS / ROLE_SWAP_EXTRACTOR.
     "flash":    {"model": "deepseek-ai/DeepSeek-V4-Flash"},
