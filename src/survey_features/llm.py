@@ -259,9 +259,12 @@ def make_generate_fn(
     base_url = base_url or os.environ["LLM_BASE_URL"]
     api_key = api_key or os.environ["LLM_API_KEY"]
     model = model or os.environ["LLM_MODEL"]
+    # Set LLM_FALLBACK_MODEL to retry once on a different model when the primary
+    # 404s. The old hardcoded DeepSeek-V3 -> V3.2 special case was removed
+    # 2026-09-03: nothing configures V3, and BOTH ids have left the endpoint
+    # catalog, so the branch could only ever have swapped one dead model for
+    # another. Check ids with scripts/audit_model_ids.py.
     fallback_model = os.environ.get("LLM_FALLBACK_MODEL")
-    if not fallback_model and model == "deepseek-ai/DeepSeek-V3":
-        fallback_model = "deepseek-ai/DeepSeek-V3.2"
 
     client = OpenAI(base_url=base_url, api_key=api_key)
 

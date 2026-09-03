@@ -42,6 +42,19 @@ PAPER_DIR = Path(os.environ.get("SURVEY_FEATURES_PAPER") or (ROOT / "paper"))
 # Selector = the test model whose feature-selection capability we measure.
 # Each selector keeps its artifacts in a separate subdir (selector key) so adding a
 # model never clobbers another's.
+#
+# Every ID below was checked against GET /v1/models on the configured endpoint
+# (Nebius Token Factory) on 2026-09-03. Re-run scripts/audit_model_ids.py after
+# any catalog change: a retired ID does not fail at import, it fails mid-sweep.
+#
+# HISTORICAL IDs — artifacts under outputs/experiments/ were generated with the
+# undated `deepseek-ai/DeepSeek-V4-Flash`, which the catalog has since replaced
+# with the dated build below. The experiments that used it (pipeline-role-swap,
+# extract-swap-minimax, the Phase-A flash pilot) are recorded against the OLD
+# string in docs/experiments_registry.md; do not rewrite their provenance.
+# Anything run from now on uses the dated ID.
+FLASH_MODEL = "deepseek-ai/DeepSeek-V4-Flash-0731"
+FLASH_MODEL_HISTORICAL = "deepseek-ai/DeepSeek-V4-Flash"  # pre-2026-09-03 artifacts
 SELECTORS: dict[str, dict[str, str]] = {
     # IDs must match the configured LLM endpoint catalog (Nebius Studio / Token Factory).
     "deepseek": {"model": "deepseek-ai/DeepSeek-V4-Pro"},
@@ -61,7 +74,9 @@ SELECTORS: dict[str, dict[str, str]] = {
     "nemotron_super": {"model": "nvidia/nemotron-3-super-120b-a12b"},
     # Phase-A pilot onboarding (2026-08): cheap zoo entries exercising the
     # new-selector path. IDs reused from DISAMBIGUATORS / ROLE_SWAP_EXTRACTOR.
-    "flash":    {"model": "deepseek-ai/DeepSeek-V4-Flash"},
+    # flash: dropped from the confirmatory zoo (failure mode correlated with
+    # condition). ID repointed 2026-09-03 — see FLASH_MODEL.
+    "flash":    {"model": FLASH_MODEL},
     "minimax":  {"model": "MiniMaxAI/MiniMax-M3"},
 }
 DEFAULT_SELECTOR = "deepseek"
@@ -81,8 +96,8 @@ EXTRACTOR_MODEL = "Qwen/Qwen3-235B-A22B-Instruct-2507"
 DISAMBIGUATORS: dict[str, str] = {
     "nemotron": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
     "qwen235b": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-    # pipeline-role-swap candidate (not confirmatory default)
-    "flash": "deepseek-ai/DeepSeek-V4-Flash",
+    # pipeline-role-swap candidate (not confirmatory default); see FLASH_MODEL
+    "flash": FLASH_MODEL,
 }
 
 # Extractor candidate for pipeline-role-swap (confirmatory default stays EXTRACTOR_MODEL).
