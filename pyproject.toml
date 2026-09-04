@@ -27,7 +27,18 @@ dependencies = [
 [project.optional-dependencies]
 # The AutoGluon oracle (survey_features.oracle) is heavy; only needed to (re)compute
 # outputs/cache/cells/*/oracle.csv. Everything else runs against the cached oracle CSVs.
-oracle = ["autogluon"]
+# Pinned to the versions on the machine that computed the confirmatory oracles
+# (2026-09-04). AutoGluon's time_limit is wall-clock and the bag it fits depends on
+# the tree libraries' speed and defaults, so two machines are comparable only on the
+# same versions; each cell's oracle_meta.json `provenance` records what it ran on.
+oracle = [
+    "autogluon.tabular==1.4.0",
+    "lightgbm==4.6.0",
+    "xgboost==2.1.4",
+    "catboost==1.2.10",
+    "scikit-learn==1.6.1",
+    "torch==2.6.0",
+]
 # Unit tests (pure helpers; no API / survey data required).
 dev = ["pytest"]
 

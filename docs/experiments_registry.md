@@ -99,6 +99,7 @@ Sorted by **Stage**, then status.
 | grid | [`leakage-audit`](#leakage-audit--genuine-cell-screen) | complete | Drop type-1 / leakage only; keep type-2/3 signal | `outputs/cache/audits/leakage_audit.csv` |
 | mapping | [`pipeline-role-swap`](#pipeline-role-swap--minimax-extract--flash-disambig) | complete | Joint MiniMax+Flash rejected; Flash-as-disambig not followed up | `outputs/experiments/pipeline_role_swap/minimax_flash/` |
 | mapping | [`subitem-mapping`](#subitem-mapping--dual-layer-pilot) | complete → promoted | Dual-layer locked into main | `outputs/experiments/subitem_mapping/` |
+| oracle | [`confirmatory-oracle-map`](#confirmatory-oracle-map--v4-quick-oracles-for-the-registered-grid) | in flight | 1,103-cell v4 quick map, split across two laptops by survey (weekend 2026-09-05) | `outputs/cache/cells/` |
 | oracle | [`oracle-v3`](#oracle-v3--measurement-level-honest-split) | superseded | Era-3 oracle retired 2026-08-19; contract v4 is current (onboarding §3) | `outputs/cache/cells_v3/` (archive) |
 | scoring | [`pooled-country-value`](#pooled-country-value--is-country-worth-requesting) | design | Not run — pooled value of the country column vs selector country-requests | — |
 | retrieval | [`embedding-sensitivity`](#embedding-sensitivity--sentence-transformer-swap) | complete | Embedder swap moves maps more than scores | `outputs/experiments/embedding_sensitivity/` |
@@ -332,6 +333,23 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 **Result.** Default confirmatory grid is `leakage_class == genuine` (`layout.genuine_cells()`). That class includes type-2/3 accuracy-vs-majority cells; it excludes `unestimable` and leakage. Re-run after oracle contract bumps or screen-rule changes; do not mix eras in one audit file without noting it. The retired `degenerate` label was accuracy lift < 0.03 and is no longer emitted.
 
 ---
+
+### `confirmatory-oracle-map` — v4 quick oracles for the registered grid
+
+| Field | Value |
+|-------|-------|
+| **Status** | **in flight** — started 2026-09-04 (smoke), weekend run 2026-09-05 → 08 |
+| **Stage** | oracle |
+| **Dates** | grid frozen 2026-08-31 (`data/confirmatory_grid.yaml`, seed 20260831); ARC attempt 2026-09 (shards broke on worker OOM, see `oracle_pool.py`); laptop split 2026-09-05 |
+| **Code** | [`scripts/rerun_oracles.py`](../scripts/rerun_oracles.py) (`--cells-csv --role --survey --runtime-mode quick --processes N`); [`oracle.py`](../src/survey_features/oracle.py) contract v4 + `provenance`; runbook [`oracle_handoff_2026-09.md`](oracle_handoff_2026-09.md) |
+| **Commit** | record the SHA both machines ran at the moment the map completes (both run `origin/main`; the runbook forbids local edits) |
+| **Compute** | local CPU on two laptops, `--runtime-mode quick --autogluon-time-limit 600` (the `medium_quality` preset of grid memo Q4, 5 folds, 5 shuffle repeats, `FASTAI` excluded, budget raised so it never binds). **Deviation from the memo's literal 60 s, recorded 2026-09-04:** a two-cell smoke on machine A showed 60 s finishing only 3–8 of the 11 default models, differing fold to fold, while 300 s finished all 11 in 70–106 s per fold; a binding wall clock makes the bag a function of the machine, which is the confound the pipeline audit (§C) warned about. The preset stops when the bag is done, so 600 is a ceiling, not a cost. The 8 cells previously fitted at 60 s are archived under `cache/cells_quick60_archive_2026-09-04/` and recomputed. Partition: machine A (murrn) = afrobarometer, arabbarometer, asianbarometer; machine B (collaborator) = ess_wave_11, latinobarometer, wvs. Priority: `--role confirmatory` (360) first, then `--role oracle_only` (743). |
+| **Inputs** | `data/confirmatory_grid_cells.csv` (1,103 cells); survey microdata + `pulled_metadata` on the shared Dropbox `features_project/data/` |
+| **Outputs** | `outputs/cache/cells/<target>_<country>/{oracle.csv, oracle_meta.json, feature_pool.csv}`; census `scripts/oracle_provenance_census.py` |
+
+**Rationale.** To produce the contract-v4 oracle for every registered grid cell before scoring the six locked selectors, using the registered quick tier (grid memo Q4) and recording per-cell provenance so cells fitted on two machines can be checked for the same model bag before they are mixed.
+
+**Result.** _pending._ On completion: run the provenance census (every cell `bag_identical_across_folds`, same `n_models` on both hosts), then `leakage_audit.py --with-data`, `build_textbook_baseline.py`, archive the pre-existing `selectors/scores_*.csv`, then score.
 
 ### `oracle-v3` — measurement-level honest split
 

@@ -25,6 +25,14 @@ Cluster (SLURM array over the registered grid; see scripts/arc/run_oracles.sbatc
 --shard i/N takes the i-th of N contiguous slices of the CSV (file order is
 grouped by survey, so a slice mostly loads one survey frame). Shards are cut
 BEFORE the done-check, so a resubmitted task reclaims exactly its own cells.
+
+Two laptops sharing the Dropbox tree (see docs/oracle_handoff_2026-09.md): give
+each machine a disjoint partition by role + survey, never the same cells twice:
+    python scripts/rerun_oracles.py --cells-csv data/confirmatory_grid_cells.csv \
+        --role confirmatory --survey ess_wave_11 latinobarometer wvs \
+        --runtime-mode quick --autogluon-time-limit 600 --processes 2
+(600 s is a ceiling the medium_quality bag never reaches; at the preset's 60 s the
+wall clock cut the bag to 3-8 of 11 models, varying by fold - smoke 2026-09-04.)
 """
 
 from __future__ import annotations
@@ -82,12 +90,23 @@ def cells_from_yaml(path: Path) -> list[tuple[str, str, str]]:
     return out
 
 
-def cells_from_csv(path: Path) -> list[tuple[str, str, str]]:
-    """(survey, target, country) from a flat grid CSV (confirmatory_grid_cells.csv)."""
+def cells_from_csv(path: Path, role: str | None = None) -> list[tuple[str, str, str]]:
+    """(survey, target, country) from a flat grid CSV (confirmatory_grid_cells.csv).
+
+    `role` keeps only rows whose `role` column matches (confirmatory / oracle_only)
+    and is applied BEFORE any --shard cut, so shards of a role partition the role.
+    """
     d = pd.read_csv(path)
     missing = {"survey", "target", "country"} - set(d.columns)
     if missing:
         raise SystemExit(f"{path} lacks columns: {sorted(missing)}")
+    if role is not None:
+        if "role" not in d.columns:
+            raise SystemExit(f"{path} has no `role` column; drop --role")
+        known = sorted(d["role"].astype(str).unique())
+        if role not in known:
+            raise SystemExit(f"--role {role!r} not in {path}: choose from {known}")
+        d = d[d["role"].astype(str) == role]
     if not len(d):
         raise SystemExit(f"No cells in {path}")
     return [(str(r.survey), str(r.target), str(r.country)) for r in d.itertuples()]
@@ -173,6 +192,13 @@ def main() -> None:
              "data/confirmatory_grid_cells.csv. Mutually exclusive with --cells-yaml.",
     )
     ap.add_argument(
+        "--role", default=None,
+        help="With --cells-csv: keep only rows with this `role` value "
+             "(confirmatory = cells the LLM selectors are scored on; oracle_only = "
+             "extra countries kept for the transportability / heterogeneity strata). "
+             "Applied before --shard, so shards partition the role.",
+    )
+    ap.add_argument(
         "--shard", default=None,
         help="i/N (0-based): process only the i-th of N contiguous slices of the "
              "cell list — one SLURM array task per slice.",
@@ -200,12 +226,14 @@ def main() -> None:
     outputs_dir = Path(args.output_dir) if args.output_dir else OUTPUTS_DIR
     if args.cells_yaml and args.cells_csv:
         raise SystemExit("--cells-yaml and --cells-csv are mutually exclusive")
+    if args.role and not args.cells_csv:
+        raise SystemExit("--role needs --cells-csv (the role column lives in the grid CSV)")
     if args.cells_yaml:
         cells = cells_from_yaml(args.cells_yaml)
         grid_src = str(args.cells_yaml)
     elif args.cells_csv:
-        cells = cells_from_csv(args.cells_csv)
-        grid_src = str(args.cells_csv)
+        cells = cells_from_csv(args.cells_csv, role=args.role)
+        grid_src = str(args.cells_csv) + (f" [role={args.role}]" if args.role else "")
     else:
         cells = cells_from_audit(outputs_dir)
         grid_src = "leakage audit"

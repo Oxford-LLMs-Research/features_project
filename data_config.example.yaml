@@ -1,0 +1,17 @@
+# Survey microdata locations for the loader (synthetic_sampling DataPaths.from_yaml).
+# Copy to a file OUTSIDE version control (e.g. <repo>/data_config.yaml, gitignored)
+# and point DATA_CONFIG_PATH in .env at it. Only `paths:` is read by this project.
+#
+# The shared Dropbox folder `features_project/data/` already holds everything:
+#   raw_data: the survey files, one subfolder per survey (Afrobarometer/, Arabbarometer/,
+#             Asianbarometer/, ESS/wave_11/, Latinobarometro/, WVS/)
+#   metadata: the folder that CONTAINS `pulled_metadata/pulled_metadata_<survey>.json`
+#   output:   required by the loader but unused here — any writable local folder
+#
+# Windows: forward slashes are fine. Replace <DROPBOX> with your Dropbox root,
+# e.g. C:/Users/<you>/Dropbox.
+
+paths:
+  raw_data: <DROPBOX>/features_project/data
+  metadata: <DROPBOX>/features_project/data/metadata
+  output: C:/temp/synthetic_sampling_output

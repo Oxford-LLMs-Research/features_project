@@ -175,6 +175,33 @@ run-tag or an experiment registration (see `CONTRIBUTING.md`). **Implies:** an
 untagged run writes canonical files — only do that for the confirmatory pipeline
 itself.
 
+## cell role — confirmatory vs oracle-only
+
+**What:** every row of `data/confirmatory_grid_cells.csv` carries a `role`:
+*confirmatory* = the 360 cells (120 questions × 3 countries) the LLM selectors are
+actually prompted and scored on; *oracle-only* = the further countries (up to 10 per
+question, 743 cells) that get an oracle but no LLM run. **Why:** oracles are
+selector-independent and comparatively cheap, so measuring many countries per
+question costs little and feeds the heterogeneity screen and the transportability
+pairs; the LLM subsample is fixed in advance (see *nested country rule*). **Fits:**
+`grid_cells()` keeps only confirmatory rows for the pipeline;
+`rerun_oracles.py --role` selects either partition for oracle computation.
+**Implies:** the confirmatory oracles gate scoring and must land first; oracle-only
+cells can trail without blocking the headline numbers.
+
+## oracle provenance
+
+**What:** a block in each cell's `oracle_meta.json` (`provenance`, written from
+2026-09-04) recording how the cell was fitted — AutoGluon preset, per-fold time
+limit, the models each fold actually finished, library versions, host name, core
+count. **Why:** the time limit is a wall-clock budget, so a slower or busier machine
+silently fits a smaller model bag under the same settings; without a record, cells
+from two laptops (or a cluster) cannot be told apart or checked. **Fits:** contract
+v4 fixes what the numbers *mean*; provenance fixes how they were *produced* — it is
+not part of the contract and does not bump the version. **Implies:** before mixing
+cells from two machines, run `scripts/oracle_provenance_census.py` and confirm
+every cell fitted the same bag; a cell with a short bag is recomputed, not cited.
+
 ## nested country rule
 
 **What:** the confirmatory grid draws one seeded random ordering of each drawn

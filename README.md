@@ -99,7 +99,9 @@ python -c "from survey_features.config import OUTPUTS_DIR; print(OUTPUTS_DIR)"
 
 Without the env var, code falls back to `<repo>/outputs` — that is **not** the
 current setup. Path helpers live in `survey_features.layout`; never hard-code
-`ROOT / "outputs"`. One writer machine; collaborators read via Dropbox. If a
+`ROOT / "outputs"`. One writer machine; collaborators read via Dropbox (the one
+registered exception — two laptops on disjoint oracle cells — is in
+`docs/oracle_handoff_2026-09.md`). If a
 heavy run hits a spurious `PermissionError`, pause Dropbox sync for the run.
 
 The Dropbox folder may also hold a frozen July-2026 pre-rewrite snapshot at the

@@ -85,7 +85,12 @@ If you add a cache, give it an identity field.
 
 1. AutoGluon `time_limit` is wall-clock — don't sleep the laptop mid-fit; thread-level concurrency is useless-to-fatal for AG.
 2. Never run concurrent AutoGluon fits in one process — use `rerun_oracles.py --processes N`.
-3. `quick` runtime mode degrades rankings; don't quote it.
+3. Runtime tiers are a registered choice, not a knob: the confirmatory tier is `quick`
+   (`medium_quality`) **with `--autogluon-time-limit 600`** so the 11-model bag always
+   finishes — at the preset's own 60 s the wall clock cut the bag to 3–8 models that
+   varied by fold (smoke 2026-09-04, registry `confirmatory-oracle-map`). `balanced` is
+   reserved for the later re-fit of the 30 transportability questions. Never mix tiers
+   inside one comparison; check `provenance.folds[*].n_models` before citing a cell.
 4. DK/refused are answers; structural missingness → NaN (`surveys.py` taxonomy).
 5. Target type detection is fallible — check `TARGET_TYPE_OVERRIDES` when adding targets.
 6. The disambiguator is not deterministic at temperature 0; cached maps are the reproducibility unit.
@@ -96,13 +101,20 @@ If you add a cache, give it an identity field.
     via `SURVEY_FEATURES_OUTPUTS` in gitignored `.env`. Confirm `OUTPUTS_DIR` before
     a run. Dropbox may briefly lock files mid-sync; if a heavy run hits a spurious
     `PermissionError` on write, pause syncing for the run. One writer machine
-    only — collaborators read.
+    only — collaborators read. **Registered exception:** the September 2026 oracle
+    map is split across two laptops writing *disjoint* cell folders under
+    `cache/cells/` (partition by survey, never the same cell twice); see
+    `docs/oracle_handoff_2026-09.md`. Each machine marks its own `outputs/.tmp`
+    as Dropbox-ignored so AutoGluon scratch never syncs.
 
 ## 6. Running things
 
 ```bash
 cp -r outputs/cache/cells outputs/cache/cells_v3   # archive before a contract migration
 python scripts/rerun_oracles.py --processes 3   # after oracle contract changes
+python scripts/rerun_oracles.py --cells-csv data/confirmatory_grid_cells.csv \
+    --role confirmatory --survey wvs --runtime-mode quick --autogluon-time-limit 600 --processes 3
+python scripts/oracle_provenance_census.py       # same bag everywhere? (before mixing machines)
 python scripts/leakage_audit.py --with-data     # after ANY oracle change; default grid = genuine
 # then archive any pre-existing selectors/scores_*.csv before re-scoring — the
 # score-phase resume would silently skip cells already present in an old file

@@ -57,8 +57,11 @@ compute_oracle() returns (oracle_df, feature_pool, meta):
                 majority_baseline
   feature_pool - list of feature variable codes included in the model
   meta         - eval_metric, split sizes, reliability, n_positive_score,
-                 oracle_ceiling per k, and train_index (row labels of the
-                 eval reserve D)
+                 oracle_ceiling per k, train_index (row labels of the
+                 eval reserve D), and provenance (preset, per-fold time
+                 limit, the models each fold actually fitted, library
+                 versions, hostname - how the cell was produced, so cells
+                 from different machines or runtime modes can be compared)
 
 Cache contract
 --------------
@@ -71,8 +74,12 @@ cached contract_version differs from ORACLE_CONTRACT_VERSION.
 from __future__ import annotations
 
 import os
+import platform
 import shutil
+import socket
+import sys
 import tempfile
+import time
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -460,7 +467,14 @@ def _fit_and_rank(train_data, select_data, score_data, run_output_dir, *,
                   num_gpus, num_cpus, n_repeats, ag_verbosity):
     """ONE AutoGluon fit on the train split, then TWO permutation-importance passes on
     the disjoint select/score holdouts - the honest-split core: V1 ranks, V2 values.
-    Importance is far cheaper than the fit, so the second pass costs ~1.2x, not 2x."""
+    Importance is far cheaper than the fit, so the second pass costs ~1.2x, not 2x.
+
+    Returns (fi_select, fi_score, fold_record). fold_record names the models that
+    actually finished inside the wall-clock budget: time_limit is spent, not
+    converged on, so a slower or busier machine silently trains a smaller bag. Two
+    cells are comparable only if their bags match - the record makes that checkable
+    after the fact (docs/pipeline_audit_2026-08.md section C)."""
+    t_fit = time.perf_counter()
     predictor = TabularPredictor(
         label="__label__",
         problem_type=problem_type,
@@ -498,7 +512,57 @@ def _fit_and_rank(train_data, select_data, score_data, run_output_dir, *,
             fi[f"importance_{suffix}_std"] = 0.0
         return fi[["feature_variable", f"importance_{suffix}", f"importance_{suffix}_std"]]
 
-    return _importance(select_data, "select"), _importance(score_data, "score")
+    fit_secs = round(time.perf_counter() - t_fit, 1)
+    try:
+        board = predictor.leaderboard(silent=True)
+        models = [str(m) for m in board["model"].tolist()]
+    except Exception:  # leaderboard is diagnostic only; never fail the cell on it
+        models = [str(m) for m in predictor.model_names()]
+    fold_record = {
+        "models": models,
+        "n_models": len(models),
+        "best_model": str(predictor.model_best),
+        "fit_secs": fit_secs,
+    }
+    return _importance(select_data, "select"), _importance(score_data, "score"), fold_record
+
+
+def _oracle_provenance(*, preset: str, time_limit: int, n_repeats: int,
+                       num_cpus: int | None, folds: list[dict]) -> dict:
+    """Identity of the process that fitted this cell - settings, libraries, machine.
+
+    Contract v4 fixes what the numbers MEAN; this block records how they were
+    PRODUCED, so cells fitted on different machines (or under a different runtime
+    mode) can be told apart and checked against each other. Not part of the
+    contract: adding it does not bump ORACLE_CONTRACT_VERSION.
+    """
+    try:
+        import autogluon.tabular as _agt
+        ag_version = str(getattr(_agt, "__version__", "?"))
+    except Exception:
+        ag_version = "?"
+    lib_versions = {"autogluon.tabular": ag_version}
+    for name in ("lightgbm", "xgboost", "catboost", "sklearn", "numpy", "pandas", "torch"):
+        try:
+            lib_versions[name] = str(__import__(name).__version__)
+        except Exception:
+            lib_versions[name] = "?"
+    bags = {tuple(sorted(f["models"])) for f in folds}
+    return {
+        "preset": preset,
+        "time_limit_per_fold_s": int(time_limit),
+        "n_repeats": int(n_repeats),
+        "num_cpus": int(num_cpus) if num_cpus else None,
+        "folds": folds,
+        # True iff every fold finished the same set of models - the cheap check
+        # that no fold was starved by the wall clock.
+        "bag_identical_across_folds": len(bags) <= 1,
+        "python": sys.version.split()[0],
+        "platform": platform.platform(),
+        "hostname": socket.gethostname(),
+        "cpu_count": os.cpu_count(),
+        "lib_versions": lib_versions,
+    }
 
 
 # == contract v4: CV ranking (design rationale: module docstring) =============
@@ -617,9 +681,11 @@ def _fold_reliability(merged: pd.DataFrame, suffix: str, k: int = 10) -> dict:
 
 def _assemble_outputs_cv(select_merged, score_merged, *, target_var, country_code,
                          majority_baseline, resolved_metric, problem_type, ttype,
-                         cv_folds, fold_sizes, n_eval, n_score, y, eval_idx):
+                         cv_folds, fold_sizes, n_eval, n_score, y, eval_idx,
+                         provenance: dict | None = None):
     """v4 counterpart of _assemble_outputs: fold columns kept, aliases preserved,
-    reliability block added, train_index = the untouched eval reserve D."""
+    reliability block added, train_index = the untouched eval reserve D.
+    `provenance` (see _oracle_provenance) is recorded verbatim when given."""
     oracle_df = select_merged.merge(score_merged, on="feature_variable", how="outer")
     num_cols = [c for c in oracle_df.columns if c != "feature_variable"]
     for col in num_cols:
@@ -676,6 +742,8 @@ def _assemble_outputs_cv(select_merged, score_merged, *, target_var, country_cod
         "train_index": [int(i) if isinstance(i, (int, np.integer)) else str(i)
                         for i in y.index[eval_idx]],
     }
+    if provenance is not None:
+        meta_out["provenance"] = provenance
 
     feature_pool = oracle_df["feature_variable"].astype(str).tolist()
     return oracle_df, feature_pool, meta_out
@@ -775,7 +843,7 @@ def compute_oracle(
         y, cv_folds=cv_folds, score_size=test_size, eval_reserve=eval_reserve,
         random_state=random_state, stratify=not is_regression,
     )
-    fi_selects, fi_scores, fold_sizes = [], [], []
+    fi_selects, fi_scores, fold_sizes, fold_records = [], [], [], []
     with _gpu_scope(num_gpus) as resolved_gpus, _tmp_scope(tmp_root) as tmp_root:
         for fold_i, (fit_idx, hold_idx) in enumerate(fold_pairs, start=1):
             train_data, select_data, score_data = _labelled_frames(
@@ -786,7 +854,7 @@ def compute_oracle(
                 prefix=f"autogluon_oracle_f{fold_i}_", dir=str(tmp_root)
             ))
             try:
-                fi_sel, fi_sco = _fit_and_rank(
+                fi_sel, fi_sco, fold_rec = _fit_and_rank(
                     train_data, select_data, score_data, run_output_dir,
                     problem_type=problem_type, resolved_metric=resolved_metric,
                     preset=preset, time_limit=time_limit,
@@ -797,6 +865,7 @@ def compute_oracle(
                 shutil.rmtree(run_output_dir, ignore_errors=True)
             fi_selects.append(fi_sel)
             fi_scores.append(fi_sco)
+            fold_records.append(fold_rec)
 
     return _assemble_outputs_cv(
         _merge_fold_importances(fi_selects, "select"),
@@ -807,6 +876,10 @@ def compute_oracle(
         cv_folds=cv_folds, fold_sizes=fold_sizes,
         n_eval=len(eval_idx), n_score=len(score_idx),
         y=y, eval_idx=eval_idx,
+        provenance=_oracle_provenance(
+            preset=preset, time_limit=time_limit, n_repeats=n_repeats,
+            num_cpus=num_cpus, folds=fold_records,
+        ),
     )
 
 
