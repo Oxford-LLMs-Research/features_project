@@ -124,8 +124,11 @@ python scripts/oracle_provenance_census.py --compare `
 
 What "comparable" means, and what to do if it is not:
 
-- **Same model bag.** The census prints `n_models` per fold; it must be **11 on every
-  fold** (machine A's number) and `bag_same_all_folds` must be `True`. AutoGluon
+- **Same model bag.** The census prints `n_models` per fold; it must be the same on
+  every fold and match machine A: **11 for binary/nominal targets, 9 for
+  ordinal/continuous** (regression drops two of the four forest variants — that is
+  the preset, not a cut). The two smoke cells are binary, so expect 11; in the real
+  run most cells are ordinal and show 9. `bag_same_all_folds` must be `True`. AutoGluon
   works inside a wall-clock budget per fold; a laptop that runs out of it fits
   *fewer* models under the same settings, and that — not the laptop itself — is
   what would make the two halves non-comparable. The 600 s budget exists so it
@@ -229,7 +232,9 @@ say which survey you stopped in.
     12.6 min for the pair — the budget was binding, so the bag depended on the
     machine (this is why the weekend uses 600);
   - at 600 s (300 s tested, same outcome): 11 models on every fold, 70–106 s of fit
-    per fold, 16.0 min for the pair;
+    per fold, 16.0 min for the pair. In the real run with threads pinned as in §5,
+    machine A's folds fit in 10–20 s and whole cells take 1.5–4 min at 3 workers,
+    so the partitions should finish well inside the weekend;
   - top-10 overlap between the two budgets: 0.33 and 0.43 — larger than the
     between-fold overlap (0.10–0.21), i.e. the budget changes the ranking more
     than fold noise does. Both copies are on Dropbox under
