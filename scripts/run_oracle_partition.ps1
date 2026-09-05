@@ -7,6 +7,9 @@
 #   powershell -File scripts/run_oracle_partition.ps1 -Surveys afrobarometer,arabbarometer,asianbarometer -Procs 3
 #   powershell -File scripts/run_oracle_partition.ps1 -Surveys ess_wave_11,latinobarometer,wvs -Procs 2
 # Progress: the log file printed at start (under the Dropbox outputs/logs).
+# stderr is merged by cmd, not PowerShell: in Windows PowerShell 5.1 a native
+# command's 2>&1 wraps every stderr line as an error record with an 'At line'
+# banner, which floods the log with AutoGluon warnings dressed as failures.
 # Stop: Stop-Process on the python processes, or close the spawned window.
 param(
     [Parameter(Mandatory = $true)][string[]]$Surveys,
@@ -16,6 +19,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+# Accept both `-Surveys a,b,c` (one comma-joined token when invoked via -File) and a real array.
+$Surveys = @($Surveys | ForEach-Object { $_ -split "," } | Where-Object { $_ -ne "" })
 $repo = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Set-Location $repo
 
@@ -39,14 +44,15 @@ $body = @"
 Set-Location '$repo'
 "[partition] surveys=$surveyArg procs=$Procs threads/worker=$threads started $(Get-Date)" | Tee-Object -FilePath '$log' -Append
 "[partition] phase 1: role=confirmatory" | Tee-Object -FilePath '$log' -Append
-& '$Python' $common --role confirmatory 2>&1 | Tee-Object -FilePath '$log' -Append
+cmd /c """$Python"" $common --role confirmatory 2>&1" | Tee-Object -FilePath '$log' -Append
 "[partition] phase 2: role=oracle_only" | Tee-Object -FilePath '$log' -Append
-& '$Python' $common --role oracle_only 2>&1 | Tee-Object -FilePath '$log' -Append
+cmd /c """$Python"" $common --role oracle_only 2>&1" | Tee-Object -FilePath '$log' -Append
 "[partition] finished $(Get-Date)" | Tee-Object -FilePath '$log' -Append
 "[partition] next: python scripts/oracle_provenance_census.py" | Tee-Object -FilePath '$log' -Append
 "@
 
 Write-Output "log: $log"
+Write-Output ("surveys: " + ($Surveys -join ", "))
 if ($Foreground) {
     Invoke-Expression $body
 } else {
