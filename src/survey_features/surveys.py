@@ -30,13 +30,25 @@ SURVEY_COUNTRY_COL: dict[str, str] = {
 # country-named prompt condition would show the model a bare number).
 COUNTRY_LABEL_FIXES: dict[str, dict[str, int | str]] = {
     "B_COUNTRY": {"South Korea": 410},
+    # Asian Barometer: the grid and every cached artifact say "Korea"; the pulled
+    # metadata labels code 3 "South Korea". Alias, so cell names stay stable.
+    "country": {"Korea": 3},
 }
 
 
 def load_survey(survey_id: str, config_path: str) -> tuple[pd.DataFrame, dict]:
     """Load survey data + metadata via synthetic_sampling, then apply the
     registered cleaning amendments (2026-08-31, docs/pre_paper_run_decisions.md):
-    Asian Barometer case-twin coalesce and other-specify column removal."""
+    Asian Barometer case-twin coalesce and other-specify column removal.
+
+    Asian Barometer is read from its nine per-country Stata files with numeric
+    codes preserved (2026-09-05). The combined CSV the loader used before stores
+    the LABEL TEXT of every answer, so AutoGluon saw ~230 unordered categoricals
+    per cell: fits ran 20-50x slower than the other surveys, the wall clock cut
+    the model bag on nominal targets, and ordinal scales lost their order. The
+    Stata codes agree with the pulled metadata's code->label map on all 2,158
+    (variable, country) pairs checked against the CSV; see
+    docs/experiments_registry.md `confirmatory-oracle-map`."""
     try:
         from synthetic_sampling.config.base import DataPaths
         from synthetic_sampling.loaders.survey_loader import SurveyLoader
@@ -48,10 +60,39 @@ def load_survey(survey_id: str, config_path: str) -> tuple[pd.DataFrame, dict]:
 
     paths = DataPaths.from_yaml(config_path)
     loader = SurveyLoader(paths=paths, verbose=False)
-    data, metadata = loader.load_survey(survey_id)
+    if survey_id == "asianbarometer":
+        data, metadata = _load_asianbarometer_stata(loader, paths)
+    else:
+        data, metadata = loader.load_survey(survey_id)
     data = coalesce_case_twin_columns(data, metadata, survey_id)
     data, metadata = drop_other_specify(data, metadata, survey_id)
     return data, metadata
+
+
+def _load_asianbarometer_stata(loader, paths) -> tuple[pd.DataFrame, dict]:
+    """The loader's own steps (find files -> load -> preprocess -> metadata), with two
+    settings it does not expose: `multi_file` (one .dta per country) and
+    `convert_categoricals=False` (pandas' default would turn the codes straight
+    back into labels). Fails loud if the data folder does not hold the .dta files."""
+    import dataclasses
+
+    from synthetic_sampling.config.surveys import get_survey_config
+    from synthetic_sampling.loaders.file_io import find_data_files, load_multiple_files
+
+    config = dataclasses.replace(get_survey_config("asianbarometer"), multi_file=True)
+    survey_dir = paths.raw_data_dir / config.folder_name
+    files = find_data_files(survey_dir, config.get_file_patterns(), prefer_numeric=True)
+    not_dta = [f.name for f in files if f.suffix.lower() != ".dta"]
+    if not_dta:
+        raise FileNotFoundError(
+            f"Asian Barometer must be loaded from the per-country Stata files "
+            f"(numeric codes); {survey_dir} offered {not_dta}. Copy the nine "
+            f"*.dta files from features_project/data/misc/ into {survey_dir}."
+        )
+    df = load_multiple_files(files, encoding=config.encoding, convert_categoricals=False)
+    df = loader._preprocess(df, config)
+    df = df.drop(columns=["_source_file"], errors="ignore")
+    return df, loader._load_metadata(config)
 
 
 # ── Registered cleaning amendments (2026-08-31) ───────────────────────────────
@@ -68,6 +109,24 @@ OTHER_SPECIFY_PATTERNS: dict[str, re.Pattern] = {
     "afrobarometer": re.compile(r".OTHER$"),
     "asianbarometer": re.compile(r".other_?(clarify)?$", re.IGNORECASE),
 }
+
+
+def _register_asianbarometer_multi_file() -> None:
+    """Mark Asian Barometer as a multi-file survey in the loader registry, so any
+    direct SurveyLoader use (target_universe_screen.py) reads all nine .dta files.
+    Labels vs codes there follow pandas' default; the oracle path sets codes."""
+    try:
+        import dataclasses
+
+        from synthetic_sampling.config import surveys as _cfg
+    except ModuleNotFoundError:
+        return
+    cfg = _cfg.SURVEY_REGISTRY.get("asianbarometer")
+    if cfg is not None and not cfg.multi_file:
+        _cfg.SURVEY_REGISTRY["asianbarometer"] = dataclasses.replace(cfg, multi_file=True)
+
+
+_register_asianbarometer_multi_file()
 
 
 def _merge_case_twin(a: pd.Series, b: pd.Series) -> pd.Series:

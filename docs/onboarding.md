@@ -96,6 +96,10 @@ If you add a cache, give it an identity field.
 6. The disambiguator is not deterministic at temperature 0; cached maps are the reproducibility unit.
 7. Windows: Ray disabled in oracle fit; spawned workers need `_ensure_src_on_pythonpath`. `FASTAI` is excluded (`EXCLUDED_MODEL_TYPES`) so Dropbox locks on `.tmp/*.pth` cannot starve the time_limit.
 8. Prefer conda `miniconda3` if `.venv` lacks AutoGluon.
+8a. Asian Barometer loads from `data/Asianbarometer/*.dta` (numeric codes), never from the
+    combined CSV (label text → ~230 categoricals → 20–50× slower fits and a cut bag;
+    registry `confirmatory-oracle-map`). `load_survey` fails loud if the `.dta` files are
+    missing: copy them from `data/misc/`. Grid country "Korea" = metadata "South Korea" (code 3).
 9. Baselines are model-independent and cached per (cell, k).
 10. The live `outputs/` tree is the shared Dropbox folder `features_project/outputs`,
     via `SURVEY_FEATURES_OUTPUTS` in gitignored `.env`. Confirm `OUTPUTS_DIR` before

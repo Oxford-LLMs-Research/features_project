@@ -101,6 +101,13 @@ Get-Content -Path $t -Stream com.dropbox.ignored    # prints 1
 
 **Run the unit tests once** (no data needed, ~10 s): `python -m pytest tests -q`.
 
+**Pull before you start.** `git pull` on `main` — the 2026-09-05 fix changed how Asian
+Barometer is loaded (per-country Stata files with numeric codes instead of the label-text
+CSV). Your three surveys were verified numeric at the feature-pool level (Latinobarómetro
+loads from its `.sav` with codes; WVS is coded; ESS keeps two genuine string columns), so
+nothing changes for you, but both machines must run the same commit. The Stata files are
+already in the shared `data/Asianbarometer/` folder.
+
 ## 4. Smoke test (~20 minutes) — do this before the real run
 
 The same two cells machine A already fitted, into a *local* scratch folder so nothing
@@ -144,7 +151,15 @@ Send me the two printouts before starting the real run.
 
 ## 5. The real run
 
-Open one PowerShell window in the repo, activate the env, then:
+Simplest: one detached command that runs both phases in order, pins threads, and logs
+to the shared `outputs/logs/` (you can close the terminal afterwards):
+
+```powershell
+powershell -File scripts/run_oracle_partition.ps1 -Surveys ess_wave_11,latinobarometer,wvs -Procs 2
+```
+
+It prints the log path; follow it with `Get-Content -Wait <log>`. The manual equivalent,
+if you prefer to watch it in a window you keep open:
 
 ```powershell
 # Pin native threads so N workers do not each grab every core (AutoGluon's budget

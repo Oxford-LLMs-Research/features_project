@@ -528,7 +528,8 @@ def _fit_and_rank(train_data, select_data, score_data, run_output_dir, *,
 
 
 def _oracle_provenance(*, preset: str, time_limit: int, n_repeats: int,
-                       num_cpus: int | None, folds: list[dict]) -> dict:
+                       num_cpus: int | None, folds: list[dict],
+                       n_text_features: int | None = None) -> dict:
     """Identity of the process that fitted this cell - settings, libraries, machine.
 
     Contract v4 fixes what the numbers MEAN; this block records how they were
@@ -557,6 +558,9 @@ def _oracle_provenance(*, preset: str, time_limit: int, n_repeats: int,
         # True iff every fold finished the same set of models - the cheap check
         # that no fold was starved by the wall clock.
         "bag_identical_across_folds": len(bags) <= 1,
+        # Feature columns AutoGluon saw as text (unordered categoricals). 0 since the
+        # 2026-09-05 cleaner fix; Asian Barometer cells fitted before it carried ~230.
+        "n_text_features": n_text_features,
         "python": sys.version.split()[0],
         "platform": platform.platform(),
         "hostname": socket.gethostname(),
@@ -879,6 +883,7 @@ def compute_oracle(
         provenance=_oracle_provenance(
             preset=preset, time_limit=time_limit, n_repeats=n_repeats,
             num_cpus=num_cpus, folds=fold_records,
+            n_text_features=int(sum(pd.api.types.is_object_dtype(X[c]) for c in X.columns)),
         ),
     )
 
