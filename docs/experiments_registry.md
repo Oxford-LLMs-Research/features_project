@@ -349,6 +349,8 @@ Sign concordance (PI & VoR): both+=7, both−=5, conflict=5. By condition: `coun
 
 **Rationale.** To produce the contract-v4 oracle for every registered grid cell before scoring the six locked selectors, using the registered quick tier (grid memo Q4) and recording per-cell provenance so cells fitted on two machines can be checked for the same model bag before they are mixed.
 
+**Grid-screen bug found 2026-09-06 (fixed).** The first audit after the map screened only 149 of 1,103 cells: `leakage_audit.py` took its cell universe from `data/targets.yaml`, the 30-target catalog that predates the 2026-08-31 draw, and silently skipped every cell whose target is not in it — 113 of the grid's 120 targets, leaving 342 of the 360 confirmatory cells with no class. Fixed by adding `--cells-csv` (same flag and semantics as `rerun_oracles.py`), which takes the universe, `survey`, `section` and answer type from the registered grid CSV and reports any row whose oracle is missing. The screening RULES are unchanged. Always screen the grid with `python scripts/leakage_audit.py --with-data --cells-csv data/confirmatory_grid_cells.csv`; a bare run rewrites the audit with the old catalog's universe.
+
 **Result.** _pending._ On completion: run the provenance census (every cell `bag_identical_across_folds`, same `n_models` on both hosts), then `leakage_audit.py --with-data`, `build_textbook_baseline.py`, archive the pre-existing `selectors/scores_*.csv`, then score.
 
 ### `oracle-v3` — measurement-level honest split

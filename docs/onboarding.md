@@ -119,7 +119,9 @@ python scripts/rerun_oracles.py --processes 3   # after oracle contract changes
 python scripts/rerun_oracles.py --cells-csv data/confirmatory_grid_cells.csv \
     --role confirmatory --survey wvs --runtime-mode quick --autogluon-time-limit 600 --processes 3
 python scripts/oracle_provenance_census.py       # same bag everywhere? (before mixing machines)
-python scripts/leakage_audit.py --with-data     # after ANY oracle change; default grid = genuine
+python scripts/leakage_audit.py --with-data --cells-csv data/confirmatory_grid_cells.csv
+#   ^ after ANY oracle change. --cells-csv is REQUIRED for the confirmatory grid: without it the
+#   audit's universe is the old data/targets.yaml catalog and it screens 7 of the 120 grid targets.
 # then archive any pre-existing selectors/scores_*.csv before re-scoring — the
 # score-phase resume would silently skip cells already present in an old file
 python scripts/build_textbook_baseline.py

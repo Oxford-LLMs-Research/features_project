@@ -49,10 +49,19 @@ Outputs:
   outputs/cache/audits/leakage_audit_summary.json rollups by survey / bucket / class
   paper/generated_current_state/leakage_audit_longtable.tex (if --write-tex)
 
+Which cells get screened. By default the universe is whatever cell folder on disk
+matches a target in data/targets.yaml — the 30-target catalog that predates the
+2026-08-31 confirmatory draw. Pass --cells-csv to screen a registered grid instead;
+without it, a cell whose target is not in targets.yaml is silently skipped, which on
+the confirmatory grid means 113 of 120 targets never get a class at all
+(found 2026-09-06, docs/experiments_registry.md `confirmatory-oracle-map`).
+
 Run (offline — type-1 + concentration-suspect only):
   python scripts/leakage_audit.py
 Run (full, typed probes — required for real leakage classification):
   python scripts/leakage_audit.py --with-data
+Run over the registered confirmatory grid (what the paper cites):
+  python scripts/leakage_audit.py --with-data --cells-csv data/confirmatory_grid_cells.csv
 """
 from __future__ import annotations
 
@@ -113,9 +122,13 @@ def survey_of(target: str, detail: dict[str, dict]) -> str | None:
     return info["survey"] if info else None
 
 
-def iter_oracle_cells() -> list[tuple[str, str, Path]]:
-    """Return (target, country, oracle_csv_path) for every cell, resolving target
-    via known target codes (targets may contain underscores)."""
+def iter_oracle_cells() -> list[tuple[str, str, Path, dict]]:
+    """Return (target, country, oracle_csv_path, info) for every cell on disk whose
+    target is in targets.yaml, resolving target via known codes (targets may contain
+    underscores). `info` is empty: the caller falls back to the targets.yaml detail.
+
+    Cells whose target is NOT in that catalog are skipped — use --cells-csv to screen
+    a registered grid instead of this catalog."""
     detail = load_target_detail()
     known = sorted(detail.keys(), key=len, reverse=True)
     cells = []
@@ -134,7 +147,43 @@ def iter_oracle_cells() -> list[tuple[str, str, Path]]:
             if key in seen:
                 continue
             seen.add(key)
-            cells.append((target, country, p))
+            cells.append((target, country, p, {}))
+    return cells
+
+
+def cells_from_grid_csv(path: Path) -> list[tuple[str, str, Path, dict]]:
+    """(target, country, oracle_csv, info) for every row of a registered grid CSV.
+
+    The CSV is the authority on which cells exist and what they are, so `survey`,
+    `section` and `type` come from it rather than from targets.yaml. A row whose
+    oracle has not been computed is reported and skipped — screening cannot invent
+    a class for a cell with no ground truth.
+    """
+    d = pd.read_csv(path)
+    missing_cols = {"survey", "target", "country"} - set(d.columns)
+    if missing_cols:
+        raise SystemExit(f"{path} lacks columns: {sorted(missing_cols)}")
+    cells: list[tuple[str, str, Path, dict]] = []
+    absent: list[str] = []
+    for r in d.itertuples():
+        ocsv = cell_dir(str(r.target), str(r.country), OUT) / "oracle.csv"
+        if not ocsv.is_file():
+            absent.append(f"{r.target} x {r.country}")
+            continue
+        cells.append((str(r.target), str(r.country), ocsv, {
+            "survey": str(r.survey),
+            "section": getattr(r, "section", None),
+            # targets.yaml calls the answer type "bucket"; the grid CSV calls it
+            # "type". Same thing, and the summary rolls up by bucket.
+            "bucket": getattr(r, "type", None),
+            "role": getattr(r, "role", None),
+        }))
+    if absent:
+        print(f"[audit] {len(absent)} grid cell(s) have no oracle.csv and are not "
+              f"screened: {absent[:5]}{' ...' if len(absent) > 5 else ''}",
+              file=sys.stderr)
+    if not cells:
+        raise SystemExit(f"No cells with an oracle found for {path}")
     return cells
 
 
@@ -299,6 +348,12 @@ def main() -> None:
     ap.add_argument("--with-data", action="store_true",
                     help="Run the typed probes (needs DATA_CONFIG_PATH). Without it, "
                          "concentrated cells degrade to leakage_suspect.")
+    ap.add_argument("--cells-csv", type=Path, default=None,
+                    help="Registered grid CSV (survey,target,country[,type,section,role]) "
+                         "defining which cells to screen, e.g. "
+                         "data/confirmatory_grid_cells.csv. Without it the universe is "
+                         "the targets.yaml catalog, which predates the confirmatory draw "
+                         "and covers only 7 of its 120 targets.")
     ap.add_argument("--oracle-k", type=int, default=DEFAULT_ORACLE_K,
                     help="Top-k features for the oracle-side probe (default 10).")
     ap.add_argument("--no-probe-cache", action="store_true",
@@ -340,7 +395,13 @@ def main() -> None:
     )
 
     detail = load_target_detail()
-    cells = iter_oracle_cells()
+    if args.cells_csv:
+        cells = cells_from_grid_csv(args.cells_csv)
+        print(f"[audit] grid={args.cells_csv} ({len(cells)} cells with an oracle)")
+    else:
+        cells = iter_oracle_cells()
+        print(f"[audit] grid=data/targets.yaml catalog ({len(cells)} cells on disk); "
+              f"pass --cells-csv to screen a registered grid instead")
     if not cells:
         print("No oracle.csv cells found under outputs/.", file=sys.stderr)
         sys.exit(1)
@@ -357,11 +418,17 @@ def main() -> None:
 
     survey_cache: dict = {}
     records = []
-    for target, country, ocsv in cells:
-        rec = {"survey": survey_of(target, detail), "target": target, "country": country}
+    for target, country, ocsv, cell_info in cells:
         info = detail.get(target, {})
-        rec["bucket"] = info.get("bucket")
-        rec["section"] = info.get("section")
+        rec = {
+            "survey": cell_info.get("survey") or survey_of(target, detail),
+            "target": target,
+            "country": country,
+        }
+        rec["bucket"] = cell_info.get("bucket") or info.get("bucket")
+        rec["section"] = cell_info.get("section") or info.get("section")
+        if cell_info.get("role") is not None:
+            rec["role"] = cell_info["role"]
         rec.update(concentration_signal(ocsv))
         meta = load_oracle_meta(ocsv)
         attach_type1_fields(rec, meta)
@@ -395,7 +462,7 @@ def main() -> None:
     rows = rows.sort_values(["leakage_class", "oracle_lift"], ascending=[True, False])
 
     out_csv, out_summary = leakage_audit_write_paths(OUT)
-    cols = ["survey", "target", "country", "bucket", "section",
+    cols = ["survey", "target", "country", "role", "bucket", "section",
             "problem_type", "target_type", "primary_metric",
             "majority_baseline", "n_score", "n_eval_reserve", "cv_folds",
             "ceiling_at_5", "v2_minority_est", "rank_holdout_minority_est",
