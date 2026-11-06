@@ -304,17 +304,26 @@ marks a venue or author list not confirmed.
    *simulated respondent*, not as a *selector*. Our country result is convergent
    evidence under a new measurand, not a discovery.
 
-**What nobody appears to have done** — the defensible contribution:
-- elicit, from question wording, *which respondent characteristics predict the
-  answer*, for **many targets (120) across six cross-national survey programmes**
-  (no LLM benchmark against Afro-, Arab-, Asian Barometer or Latinobarómetro was found);
-- score the picks against a **cross-validated, holdout-honest importance oracle**
-  with captured mass and a ceiling, plus matched-k random and textbook baselines,
-  a leakage screen and type-matched scoring;
-- test **country adaptation** (country-named vs country-blind) and **country-swap
-  transfer** with a heterogeneity dose-response and a reliability-gated negative
-  control. The closest is synthetic covariate shift on generic tables (LoID 2026).
-- capability ladders within model families and a replicate-floor prompt study.
+**Breadth is not novelty (revised 2026-11-06).** More questions, more surveys and
+more countries applied to the LLM-Select design is a *replication in new contexts*:
+worth doing, but not a contribution on its own, and it should not be argued as one.
+Better instrumentation (honest oracle, textbook baseline, leakage screen) is the
+same question measured better: also not the claim on its own. The candidate
+contributions are the parts that ask a **different question**:
+
+| Candidate | The question it asks | Why prior work cannot answer it | Status in our design | Risk |
+|---|---|---|---|---|
+| **(1) Knowing where the structure differs** | Not "does the model know what predicts X?" but "does it know *where* that differs?" Do its picks change across countries **in proportion to how much the data's predictive structure actually differs** (adaptation), or change everywhere (stereotyping), or nowhere (rigid)? | Cross-country LLM papers measure the *prediction* error by country, not whether the model's stated structure tracks measured heterogeneity. That needs a per-country oracle plus a reliability-gated heterogeneity measure, which none of them have. Closest: a meta-analytic study finding that LLMs and experts both fail on moderation (Collabra) | Registered as **secondary**: dose-response slope; three-layer adaptation battery (grid memo). Primary 2 (swap gain in the high-heterogeneity bin) is the coarse version | Literature predicts weak adaptation, so a null is likely. Still informative, because it is the first test with the right ground truth. Dose-response slope sits at the power margin (needs the balanced-oracle pass) |
+| **(2) Level vs structure** | When a model asks for "country", is it right to? Separates country shifting the *average answer* (level) from country changing *which predictors matter* (structure) | Silicon-sampling work finds the country label acts as a fixed level shift (Wang 2026) but cannot test whether that is *correct*; we can, with pooled oracles | `pooled-country-value`, design only | Small; uses only CPU |
+| **(3) The ground truth is the bottleneck** | Are existing "LLM vs importance" agreement numbers interpretable at all? Our audit: two honest reads of one cell agree on about ⅓ of their top-10, and two oracle recipes on under ⅕ | LLM-Select, LLM4CKD and TabSHAP compare against one model's importance with no reliability ceiling | Ceiling and noise floor computed per cell; a ceiling-corrected re-analysis "would conclusions flip?" is not built | Becomes a methods paper unless paired with (1) |
+
+**Implication.** If (1) is the headline, the registered order is backwards: Primary 1
+(value over textbook) is the replication and should be the *precondition*; the
+heterogeneity-calibrated adaptation result should lead. Changing that is a
+pre-registration decision, open as of 2026-11-06, and must be made **before** any
+v4 scores or heterogeneity bins are inspected. A targeted search on "LLM knowledge
+of moderation / effect heterogeneity" should run first, since (1) stands or falls
+on it being unclaimed.
 
 **Suggested positioning sentence.** *Silicon sampling asks a model to be the
 respondents and recovers structure afterwards — a route shown to distort
