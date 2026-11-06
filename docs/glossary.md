@@ -215,3 +215,19 @@ the heterogeneity screen and the transportability pair selection; the narrow fir
 layer is the confirmatory LLM grid (`role == "confirmatory"` in
 `data/confirmatory_grid_cells.csv`). **Implies:** heterogeneity may inform which
 *pairs* get country-swap scoring, never which countries enter the headline estimate.
+
+## adaptation test (adapts / changes regardless / rigid)
+
+**What:** the proposed headline test (draft, `project_inventory_2026-11.md` §9.6):
+does a selector's country-named pick list differ between two countries by an amount
+that tracks how much those countries' oracle rankings differ? A positive slope with a
+low intercept = *adapts*; a high intercept with a flat slope = *changes picks
+regardless* of the data (our "stereotyping" — not the same as ACE-Align's, which means
+overstating an effect within one country); flat at the noise floor = *rigid*.
+**Why:** breadth across surveys alone would replicate existing LLM feature-selection
+work; knowing *where* predictive structure differs is the part prior work has not
+tested. **Fits:** uses the country-named arm, v4 per-country oracles and the
+heterogeneity screen; complements the country-swap test, which asks whether the
+differences pay off in prediction. **Implies:** needs a same-country replicate
+generation as its noise floor, since two greedy draws already differ substantially;
+not registered until the PI approves the re-ordering.

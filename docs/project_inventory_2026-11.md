@@ -321,9 +321,8 @@ contributions are the parts that ask a **different question**:
 (value over textbook) is the replication and should be the *precondition*; the
 heterogeneity-calibrated adaptation result should lead. Changing that is a
 pre-registration decision, open as of 2026-11-06, and must be made **before** any
-v4 scores or heterogeneity bins are inspected. A targeted search on "LLM knowledge
-of moderation / effect heterogeneity" should run first, since (1) stands or falls
-on it being unclaimed.
+v4 scores or heterogeneity bins are inspected. The targeted moderation search (§9.5) found (1) open with three partial precedents;
+the draft re-ordering is §9.6.
 
 **Suggested positioning sentence.** *Silicon sampling asks a model to be the
 respondents and recovers structure afterwards — a route shown to distort
@@ -339,9 +338,9 @@ not causal transportability in the Pearl–Bareinboim sense — or rename the co
 | Paper | What it did | How we differ / what to do |
 |---|---|---|
 | Jeong, Lipton, Ravikumar, **LLM-Select**, TMLR 2025 — [arXiv 2407.02694](https://arxiv.org/abs/2407.02694) | LLM scores/ranks features from names + task; rivals LASSO; Kendall τ with SHAP/permutation importance rises with scale but matches no single importance notion | Method ancestor. We: survey wording, 120 targets, honest oracle, countries. **Report Kendall τ vs the oracle as a bridge metric**; optionally their LLM-Score/Rank/Seq as ablations |
-| **AI-driven feature selection using only survey variable descriptions** (adolescent vaping, PATH), medRxiv Mar 2026 — [link](https://www.medrxiv.org/content/10.64898/2026.03.06.26347816v1.full) (authors unverified: the two sweeps reported different author lists) | Several open LLMs pick from 1,396 items; LightGBM on picks ≈ or > full set | **Closest trap.** One outcome, one country, no oracle. Cite and differentiate |
-| Pataranutaporn, Powdthavee, Archiwaranguprok, Maes, **LLMs predict human well-being — but not equally everywhere** — [arXiv 2507.06141](https://arxiv.org/abs/2507.06141); PNAS version [PMC12685116](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12685116/) | WVS, 64 countries; models know broad correlates, mis-weight predictors in poorer / under-represented countries; country in prompt does not fix it | Our cross-country hypothesis for one outcome. **Stratify results by a representation proxy** (GDP, web-language share) |
-| **Simulated responses from LLMs are weak proxies for human economic preferences across 74 countries**, Nature Human Behaviour 2026 — [link](https://www.nature.com/articles/s41562-026-02611-4) (authors unverified) | Demographic gradients recovered; country-level structure poorly | Predicts that textbook demographics will be hard to beat and country adaptation weak |
+| **AI-driven feature selection using only survey variable descriptions** (adolescent vaping, PATH), medRxiv Mar 2026 — [link](https://www.medrxiv.org/content/10.64898/2026.03.06.26347816v1.full) Zhang, Zhao, Hu, Le | Four LLMs score 214 PATH variables from descriptions; LightGBM AUC 0.791 with 30 picks vs 0.768 with all (full text, §9.5) | **Closest trap.** One outcome, one country, no oracle, no subgroup test. Cite and differentiate |
+| Pataranutaporn, Powdthavee, Archiwaranguprok, Maes, **LLMs predict human well-being — but not equally everywhere** — [arXiv 2507.06141](https://arxiv.org/abs/2507.06141); PNAS 122(48) e2519394122 (2025), [PMC12685116](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12685116/) | WVS, 64 countries; models know broad correlates, mis-weight predictors in poorer / under-represented countries; country in prompt does not fix it | Our cross-country hypothesis for one outcome. **Stratify results by a representation proxy** (GDP, web-language share) |
+| **Simulated responses from LLMs are weak proxies for human economic preferences across 74 countries**, Chen, Wang, Wang, Bhatia, Nature Human Behaviour 2026 — [link](https://www.nature.com/articles/s41562-026-02611-4) | Demographic gradients recovered; country-level structure poorly | Predicts that textbook demographics will be hard to beat and country adaptation weak |
 | Memar et al., **When do LLMs help with feature selection?**, Oct 2026 — [arXiv 2610.28556](https://arxiv.org/abs/2610.28556v1) *(snippet)* | 18 datasets; classical selectors usually beat small LLM selectors; meaningful names help most | **Borrow the informative vs anonymised vs shuffled names ablation** |
 | Ma & Powell, **Can LLMs predict associations among human attitudes?**, 2025 — [arXiv 2503.21011](https://arxiv.org/abs/2503.21011); Hommel & Arslan, AMPPS 2025 — [link](https://journals.sagepub.com/doi/10.1177/25152459251377093) | Item–item correlations inferred from wording (r ≈ .7–.9); overconfident; contamination risk | Supports our "from wording alone" premise. **Borrow the semantic-similarity control** (do hits just share words with the target?) |
 | Wang, **Silicon sampling answers with country-level assumptions**, ESS, 2026 — [arXiv 2609.16395](https://arxiv.org/pdf/2609.16395) *(snippet)* | Country label acts as a fixed level shift; a neighbour-country average beats the LLMs | **Borrow the neighbour-country baseline** for adaptation; separates "level" from "structure" — fits our `pooled-country-value` design |
@@ -368,6 +367,110 @@ Mapped to §6. ✔ = we already have it; ◐ = registered/argued; ✚ = new from
 | "Does the LLM add anything over data-driven selection?" | LLM-Lasso 2025; AutoElicit ICML 2025; arXiv 2610.36806 | ✚ optional small-sample curve: at what n do LLM picks stop beating a data-driven selector |
 | "Results depend on the extractor/mapper" | — | ◐ dual-extractor audit; Nemotron-affinity check |
 | "Models differ only in WEIRD-ness" | Atari et al. 2023; Tao et al. 2024 | ✚ regress per-country performance on cultural distance from the US |
+
+### 9.5 Moderation novelty check (2026-11-06, full texts where reachable)
+
+**Why this was run.** §9.1 lists "knowing where the structure differs" as the
+candidate headline. This search asked whether anyone has already tested if an
+LLM's view of *which predictors matter* changes across countries in step with how
+much the data's structure changes. Full texts were read for the arXiv and medRxiv
+papers. The Nature, Collabra, OSF and Research Square papers were snippet-only
+(nature.com still serves an identity check the proxy blocks; pnas.org returns 403).
+
+**Verdict: open, with three partial precedents.** No paper elicits *stated*
+predictors per country, scores them against a per-country importance ranking,
+regresses the model's change in picks on the measured change in structure, or runs
+a swap test with a negative control. Three papers each cover one piece:
+
+| Paper | What it shows about country heterogeneity | Access | How we differ |
+|---|---|---|---|
+| Powdthavee (2026) LLMs substantially compress well-being dispersion but largely preserve its socioeconomic structure — [arXiv 2609.33055](https://arxiv.org/abs/2609.33055) | **Closest.** WVS-7, 66 countries, 6 LLMs: countries with steeper real income gradients also show steeper LLM gradients (Spearman 0.54–0.80) | full text | One predictor (income); outcome is the *spread* of life satisfaction; structure implied by simulated answers, not stated; no importance ranking, swap or reliability gate |
+| Luo et al. (2026) ACE-Align — [arXiv 2601.12962](https://arxiv.org/abs/2601.12962) | Per-country effects of 4 attributes, 14 countries; the dominant attribute varies by country; taxonomy **Flipped / Stereotyping / Erasure / Aligned** | full text | A fine-tuning method, not a knowledge probe; 4 attributes. **Their "stereotyping" means overstating an effect within a country, so our term must be defined against theirs** |
+| Pataranutaporn, Powdthavee, Archiwaranguprok, Maes (2025), PNAS 122(48) e2519394122 — [arXiv 2507.06141](https://arxiv.org/abs/2507.06141) | Real income gradient steeper in low-HDI countries (HDI = Human Development Index); all four LLMs give "nearly identical" gradients in both groups (rigidity, informally). Country effects on the level of the answer shrunk toward zero | arXiv full text | One predictor, one two-way split, pooled weights. **Pre-empts the "level" half of our level-vs-structure claim** |
+
+Adjacent: Wang 2026 ([2609.16395](https://arxiv.org/abs/2609.16395); the country label carries the country *level*, within-country recovery ≈ 0);
+D'Ecclesiis, Castellacci, Ahmadi 2026 ([2611.00256](https://arxiv.org/abs/2611.00256); importance rankings of real vs simulated Eurobarometer outcomes, pooled across countries — closest *method*);
+Li & Ji 2026 ([2604.02458](https://arxiv.org/abs/2604.02458); model error clusters by country, ICC 12–16% for effect estimates);
+Ashokkumar, Hewitt, Ghezae, Willer, *Nature* 2026 ([s41586-026-10742-x](https://www.nature.com/articles/s41586-026-10742-x); subgroup accuracy holds but "little heterogeneity" existed to predict; snippet);
+Collabra 2025 "LLMs vs human experts in variable relationship identification" (moderation items hard for everyone; snippet — tables not read);
+Eriksson, Vartanova, Strimling 2026 ([2609.30896](https://arxiv.org/abs/2609.30896)) and Tao et al. 2026 ([2605.08486](https://arxiv.org/abs/2605.08486)) on compressed country levels;
+Daryani, Bogen, Daepp 2026 ([2609.01902](https://arxiv.org/abs/2609.01902); invented change over time — a temporal analogue of stereotyping);
+Cui et al. 2025, *Nat Comput Sci* (interactions replicated less often than main effects);
+Powdthavee 2026 ([2605.30934](https://arxiv.org/abs/2605.30934); does cross-language divergence track institutional differences — similar dose-response logic, moral judgements).
+No paper on LLM priors for per-environment causal graphs was found.
+
+**Corrections to §9.2 from full texts.** The vaping paper is Zhang, Zhao, Hu, Le
+(medRxiv, 9 Mar 2026): GPT-4o, LLaMA-3.1-70B, Qwen-2.5-72B, DeepSeek-V3 score 214
+PATH variables (15 runs, temperature 0.7) for 7,943 US adolescents; AUC 0.791 with
+30 Qwen picks vs 0.768 for all variables; **no importance-oracle comparison and no
+subgroup test**; sample size varies with the feature set. Its predecessor is Le et
+al. 2025, *Nicotine & Tobacco Research* (GPT-4.1, smoking cessation). The NHB 2026
+paper is Chen, Wang, Wang, Bhatia (Global Preference Survey, 74 countries); whether
+its gradients are compared within each country is **unresolved** until the full text
+is read. LLM-Select's 60 citing papers (Semantic Scholar) contain nothing on
+country- or domain-conditional selection.
+
+**Claim wording.**
+- *Safe:* "To our knowledge, the first test of whether LLM-**stated** predictors change
+  across countries in proportion to **measured** differences in data-driven importance,
+  with a country-swap test and a negative control. Prior work tests pooled predictor
+  structure, country levels, or one predictor's cross-country gradient in simulated
+  responses."
+- *Not safe:* "first to ask whether LLMs know cross-national heterogeneity"; "first to
+  show LLMs flatten country differences"; stereotyping/rigidity as a new taxonomy
+  without contrasting ACE-Align; level-vs-structure as new *for levels* (only the
+  separation is new).
+
+**New controls the closest papers suggest** (added to the §9.6 proposal):
+nearest-country and pooled-ranking baselines (Wang); robust slopes and
+leave-one-country-out for the dose-response (Powdthavee's result moves with one
+country); a country random effect or per-country oracle reliability (Li & Ji); a
+placebo prompt with a wrong or shuffled country (Pataranutaporn found injected facts
+spill over); top-k overlap plus full-ranking Spearman against the oracle (D'Ecclesiis).
+
+### 9.6 Proposed re-ordering of the pre-registration (DRAFT — not registered)
+
+*Status: proposal for the PI to approve, edit or reject. It changes nothing until
+it is copied into `experiments_registry.md`. It is valid only if **no v4 score file
+and no heterogeneity bin has been inspected yet** — the repo cannot see whether that
+is still true after 2026-09-06, so confirm first.*
+
+**Headline question.** Do the models know *where* predictive structure differs
+between countries? The **adaptation test** (glossary) asks whether a model's
+country-named picks differ between two countries by an amount that tracks how much
+those countries' oracle rankings differ.
+
+| Role | Endpoint | Was |
+|---|---|---|
+| **Primary A — calibration** | Slope of pick differentiation (1 − Jaccard of mapped codes, country-named arm, each within-survey country pair) on reliability-corrected oracle heterogeneity (between-country disagreement of v4 rankings). Read three ways: slope > 0 with intercept near the noise floor = **adapts**; intercept well above the floor with flat slope = **changes picks regardless** (our "stereotyping", distinct from ACE-Align's); flat at the floor = **rigid** | secondary (behavioural battery layer 2) |
+| **Primary B — payoff** | Swap gain (own-country picks minus other-country picks, scored on the own country's rows), high-heterogeneity bin; low bin as negative control | Primary 2 |
+| **Precondition** | Value over textbook, per answer-type family (the replication of LLM-Select-type findings in our setting). Reported first, but framed as "the knowledge exists", not as the contribution | Primary 1 |
+| Secondary | Level vs structure (`pooled-country-value`; claim only the separation); dose-response of swap gain; capability ladders; country-blind vs country-named | mostly unchanged |
+
+**Design additions this requires (decide before launch):**
+1. **A noise floor for pick differentiation.** Two greedy draws of the *same* prompt
+   overlap only 0.27–0.29 for DeepSeek and Kimi (prompt-sensitivity v2). Without a
+   same-country replicate, extraction and generation jitter shows up as
+   "stereotyping". Add one replicate generation of the country-named arm per
+   confirmatory cell: about 360 extra units per selector, roughly +$33 across the
+   six at 2026-09-03 prices, paid out of the existing ~$44 budget line.
+2. **Placebo prompt.** A wrong-country or shuffled-country prompt on a subset (for
+   example 30 questions × 1 country), so we can tell picks that change *because the
+   country is right* from picks that change because *a* country was named.
+3. **No-LLM baselines.** Nearest-country oracle ranking and pooled all-country
+   ranking as comparators for country-named picks.
+4. **Robustness.** Spearman / robust slopes, leave-one-country-out, a country random
+   effect, per-country oracle reliability as a covariate; top-k overlap and
+   full-ranking Spearman reported against the oracle.
+5. **Power.** Primary A uses every within-survey country pair (3 pairs × 120
+   questions at 3 countries, plus 15 pairs × 30 questions at 6), so it may be better
+   powered than swap gain, but it has never been sized. **Re-run
+   `scripts/grid_power_analysis.py` on the Phase A pilot for this endpoint before
+   locking**; the balanced-oracle pass on the 30 transportability questions becomes
+   load-bearing (heterogeneity measured with noise shrinks the slope).
+
+**What this does not change:** the grid, oracles, selectors, prompts, or any code
+already run. It adds two generation jobs (replicate, placebo) and re-labels endpoints.
 
 ### 9.4 Annotated bibliography
 
@@ -464,9 +567,7 @@ Mapped to §6. ✔ = we already have it; ◐ = registered/argued; ✚ = new from
 | Sclar et al. (2024) Sensitivity to spurious prompt features, ICLR | [2310.11324](https://arxiv.org/abs/2310.11324) | Method | Report spreads across templates |
 | Atıl et al. (2025) Non-determinism of "deterministic" hosted LLMs, Eval4NLP | [ACL](https://aclanthology.org/2025.eval4nlp-1.12) | Method | Justifies replicate floor |
 
-**Gaps in this search.** No "cited-by" sweep of LLM-Select (Semantic Scholar
-blocked); NeurIPS 2026 accepted papers not visible. Re-run both with
-`api.semanticscholar.org` and `arxiv.org` allowed before submission.
+**Gaps in this search.** LLM-Select's citation sweep was done in §9.5 (Semantic Scholar coverage looked incomplete); Hewitt/Ashokkumar citations not swept (rate limit). Still unreadable: nature.com full texts (NHB 2026, Ashokkumar *Nature* 2026), Collabra moderation tables, Research Square, OSF; pnas.org returns 403. NeurIPS 2026 accepted papers not visible.
 
 ---
 
