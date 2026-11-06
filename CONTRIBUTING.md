@@ -13,6 +13,7 @@ Conventions that keep the confirmatory pipeline reproducible. Read
 | What was this experiment, and what did it find? | [`docs/experiments_registry.md`](docs/experiments_registry.md) |
 | What does this project term mean, in plain words? | [`docs/glossary.md`](docs/glossary.md) |
 | How is everything laid out (repo, `data/`, outputs, `paper/`)? | [`docs/project_layout.md`](docs/project_layout.md) |
+| Where does the whole project stand (runs, results, checks, related work)? | [`docs/project_inventory_2026-11.md`](docs/project_inventory_2026-11.md) |
 | End-of-day cleanup | `/repo-audit` |
 
 Do not restate the folder tree elsewhere. If the tree changes, edit README + `layout.py` together.

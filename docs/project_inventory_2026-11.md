@@ -273,11 +273,191 @@ result (as opposed to a design input or a methods paragraph).
 
 ## 9. Related work and novelty check
 
-*Filled from a literature search run 2026-11-06 (three parallel sweeps: LLM feature
-selection; LLMs in survey research; evaluation methods). Every entry has a link; entries
-marked "unverified" could not be confirmed beyond the search result.*
+*Literature search run 2026-11-06 in three parallel sweeps: LLM feature selection;
+LLMs in survey research; importance methodology and LLM elicitation.*
 
-<!-- RELATED_WORK -->
+**Verification caveat.** The searches could reach search-engine result pages but
+not the full texts (arxiv.org, nature.com, tandfonline.com, link.springer.com and
+the Semantic Scholar API were blocked by the session's network policy). Every entry
+below has a URL that appeared in a search result; summaries come from abstracts and
+snippets. **Read the "must read" papers in full before citing their numbers.**
+Entries marked *(snippet)* were seen only once and need confirming; *unverified*
+marks a venue or author list not confirmed.
+
+### 9.1 Verdict: are we repeating someone else's study?
+
+**No, but two pieces of our framing are no longer new and must not be claimed.**
+
+1. **"An LLM can pick predictive features from variable names alone" is established**
+   (LMPriors 2022; LLM-Select, TMLR 2025; a 2025 KDD Explorations survey; a
+   systematic Oct-2026 study finding classical selectors still usually win). Do not
+   headline "LLMs can select features" or "LLMs match data-driven selection".
+2. **"An LLM picks survey predictors from variable descriptions" has one direct
+   precedent**: a March-2026 medRxiv preprint on adolescent vaping in the US PATH
+   survey (one outcome, one country, downstream AUC; no importance oracle or
+   cross-country test seen). Cite it prominently; never claim "first".
+3. **"LLM social-science knowledge is worse outside WEIRD countries" is anticipated**
+   (WEIRD = Western, educated, industrialised, rich, democratic) — by
+   Pataranutaporn et al. (WVS well-being, 64 countries, PNAS 2025), a Nature Human
+   Behaviour 2026 audit of economic preferences across 74 countries, and the
+   cultural-alignment literature. All of these treat the LLM as a *predictor* or a
+   *simulated respondent*, not as a *selector*. Our country result is convergent
+   evidence under a new measurand, not a discovery.
+
+**What nobody appears to have done** — the defensible contribution:
+- elicit, from question wording, *which respondent characteristics predict the
+  answer*, for **many targets (120) across six cross-national survey programmes**
+  (no LLM benchmark against Afro-, Arab-, Asian Barometer or Latinobarómetro was found);
+- score the picks against a **cross-validated, holdout-honest importance oracle**
+  with captured mass and a ceiling, plus matched-k random and textbook baselines,
+  a leakage screen and type-matched scoring;
+- test **country adaptation** (country-named vs country-blind) and **country-swap
+  transfer** with a heterogeneity dose-response and a reliability-gated negative
+  control. The closest is synthetic covariate shift on generic tables (LoID 2026).
+- capability ladders within model families and a replicate-floor prompt study.
+
+**Suggested positioning sentence.** *Silicon sampling asks a model to be the
+respondents and recovers structure afterwards — a route shown to distort
+coefficients (Bisbee et al. 2024) and to be dominated by answer-format artefacts
+(Dominguez-Olmedo et al. 2024). We ask the model to state the structure directly,
+as an expert would, and grade that statement against the data, across 132
+countries.* Also say early that our "transportability" is **predictive transfer**,
+not causal transportability in the Pearl–Bareinboim sense — or rename the contrast
+"cross-country transfer".
+
+### 9.2 Must-read papers (closest to us), with how we differ
+
+| Paper | What it did | How we differ / what to do |
+|---|---|---|
+| Jeong, Lipton, Ravikumar, **LLM-Select**, TMLR 2025 — [arXiv 2407.02694](https://arxiv.org/abs/2407.02694) | LLM scores/ranks features from names + task; rivals LASSO; Kendall τ with SHAP/permutation importance rises with scale but matches no single importance notion | Method ancestor. We: survey wording, 120 targets, honest oracle, countries. **Report Kendall τ vs the oracle as a bridge metric**; optionally their LLM-Score/Rank/Seq as ablations |
+| **AI-driven feature selection using only survey variable descriptions** (adolescent vaping, PATH), medRxiv Mar 2026 — [link](https://www.medrxiv.org/content/10.64898/2026.03.06.26347816v1.full) (authors unverified: the two sweeps reported different author lists) | Several open LLMs pick from 1,396 items; LightGBM on picks ≈ or > full set | **Closest trap.** One outcome, one country, no oracle. Cite and differentiate |
+| Pataranutaporn, Powdthavee, Archiwaranguprok, Maes, **LLMs predict human well-being — but not equally everywhere** — [arXiv 2507.06141](https://arxiv.org/abs/2507.06141); PNAS version [PMC12685116](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12685116/) | WVS, 64 countries; models know broad correlates, mis-weight predictors in poorer / under-represented countries; country in prompt does not fix it | Our cross-country hypothesis for one outcome. **Stratify results by a representation proxy** (GDP, web-language share) |
+| **Simulated responses from LLMs are weak proxies for human economic preferences across 74 countries**, Nature Human Behaviour 2026 — [link](https://www.nature.com/articles/s41562-026-02611-4) (authors unverified) | Demographic gradients recovered; country-level structure poorly | Predicts that textbook demographics will be hard to beat and country adaptation weak |
+| Memar et al., **When do LLMs help with feature selection?**, Oct 2026 — [arXiv 2610.28556](https://arxiv.org/abs/2610.28556v1) *(snippet)* | 18 datasets; classical selectors usually beat small LLM selectors; meaningful names help most | **Borrow the informative vs anonymised vs shuffled names ablation** |
+| Ma & Powell, **Can LLMs predict associations among human attitudes?**, 2025 — [arXiv 2503.21011](https://arxiv.org/abs/2503.21011); Hommel & Arslan, AMPPS 2025 — [link](https://journals.sagepub.com/doi/10.1177/25152459251377093) | Item–item correlations inferred from wording (r ≈ .7–.9); overconfident; contamination risk | Supports our "from wording alone" premise. **Borrow the semantic-similarity control** (do hits just share words with the target?) |
+| Wang, **Silicon sampling answers with country-level assumptions**, ESS, 2026 — [arXiv 2609.16395](https://arxiv.org/pdf/2609.16395) *(snippet)* | Country label acts as a fixed level shift; a neighbour-country average beats the LLMs | **Borrow the neighbour-country baseline** for adaptation; separates "level" from "structure" — fits our `pooled-country-value` design |
+| Wedgwood et al., **Personalization, personas, and forecasting in value alignment**, ICML 2026 — [icml.cc](https://icml.cc/virtual/2026/75669) | WVS; forecasting framing beats persona framing; religiosity easy, institutional trust hard | Precedent for our prompt study; **check the same item-domain gradient** |
+| Hewitt, Ashokkumar, Ghezae, Willer, **Predicting results of social science experiments using LLMs**, 2024 — [Stanford GSB](https://www.gsb.stanford.edu/faculty-research/publications/large-language-models-can-predict-results-social-science-experiments) | LLM forecasts of 70 survey experiments correlate ~0.85 with results, overestimate magnitudes; unpublished-study control | Model for a **memorisation control** and a human-expert comparison |
+
+### 9.3 Reviewer objections the literature predicts → robustness checks
+
+Mapped to §6. ✔ = we already have it; ◐ = registered/argued; ✚ = new from this review.
+
+| Objection | Literature | Our status / action |
+|---|---|---|
+| "Your oracle is one model's opinion" (Rashomon / model multiplicity) | Fisher, Rudin, Dominici 2019; Donnelly et al. NeurIPS 2023 (RID); Breznau et al. PNAS 2022 | ✔ fold-spread reliability, ceiling. ✚ report captured mass with an uncertainty band from fold/bootstrap importance; optionally count a hit if inside the oracle's credible top-k |
+| "Permutation importance is biased by correlated batteries" | Strobl et al. 2008; Hooker, Mentch, Zhou 2021; Ewald et al. 2024 | ◐ grouped importance (audit §A8). ✚ build it (Au et al. 2022 grouped importance); conditional/LOCO oracle on a subset (Watson & Wright 2021 `cpi`; Lei et al. 2018; Williamson et al. JASA 2023 `vimp`) |
+| "Importance in low-signal cells is noise" | Salganik et al. PNAS 2020; Lundberg et al. PNAS 2024; Molnar et al. 2022 | ✔ type-1 screen, ceiling gate. ✚ report holdout predictability per cell and share unestimable |
+| "Fixed k is arbitrary" | Williamson et al. 2023 | ✔ model-chosen k primary. ✚ optional: oracle set = items significantly > 0 |
+| "Leakage inflates the oracle" | Kaufman, Rosset, Perlich KDD 2011 / TKDD 2012 | ✔ leakage screen. ✚ report what the screen removed per cell |
+| "Prompt/format artefact" | Sclar et al. ICLR 2024; Dominguez-Olmedo et al. 2024; arXiv 2508.19563 | ✔ prompt-sensitivity v2 with replicate floor. ✚ variable/option order and paraphrase perturbation on a subset |
+| "Temperature 0 isn't deterministic" | Atıl et al. Eval4NLP 2025 | ✔ replicate floor, country-blind dedupe. ✚ cite; report replicate agreement on mapped sets |
+| "It's memorised from published WVS/ESS findings" | Hewitt 2024; Kıcıman et al. TMLR 2024; Hommel & Arslan 2025 | ✚ memorisation probe: obscure national items / waves after model cutoffs; correlate hit rate with how often an item is studied |
+| "Does it just use word overlap?" | Ma & Powell 2025; Memar 2026 | ✚ semantic-similarity control; anonymised-name ablation |
+| "Country effects are level shifts, not structure" | Wang 2026; NHB 2026 | ◐ `pooled-country-value`. ✚ neighbour-country non-LLM baseline |
+| "Transportability is a causal term" | Pearl & Bareinboim 2014 | ✚ scope as predictive transfer; cite leave-one-country-out precedent (JEPP 2025, below) |
+| "Does the LLM add anything over data-driven selection?" | LLM-Lasso 2025; AutoElicit ICML 2025; arXiv 2610.36806 | ✚ optional small-sample curve: at what n do LLM picks stop beating a data-driven selector |
+| "Results depend on the extractor/mapper" | — | ◐ dual-extractor audit; Nemotron-affinity check |
+| "Models differ only in WEIRD-ness" | Atari et al. 2023; Tao et al. 2024 | ✚ regress per-country performance on cultural distance from the US |
+
+### 9.4 Annotated bibliography
+
+**A. LLMs as feature selectors / knowledge-driven tabular ML**
+
+| Citation | Link | Rel. | Takeaway |
+|---|---|---|---|
+| Choi, Cundy, Srivastava, Ermon (2022) LMPriors, NeurIPS FMDM workshop | [2210.12530](https://arxiv.org/abs/2210.12530) | Med | Origin of names-only feature priors; cite |
+| Jeong, Lipton, Ravikumar (2025) LLM-Select, TMLR | [2407.02694](https://arxiv.org/abs/2407.02694) | **High** | See 9.2 |
+| Li, Tan, Liu (2025) Exploring LLMs for feature selection: a data-centric perspective, SIGKDD Explorations | [2408.12025](https://arxiv.org/abs/2408.12025) | Med | Text-based selection more robust, scales with size; frames us as text-based |
+| Zhang, …, Tibshirani (2025) LLM-Lasso | [2502.10648](https://arxiv.org/abs/2502.10648) | Med | LLM scores as Lasso penalties; knowledge+data combination |
+| Memar et al. (2026) When do LLMs help with feature selection? | [2610.28556](https://arxiv.org/abs/2610.28556v1) | Med-High | See 9.2 *(snippet)* |
+| Li, Xiu (2025) LLM4FS | [2503.24157](https://arxiv.org/abs/2503.24157v2) | Med | Hybrid LLM+classical; a later version reportedly withdrawn — cite with care |
+| Yang et al. (2024) ICE-SEARCH | [2402.18609](https://arxiv.org/abs/2402.18609v1) | Low | LLM inside evolutionary search |
+| Lee, Shen et al. (2024) FREEFORM (genotype) | [2410.01795](https://arxiv.org/abs/2410.01795v1) | Low | Knowledge selection helps when data are scarce |
+| Skinner, Guo, Li (2026) LLM sparsity prior | [2605.23102](https://arxiv.org/abs/2605.23102) | Low | Naive LLM weights can hurt; LLM priors miscalibrated |
+| Bal-Ghaoui, Sabri (2025) LLM-FS-Agent | [2510.05935](https://arxiv.org/html/2510.05935v1) | Low | Role-based deliberation; aside for role framing |
+| Hollmann, Müller, Hutter (2023) CAAFE, NeurIPS | [2305.03403](https://arxiv.org/abs/2305.03403) | Low | Feature engineering, not selection |
+| Han et al. (2024) FeatLLM, ICML | [PMLR](https://proceedings.mlr.press/v235/han24f.html) | Low | Background |
+| Abhyankar, Shojaee, Reddy (2025) LLM-FE | [2503.14434](https://arxiv.org/abs/2503.14434) | Low | Background |
+| LLM4CKD (2026) | [2609.04013](https://arxiv.org/pdf/2609.04013) | Med | LLM rankings agree with each other, not with supervised importance — **report between-LLM agreement too** *(snippet)* |
+| TabSHAP (2026) | [2604.21120](https://arxiv.org/pdf/2604.21120) | Low-Med | LLMs over-weight semantically rich features *(snippet)* |
+| Cruz, Hardt, Mendler-Dünner (2024) Evaluating LMs as risk scores (folktexts), NeurIPS | [2407.14614](https://arxiv.org/abs/2407.14614v3) | Low-Med | Census data; LLM-as-predictor PI vs XGBoost |
+| LoID: What LLMs know but don't say (2026) | [2601.17609](https://arxiv.org/html/2601.17609v2) | Med | Closest "LLM knowledge under shift" — synthetic shift only |
+| Huntington-Klein et al. (2024) Do LLMs act as repositories of causal knowledge? | [2412.10635](https://arxiv.org/abs/2412.10635) | Low | Over-inclusion; option-order sensitivity |
+
+**B. LLMs and surveys / computational social science**
+
+| Citation | Link | Rel. | Takeaway |
+|---|---|---|---|
+| Argyle et al. (2023) Out of one, many, Political Analysis | [2209.06899](https://arxiv.org/abs/2209.06899) | Low-Med | Silicon sampling; contrast case |
+| Bisbee et al. (2024) Synthetic replacements for human survey data?, Political Analysis | [Cambridge](https://www.cambridge.org/core/journals/political-analysis/article/synthetic-replacements-for-human-survey-data-the-perils-of-large-language-models/B92267DC26195C7F36E63EA04A47D2FE) | Med | 48% of coefficients wrong → motivates direct elicitation |
+| Dominguez-Olmedo, Hardt, Mendler-Dünner (2024) Questioning the survey responses of LLMs, NeurIPS | [2306.07951](https://arxiv.org/abs/2306.07951) | Low | Answer-format artefacts; we sidestep them |
+| Santurkar et al. (2023) Whose opinions do LMs reflect?, ICML | [PMLR](https://proceedings.mlr.press/v202/santurkar23a.html) | Low | Background |
+| Durmus et al. (2023/24) GlobalOpinionQA | [2306.16388](https://arxiv.org/abs/2306.16388v2) | Low-Med | Country prompting shifts answers, can stereotype |
+| Suh et al. (2025) SubPOP, ACL | [ACL](https://aclanthology.org/2025.acl-long.1028/) | Low | Fine-tuned distribution prediction |
+| Cao et al. (2025) Specializing LLMs to simulate survey distributions for global populations, NAACL | [ACL](https://aclanthology.org/2025.naacl-long.162) | Low-Med | WVS fine-tuning |
+| Kim & Lee (2023) AI-augmented surveys | [2305.09620](https://arxiv.org/abs/2305.09620v3) | Low-Med | Unasked-question prediction |
+| Miranda & Balbi (2025) Simulating public opinion, Entropy | [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC12468613/) | Med? | ANES; may include an LLM variable-pick step — **check full text** |
+| Wightman, Bied, De Bie (2026) People are not just their countries, AIES | [AAAI](https://ojs.aaai.org/index.php/AIES/article/view/43344) | Med | ESS; determinants of *alignment*, not of attitudes |
+| Wang (2026) Silicon sampling answers with country-level assumptions | [2609.16395](https://arxiv.org/pdf/2609.16395) | Med | See 9.2 |
+| Ku et al. (2026) Silicon sampling via cross-survey transfer (Taiwan) | [2607.03091](https://arxiv.org/abs/2607.03091) | Low | Predictability varies by construct |
+| Wedgwood et al. (2026) Personalization, personas, and forecasting, ICML | [icml.cc](https://icml.cc/virtual/2026/75669) | Med | See 9.2 |
+| Luo et al. (2026) ACE-Align | [2601.12962](https://arxiv.org/abs/2601.12962) | Med | Aligns per-country attribute effects to survey estimates (trains, does not elicit) |
+| "Validating LLM-generated synthetic survey samples" (2026), Eurobarometer | [2611.00256](https://arxiv.org/html/2611.00256v1) | Low-Med | Compares importance rankings, real vs synthetic *(snippet)* |
+| Are LLMs chameleons? (ESS); United in diversity? (EP 2024) | [2405.19323](https://arxiv.org/abs/2405.19323), [2409.09045](https://arxiv.org/pdf/2409.09045) | Low | Cross-country silicon sampling |
+| Tao et al. (2024) Cultural bias and alignment of LLMs, PNAS Nexus | [PubMed](https://pubmed.ncbi.nlm.nih.gov/39290441/) | Low-Med | Cultural prompting ≈ our country-named arm at response level |
+| Atari et al. (2023) Which humans? | [HKS](https://www.hks.harvard.edu/centers/cid/publications/which-humans) | Low | WEIRD gradient; test cultural distance |
+| AlKhamissi et al. (2024) Cultural alignment of LLMs, ACL | [ACL](https://aclanthology.org/2024.acl-long.671) | Low | Anthropological prompting |
+| Cao et al. (2023) Cross-cultural alignment ChatGPT | [2303.17466](https://ar5iv.org/abs/2303.17466) | Low | Background |
+| Abeliuk, Gaete, Bro (2025/26) Fairness in LLM-simulated public opinion, EPJ Data Science | [2501.15351](https://arxiv.org/abs/2501.15351v1) | Low-Med | US vs Chile |
+| Hewitt et al. (2024) | see 9.2 | Med | Forecasting experiments |
+| Manning, Zhu, Horton (2024) Automated social science, NBER | [w32381](https://www.nber.org/papers/w32381) | Low-Med | Signs right, magnitudes wrong → favours rank metrics |
+| Automating social science: LLMs vs experts in variable relationships (Collabra, unverified) | [Sciety](https://sciety.org/articles/activity/10.31234/osf.io/mkxdt_v2) | Med | LLMs ≈ experts on simple relations; both fail on moderation (country is a moderator) |
+| Ludwig & Mullainathan (2024) ML as a tool for hypothesis generation, QJE | [NBER](https://www.nber.org/papers/w31017) | Low | Framing |
+| Zhou et al. (2024) HypoGeniC | [ACL](https://aclanthology.org/2024.nlp4science-1.10) | Low | Background |
+
+**C. Predictor discovery in survey data, transfer, and importance methodology**
+
+| Citation | Link | Rel. | Takeaway |
+|---|---|---|---|
+| Salganik et al. (2020) Fragile Families Challenge, PNAS | [link](https://scholarworks.montana.edu/handle/1/16106) | Method | Simple benchmarks hard to beat; mirrors textbook arm |
+| Lundberg et al. (2024) Origins of unpredictability, PNAS | [PMC](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11181083/) | Bkg | Low-signal cells are legitimate |
+| Kern, Klausch, Kreuter (2019) Tree-based ML for survey research, SRM | [link](https://ojs.ub.uni-konstanz.de/srm/article/view/7395) | Bkg | Standard ML-in-surveys cite |
+| Breznau et al. (2022) Many analysts, PNAS | [PMC](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9926231/) | Method | Pre-register oracle settings |
+| RF populist-vote predictors per country (EVS), Quality & Quantity 2025 | [Springer](https://link.springer.com/article/10.1007/s11135-025-02064-3) | Bkg | ML predictor rankings vary by country *(snippet)* |
+| Europeanisation of policy preferences (leave-one-country-out RF), JEPP 2025 | [T&F](https://www.tandfonline.com/doi/full/10.1080/13501763.2025.2512901) | Method | Precedent for cross-country transfer as similarity *(snippet)* |
+| Pearl & Bareinboim (2014) External validity / transportability, Stat Sci | [Project Euclid](https://projecteuclid.org/journals/statistical-science/volume-29/issue-4/External-Validity-From-Do-Calculus-to-Transportability-Across-Populations/10.1214/14-STS486.full) | Bkg | Scope our term |
+| Cross-country generalisation of tabular ML on DHS (2026) | [2605.26589](https://arxiv.org/pdf/2605.26589) | Bkg | *(snippet)* |
+| Fisher, Rudin, Dominici (2019) Model class reliance, JMLR | [1801.01489](https://arxiv.org/abs/1801.01489) | Method | Rashomon objection |
+| Donnelly et al. (2023) Rashomon importance distribution, NeurIPS | [2309.13775](https://arxiv.org/abs/2309.13775) | Method | Recipe for importance distributions |
+| Hooker, Mentch, Zhou (2021) Unrestricted permutation forces extrapolation, Stat Comput | [1905.03151](https://arxiv.org/abs/1905.03151) | Method | Correlated-feature bias |
+| Strobl et al. (2008) Conditional variable importance, BMC Bioinf | [doi](https://doi.org/10.1186/1471-2105-9-307) | Method | Classic cite |
+| Molnar et al. (2022) Pitfalls of model-agnostic interpretation | [2007.04131](https://arxiv.org/abs/2007.04131) | Method | Reviewer checklist |
+| Ewald et al. (2024) Feature importance for scientific inference | [2404.12862](https://arxiv.org/abs/2404.12862) | Method | State the oracle's estimand |
+| Au et al. (2022) Grouped feature importance, DMKD | [2104.11688](https://arxiv.org/abs/2104.11688) | Method | Implements audit §A8 |
+| Williamson et al. (2023) Algorithm-agnostic VIM inference, JASA | [2004.03683](https://arxiv.org/abs/2004.03683) | Method | CIs and null test |
+| Lei et al. (2018) LOCO, JASA | [1604.04173](https://arxiv.org/abs/1604.04173) | Method | LOCO oracle variant |
+| Watson & Wright (2021) Conditional predictive impact, Mach Learn | [1901.09917](https://arxiv.org/abs/1901.09917) | Method | Conditional oracle variant |
+| Kaufman, Rosset, Perlich (2011/12) Leakage in data mining | [dblp](https://dblp.org/rec/conf/kdd/KaufmanRP11.html) | Method | Cite for leakage screen |
+
+**D. LLM elicitation as expert prior; reliability of hosted LLMs**
+
+| Citation | Link | Rel. | Takeaway |
+|---|---|---|---|
+| Capstick, Krishnan, Barnaghi (2025) AutoElicit, ICML | [PMLR](https://proceedings.mlr.press/v267/capstick25a.html) | Bkg | Knowledge-as-prior framing |
+| Selby et al. (2024/25) Had enough of experts? / Quantitative knowledge retrieval | [2402.07770](https://arxiv.org/abs/2402.07770v2) | Bkg | Avoid calling the LLM an "expert" |
+| LLM knowledge for OOD tabular prediction (2026) | [2610.36806](https://arxiv.org/abs/2610.36806) | Med | Priors help most under shift + small n *(snippet)* |
+| Variable names provide priors (2026) | [2611.02637](https://arxiv.org/abs/2611.02637) | Med | *(snippet; could not be re-found — confirm before citing)* |
+| Kıcıman et al. (2023/24) Causal reasoning and LLMs, TMLR | [2305.00050](https://arxiv.org/abs/2305.00050) | Bkg | Names-only knowledge; memorisation concern |
+| Long et al. (2023) LLMs as imperfect experts | [2307.02390](https://arxiv.org/abs/2307.02390) | Bkg | Knowledge-vs-data framing |
+| Jiralerspong et al. (2024) Efficient causal graph discovery with LLMs | [2402.01207](https://arxiv.org/abs/2402.01207) | Bkg | One-variable-at-a-time elicitation |
+| Robustness is important: limitations of LLMs for data fitting (2025) | [2508.19563](https://arxiv.org/html/2508.19563v3) | Method | Name/order perturbations |
+| Sclar et al. (2024) Sensitivity to spurious prompt features, ICLR | [2310.11324](https://arxiv.org/abs/2310.11324) | Method | Report spreads across templates |
+| Atıl et al. (2025) Non-determinism of "deterministic" hosted LLMs, Eval4NLP | [ACL](https://aclanthology.org/2025.eval4nlp-1.12) | Method | Justifies replicate floor |
+
+**Gaps in this search.** No "cited-by" sweep of LLM-Select (Semantic Scholar
+blocked); NeurIPS 2026 accepted papers not visible. Re-run both with
+`api.semanticscholar.org` and `arxiv.org` allowed before submission.
 
 ---
 
