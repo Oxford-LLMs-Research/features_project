@@ -1,4 +1,4 @@
-# Scoping review protocol — LLM knowledge of predictive structure (DRAFT v0, 2026-11-08)
+# Scoping review protocol — LLM knowledge of predictive structure (DRAFT v0, 2026-11-08; run once)
 
 **Status: draft for the PI to edit and approve.** The first search was run under
 this v0 so the map exists; if the protocol changes, re-run the affected searches and
@@ -82,3 +82,28 @@ reasons), the charting table (CSV in the scratch run, summary table in §9), a c
 map (which cells of Q1–Q4 × heterogeneity level are empty), and the narrative
 synthesis. Every charted citation passes the ARS fact-check rule: if existence cannot
 be confirmed, it is excluded (E6), not marked "uncertain".
+
+## 7. As-run record for v0 (2026-11-08) — deviations to review
+
+Results: [`scoping_review_2026-11/`](scoping_review_2026-11/) (merged `chart.csv`,
+per-screener PRISMA counts, search logs, gzipped screening decisions); synthesis in
+`project_inventory_2026-11.md` §9.7. Deviations from §3–§5, each a PI decision to accept
+or fix in v1:
+
+1. **Screeners added two reason codes**: `E2s` (eligible but outside that screener's
+   blocks, handed to the other) and `E6*` (record exists in Semantic Scholar but no
+   abstract or text was reachable; 9 records to retrieve).
+2. **Automated keyword pre-screens** removed 1,057 (Q1+Q4) and 661 (Q2+Q3) records
+   before title screening; the rules are in the search logs. Spot-check them.
+3. **Relevance windows**: for the two broadest arXiv queries only the top 400–500 hits by
+   relevance were screened (up to ~6,600 further hits identified, not screened).
+4. **Semantic Scholar** keyword search returned HTTP 429 throughout; citation sweeps
+   completed for LLM-Select, LMPriors, Argyle, Pataranutaporn (arXiv + PNAS), ACE-Align;
+   **incomplete** for Ma & Powell, Powdthavee, Bisbee, Ashokkumar/Hewitt.
+5. **Venue site searches not run**: OpenReview, ACL Anthology, PMLR, medRxiv, Springer,
+   T&F, SAGE (reached only via citations and web search).
+6. **Charting**: 78 of 108 included records charted from abstracts; the
+   "heterogeneity tested" field was given four strict levels (glossary: *heterogeneity
+   level*).
+7. **Blocked hosts** (full texts not read): nature.com, pnas.org, pmc.ncbi.nlm.nih.gov,
+   online.ucpress.edu, cambridge.org, researchsquare.com, osf.io.

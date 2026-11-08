@@ -291,10 +291,13 @@ are now reachable from the session; nature.com and pnas.org are not.
    (LMPriors 2022; LLM-Select, TMLR 2025; a 2025 SIGKDD Explorations empirical study; a
    systematic Oct-2026 study finding classical selectors still usually win). Do not
    headline "LLMs can select features" or "LLMs match data-driven selection".
-2. **"An LLM picks survey predictors from variable descriptions" has one direct
-   precedent**: a March-2026 medRxiv preprint on adolescent vaping in the US PATH
-   survey (one outcome, one country, downstream AUC; no importance oracle or
-   cross-country test seen). Cite it prominently; never claim "first".
+2. **"An LLM picks survey predictors from variable descriptions" has several direct
+   precedents** (scoping, §9.7): PATH vaping (medRxiv 2026), PATH smoking cessation
+   (*Nicotine & Tobacco Research* 2025), MIDUS diabetes (IEEE ICHI 2026), and one
+   Shanghai survey comparing stated with data importance (Xu & Wang 2025). All are
+   single-outcome and single-country, graded mostly by downstream AUC, with no
+   reliability-checked importance reference and no cross-country test. Cite them;
+   never claim "first".
 3. **"LLM social-science knowledge is worse outside WEIRD countries" is anticipated**
    (WEIRD = Western, educated, industrialised, rich, democratic) — by
    Pataranutaporn et al. (WVS well-being, 64 countries, PNAS 2025), a Nature Human
@@ -392,10 +395,10 @@ Adjacent: Wang 2026 ([2609.16395](https://arxiv.org/abs/2609.16395); the country
 D'Ecclesiis, Castellacci, Ahmadi 2026 ([2611.00256](https://arxiv.org/abs/2611.00256); importance rankings of real vs simulated Eurobarometer outcomes, pooled across countries — closest *method*);
 Li & Ji 2026 ([2604.02458](https://arxiv.org/abs/2604.02458); model error clusters by country, ICC 12–16% for effect estimates);
 Ashokkumar, Hewitt, Ghezae, Willer, *Nature* 2026 (see §9.2; subgroup and interaction results not yet read — abstract only);
-Ji, Xue, Chen, Zhu (2025) *Collabra: Psychology*, [doi 10.1525/collabra.144442](https://online.ucpress.edu/collabra/article/11/1/144442/213650) (moderation items hard for LLMs and experts alike; tables not read);
+Ji, Xue, Chen, Zhu (2025) *Collabra: Psychology*, [doi 10.1525/collabra.144442](https://online.ucpress.edu/collabra/article/11/1/144442/213650) (complex relationships harder than simple ones, domain expertise helped; moderation-specific results not read — the abstract does not single out moderation);
 Eriksson, Vartanova, Strimling 2026 ([2609.30896](https://arxiv.org/abs/2609.30896)) and Tao et al. 2026 ([2605.08486](https://arxiv.org/abs/2605.08486)) on compressed country levels;
 Daryani, Bogen, Daepp 2026 ([2609.01902](https://arxiv.org/abs/2609.01902); invented change over time — a temporal analogue of stereotyping);
-Cui, Li, Zhou 2025, *Nat Comput Sci* 5(8), preprint [arXiv 2409.00128](https://arxiv.org/abs/2409.00128) (main effects replicated 73–81%, interactions 46–63%);
+Cui, Li, Zhou 2025 (venue reported as *Nat Comput Sci* 5(8); the scoping screener could not reconfirm it), preprint [arXiv 2409.00128](https://arxiv.org/abs/2409.00128) (main effects replicated 73–81%, interactions 46–63%);
 Powdthavee 2026 ([2605.30934](https://arxiv.org/abs/2605.30934); does cross-language divergence track institutional differences — similar dose-response logic, moral judgements).
 No paper on LLM priors for per-environment causal graphs was found. *Note:* Powdthavee co-authors three of these precedents (the PNAS well-being paper, the dispersion paper and the moral-reasoning paper); present them as one research programme, not three independent confirmations.
 
@@ -471,6 +474,141 @@ those countries' oracle rankings differ.
 
 **What this does not change:** the grid, oracles, selectors, prompts, or any code
 already run. It adds two generation jobs (replicate, placebo) and re-labels endpoints.
+
+### 9.7 Scoping map and narrative synthesis (2026-11-08)
+
+**How this was produced.** Scoping searches under the draft protocol
+([`scoping_review_protocol_2026-11.md`](scoping_review_protocol_2026-11.md), v0) by
+two AI screeners (Q1+Q4, Q2+Q3); the narrative synthesis below follows ARS
+`lit-review` mode. The search log, screening decisions (with reason codes) and the
+charting table are in [`scoping_review_2026-11/`](scoping_review_2026-11/) —
+`chart.csv` is the merged chart. **Limits that matter:** single AI screener; 78 of 108
+included records charted from abstracts only; Semantic Scholar keyword search was rate
+limited throughout, so non-arXiv venues were reached mainly by citation sweeps and web
+search; several citation sweeps are incomplete (Bisbee, Ashokkumar/Hewitt, Ma & Powell,
+Powdthavee); arXiv result windows were truncated by relevance for the two broadest
+queries. Treat counts as a map of the arXiv-visible literature, not a census.
+
+**Flow (both screeners).** Q1+Q4: 1,996 identified → 1,877 after de-duplication → 46
+included. Q2+Q3: 4,034 identified → 3,789 unique → 3,080 screened → 175 assessed in
+full or abstract → 66 included. Merged: **108 unique records** (3 found by both).
+Ratings: 1 pre-empts *part* of our claim (Pataranutaporn et al., the "level" half),
+15 partial, 66 adjacent, 22 method, 4 background.
+
+**The map.** "Heterogeneity level" is a charting field defined for this review:
+*none* (no group comparison) → *levels* (averages or accuracy compared across groups)
+→ *structure* (a relationship — slope, effect, importance, correlation — estimated
+per group and checked against that group's data) → *structure-vs-measured-
+heterogeneity* (the paper tests whether the model's between-group *differences* in a
+relationship match the measured differences).
+
+| How the model's knowledge is obtained ↓ / heterogeneity level → | none | levels | structure | structure vs measured heterogeneity |
+|---|---|---|---|---|
+| **Stated** (model names, ranks or weights predictors or associations) | 40 | 5 | **0** | **0** |
+| Implied by simulated respondents | 32 | 10 | 7 | 5 |
+| Fine-tuned on survey data | 3 | 1 | 3 | 0 |
+
+The two bold zeros are our study. Every paper that checks *structure* against data
+per group gets the structure from simulated respondents or a fine-tuned model; none
+asks the model directly. Only 10 of 108 records use data-derived *importance* as the
+ground truth, and only 3 run any transfer test (none across countries).
+
+**Narrative synthesis.**
+
+1. *Stated predictor knowledge is real, modest, and graded weakly.* Names-only
+   selection works and scales with model size (LLM-Select; Li, Tan, Liu), but classical
+   selectors usually still win on prediction (Memar et al.). In survey data the
+   precedents are single-outcome, single-country, and graded by downstream AUC: PATH
+   vaping (Zhang, Zhao, Hu, Le 2026), PATH smoking cessation (Le et al. 2025, *Nicotine
+   & Tobacco Research*), MIDUS diabetes (Yang et al. 2026, IEEE ICHI, abstract only).
+   Only one survey study compares the model's *stated* importance with data importance
+   (Xu & Wang 2025, [arXiv 2505.23262](https://arxiv.org/abs/2505.23262), a Shanghai
+   household survey): they diverge zero-shot. Gong et al. (NeurIPS 2025,
+   [arXiv 2506.03444](https://arxiv.org/abs/2506.03444)) grade LLM correlation priors on
+   2,096 real variable pairs: 78.8% correct sign.
+2. *No one checks how reliable the ground truth is.* Every paper grading LLM
+   importance claims uses one model's SHAP or permutation importance with no stability
+   estimate or ceiling (LLM-Select, LLM4CKD, TabSHAP, Xu & Wang, Kuo et al. 2026 *JMIR*).
+   Our per-cell ceiling and fold reliability (pipeline audit §A1) have no counterpart in
+   this literature: candidate contribution (3) is better supported than §9.1 assumed.
+3. *Where structure is checked per group, the model is a respondent, not an expert.*
+   The structure-level papers simulate respondents and estimate slopes or importance
+   from the simulated answers: WVS correlation structure by subgroup (Williams et al.,
+   [2601.15755](https://arxiv.org/abs/2601.15755)), the age–loneliness gap in four EU
+   countries (Li, Rettinger, Beyer, [2610.25158](https://arxiv.org/abs/2610.25158)),
+   five-country group variation (da Silva et al., [2609.36253](https://arxiv.org/abs/2609.36253)),
+   Pew intersectional subgroups ([2608.23005](https://arxiv.org/abs/2608.23005)),
+   factorial-survey coefficients ([2610.22409](https://arxiv.org/abs/2610.22409)),
+   pooled Eurobarometer importance rankings (D'Ecclesiis et al.), plus ACE-Align and Li &
+   Ji. This is the "silicon sampling" route, which is known to distort coefficients
+   (Bisbee et al.) — the reason a direct, stated measurand is worth having.
+4. *The few tests of "does the model know where structure differs" are single-predictor
+   or US-only.* At the top heterogeneity level: income gradients across countries
+   (Powdthavee 2026; Pataranutaporn et al. — rigid across low/high-HDI), and three US
+   subgroup-moderation tests (Cai et al. [2607.27100](https://arxiv.org/abs/2607.27100);
+   Hoq & Weninger [2604.15329](https://arxiv.org/abs/2604.15329); Ashokkumar/Hewitt et
+   al., whose interaction-effect correlations a secondary review reports as low). The
+   general finding across the field: models recover demographic gradients better than
+   cultural ones (NHB 2026: direction right for 77.8% of gender/age/ability dimensions,
+   48.1% of cultural ones), compress country differences, and treat the country label as
+   a level shift (Wang 2026).
+5. *Implication for our claim.* The literature predicts a mostly *rigid* answer to our
+   headline question. Our contribution is therefore the **measurement** — the first
+   stated-knowledge, multi-predictor, multi-country, reliability-aware test, with a
+   transfer (swap) test — and a null is informative only if it is equivalence-tested
+   against an attenuation-corrected slope (§9.8, items 1 and 4).
+
+**Gaps (empty or near-empty cells), in order of relevance to us:**
+(i) stated predictors per country graded against per-country data importance — empty;
+(ii) multi-predictor importance per country — only pooled (D'Ecclesiis);
+(iii) cross-country transfer of LLM structural knowledge — empty;
+(iv) reliability of the ground truth or of measured heterogeneity — empty;
+(v) level vs structure separated — empty;
+(vi) memorisation probes and expert/textbook baselines in survey selection — empty;
+(vii) cross-national survey selection beyond the US/one city — empty.
+
+**Follow-ups.** Complete the rate-limited citation sweeps (resumable); read the full
+texts held back by blocked hosts (*Nature* Ashokkumar et al., NHB 2026, PNAS version of
+Pataranutaporn, Collabra tables); retrieve 9 records that exist in Semantic Scholar but
+had no reachable abstract (code E6\*), including a PLS-SEM validity audit of synthetic
+survey data (doi 10.1016/j.esd.2026.102075) and a *Communications Psychology* 2025 paper
+on predicting correlations between personality items; PI spot-check of a sample of
+exclusions (protocol §4).
+
+### 9.8 ARS review of the §9.6 proposal — challenges and what they change
+
+The ARS review pass (editor-in-chief, devil's advocate, ethics) returned **MAJOR
+REVISION / REVISE / CONDITIONAL**. Its bottom line: *the question is new enough to lead
+the paper; the endpoint is not yet good enough to lead it.* Its counter-evidence search
+(22 arXiv queries, 9 web searches) found no pre-empting paper; the claim wording should
+say "co-varies with", not "in proportion to" (changed in §9.1). Recommended order of
+revisions, with what each would change in §9.6:
+
+| # | Issue (severity) | Proposed fix | Decision needed? |
+|---|---|---|---|
+| 1 | **Three-way reading biased by noise and unfalsifiable** (CRITICAL). Oracle reliability ≈ 0.5 halves the slope and inflates the intercept, pushing an adaptive model into "changes regardless"; no thresholds; categories not exhaustive; pair-level heterogeneity undefined | Define pair-level heterogeneity; errors-in-variables slope (split-half instrument, SIMEX or latent model); test "changes regardless" in the reliability-gated low bin, not via the intercept; pre-register a full slope × excess decision table with equivalence bounds | no — required |
+| 2 | **Confounding can fake "adapts"** (CRITICAL). ~72% of variance is between questions; pool size, answer type, k, survey move both axes; WVS pairs are region-stratified, so more different by name *and* more heterogeneous | Question fixed effects (within-question slope primary); survey FE; WVS reported separately; within-survey label-permutation null; **common-country panel** on the 30 transportability questions so country-pair FE are possible | **yes — the panel costs extra generations (est. tens of dollars)** |
+| 3 | Validity of re-ordering not verifiable (MAJOR) | Dated PI attestation that no v4 scores, no oracle heterogeneity and no cross-country pick comparison have been inspected; file timestamps recorded | **yes — attestation scope (below)** |
+| 4 | Primary A never powered (MAJOR) | Power with dyadic-robust SEs, attenuation at reliability 0.5 and 0.7, against a stated smallest slope of interest | no — run before lock |
+| 5 | Measure is unsigned (MAJOR): picks can change "the right amount" toward the wrong variables | Add a signed captured-importance cross-delta (audit §A9) | no |
+| 6 | 1 − Jaccard depends on k; oracle side at top-10, picks at model-chosen k (MAJOR) | Chance-corrected, k-adjusted overlap; heterogeneity at matched depth | no |
+| 7 | Noise floor misquoted (MAJOR): 0.27–0.29 is soft Jaccard on extracted features for the prompt-study models, not mapped codes for the confirmatory six | Re-measure on mapped codes for the six; per-cell floor; headroom rule | no (the replicate generation in §9.6 already buys it) |
+| 8 | Range restriction and leverage (MAJOR): ~12 questions carry the slope; within-region contrasts | Robust slope; leave-one-question-out and leave-one-country-out as registered outputs; within-region scope in the endpoint text | no |
+| 9 | Fixed mapper may create differentiation (MAJOR): country words in the essay reach the extractor and disambiguator | Re-map a subset with country tokens masked; report differentiation at the extracted-feature level too | no |
+| 10 | No multiple-testing plan (MAJOR) | Gatekeeping: precondition → Primary A → Primary B; per-selector results descriptive (Holm) | no |
+| 11 | "So what" argued only as a gap; a null may read as trivially implied (MAJOR) | Equivalence-tested null; frame as a user decision ("can an analyst trust LLM covariate advice in a new country?"); stated-vs-implied comparison on a subset | partly — subset size |
+| 12 | Ethics conditions | AI-assistance disclosure in the paper; neutral label instead of "stereotyping"; avoid deficit framing of Global South countries; source hygiene (done in §9) | no |
+
+**Fallback the reviewers recommend:** if the common-country panel (item 2) is not
+affordable or the power analysis (item 4) fails, keep the registered Primary 2 (swap
+gain) as the primary and register Primary A — made directional (item 5) — as the
+leading secondary.
+
+**Status of item 3.** On 2026-11-08 the PI stated that nobody has looked at v4 scores
+yet. The reviewers ask for a broader attestation: also no inspection of v4 oracle
+heterogeneity and no comparison of the six selectors' picks across countries (those
+picks have existed since September). To be recorded in the registry entry with date
+and file timestamps before the re-ordering is registered.
 
 ### 9.4 Annotated bibliography
 

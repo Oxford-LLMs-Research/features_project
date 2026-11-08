@@ -242,3 +242,16 @@ supplies a fixed, versioned procedure for that. **Fits:** used for docs and writ
 only — never in the pipeline, never on `outputs/`. **Implies:** a citation in a doc is
 only treated as checked once an ARS fact-check pass (or a human) has confirmed it
 exists and says what we claim; see `CONTRIBUTING.md` § Research and writing skills.
+
+## heterogeneity level (scoping chart)
+
+**What:** a four-step code the 2026-11 scoping review gives each paper for how far it
+tests group differences: *none*; *levels* (averages or accuracy compared across
+groups); *structure* (a relationship — slope, effect, importance, correlation —
+estimated per group and checked against that group's data); *structure vs measured
+heterogeneity* (tests whether the model's between-group *differences* in a
+relationship match the measured differences). **Why:** our candidate headline sits at
+the top level, so the map has to show exactly who else reaches it. **Fits:** a column
+of `docs/scoping_review_2026-11/chart.csv`; summarised in the inventory §9.7.
+**Implies:** as of 2026-11-08 five papers reach the top level, all via simulated
+respondents, none via stated predictors — the empty cell our study fills.
