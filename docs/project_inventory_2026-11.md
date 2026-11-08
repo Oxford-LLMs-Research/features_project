@@ -365,6 +365,7 @@ Mapped to §6. ✔ = we already have it; ◐ = registered/argued; ✚ = new from
 | "Temperature 0 isn't deterministic" | Atıl et al. Eval4NLP 2025 | ✔ replicate floor, country-blind dedupe. ✚ cite; report replicate agreement on mapped sets |
 | "It's memorised from published WVS/ESS findings" | Ashokkumar et al. 2026; Kıcıman et al. TMLR 2024; Hommel & Arslan 2025 | ✚ memorisation probe: obscure national items / waves after model cutoffs; correlate hit rate with how often an item is studied |
 | "Does it just use word overlap?" | Ma & Powell 2025; Memar 2026 | ✚ semantic-similarity control; anonymised-name ablation |
+| "How does free-text elicitation compare with the menu-based studies?" | Zhang et al. 2026 (PATH); Le et al. 2025; LLM-Select | ✚ **menu ablation**: on a subset of cells give the selector the candidate-variable list and compare its picks and scores with the free-text arm — separates knowing the structure from recognising it when shown, and bridges to the menu literature |
 | "Country effects are level shifts, not structure" | Wang 2026; NHB 2026 | ◐ `pooled-country-value`. ✚ neighbour-country non-LLM baseline |
 | "Transportability is a causal term" | Pearl & Bareinboim 2014 | ✚ scope as predictive transfer; cite leave-one-country-out precedent (JEPP 2025, below) |
 | "Does the LLM add anything over data-driven selection?" | LLM-Lasso 2025; AutoElicit ICML 2025; Langseth et al. 2026 | ✚ optional small-sample curve: at what n do LLM picks stop beating a data-driven selector |
@@ -526,6 +527,15 @@ ground truth, and only 3 run any transfer test (none across countries).
    household survey): they diverge zero-shot. Gong et al. (NeurIPS 2025,
    [arXiv 2506.03444](https://arxiv.org/abs/2506.03444)) grade LLM correlation priors on
    2,096 real variable pairs: 78.8% correct sign.
+   **Every one of these precedents hands the model the candidate variables** — it
+   scores or chooses from a menu (PATH vaping: all 214 variable names and descriptions,
+   each scored 0–1; Xu & Wang: a fixed short list, importance assigned within it; PATH
+   cessation and MIDUS: chosen from supplied descriptions, per their abstracts; LLM-Select
+   and Memar et al. likewise give feature names). Our selector instead writes what it
+   would need to know **without seeing the codebook**, and a separate step maps that onto
+   variables. That is *recall* rather than *recognition*: no menu cues, at the price of
+   mapping noise, which is why our random and textbook baselines pass through the same
+   mapping chain.
 2. *No one checks how reliable the ground truth is.* Every paper grading LLM
    importance claims uses one model's SHAP or permutation importance with no stability
    estimate or ceiling (LLM-Select, LLM4CKD, TabSHAP, Xu & Wang, Kuo et al. 2026 *JMIR*).
