@@ -219,6 +219,7 @@ result (as opposed to a design input or a methods paragraph).
 | Multiplicity hierarchy (model-k primary) | 6 models × types × conditions × k-specs × metrics | audit §A9 |
 | Country-permutation null for transportability (own country vs every other oracle) | own-minus-cross on a ratio is low-powered | audit §A9 |
 | `similarity-threshold` / `top_n` sweep | retrieval, not disambiguation, binds mapping recall | registry, audit §B |
+| **Human-expert baseline** (pinned 2026-11-08): team social scientists write free-text requests for a subset of questions, run through the same extract/map/score chain | gives "knows" an interpretable anchor — model vs a social scientist without the data, not only vs random/textbook | interview 2026-11-08 |
 | Elicited ranking for fixed-k analyses | k = 5 currently truncates in essay order | audit §A6 |
 
 ---
