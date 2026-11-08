@@ -129,6 +129,32 @@ register logs, `.tmp/`, or repo-audit reports.
 6. **Fail loud in library code.** No silent fallbacks around our own files/formats/versions. Guards only at system boundaries (network, process pools, per-cell sweep isolation).
 7. **Comments state the invariant**, with a `docs/` pointer for rationale. One narrative home per module — the top docstring.
 
+## Research and writing skills (ARS plugin)
+
+The project uses the third-party **academic-research-skills** (ARS) Claude Code plugin
+for literature work and pre-submission review — a set of prompt-defined roles
+(bibliography search, source verification, devil's advocate, simulated peer review)
+that check citations and challenge arguments before a human signs off. It is
+declared in `.claude/settings.json`, **pinned to `v3.24.2`**; Claude Code offers to
+install it the first time you open the repo (accept the marketplace and plugin
+prompts). Bump the pin deliberately, in its own commit, so a citation check can be
+traced to the version that ran it.
+
+- **Not vendored.** The plugin is 63 MB and licensed CC BY-NC 4.0 (non-commercial use
+  only); it stays in its own repository and is fetched by Claude Code.
+- **Hooks it adds:** a session-start banner (also checks for plugin updates) and a
+  write-scope guard before Write/Edit/Bash that only ever passes through or denies —
+  it never auto-approves. Disable for yourself with
+  `"enabledPlugins": {"academic-research-skills@academic-research-skills": false}` in
+  `.claude/settings.local.json`.
+- **What we use it for here:** `deep-research` *fact-check* mode (every citation
+  verified; unconfirmable = removed), *review* mode (editor + devil's advocate +
+  ethics on a memo or the novelty argument), *lit-review* mode (`/ars-lit-review`) to
+  extend the related-work map, `/ars-citation-check` and `/ars-reviewer` on paper drafts.
+- **Where its outputs go:** reports are human-facing docs → `docs/` (decision-framed,
+  no-naked-jargon rule applies); scratch runs stay out of the repo. ARS never runs
+  our experiments and does not replace the registry.
+
 ## Workflow
 
 End workdays with `/repo-audit` (`.claude/skills/repo-audit/`): audit-only by default;

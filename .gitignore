@@ -50,6 +50,7 @@ build/
 .idea/
 .claude/*
 !.claude/skills/
+!.claude/settings.json
 
 # OS
 .DS_Store

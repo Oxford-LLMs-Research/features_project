@@ -231,3 +231,14 @@ heterogeneity screen; complements the country-swap test, which asks whether the
 differences pay off in prediction. **Implies:** needs a same-country replicate
 generation as its noise floor, since two greedy draws already differ substantially;
 not registered until the PI approves the re-ordering.
+
+## ARS (academic-research-skills plugin)
+
+**What:** a third-party Claude Code plugin (pinned in `.claude/settings.json`) that
+packages literature-review and review roles — source verification, devil's advocate,
+editor-in-chief, simulated peer review. **Why:** our related-work and novelty claims
+need an adversarial check and citation verification before they go into a paper; ARS
+supplies a fixed, versioned procedure for that. **Fits:** used for docs and writing
+only — never in the pipeline, never on `outputs/`. **Implies:** a citation in a doc is
+only treated as checked once an ARS fact-check pass (or a human) has confirmed it
+exists and says what we claim; see `CONTRIBUTING.md` § Research and writing skills.
