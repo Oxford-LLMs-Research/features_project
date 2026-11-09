@@ -621,6 +621,8 @@ heterogeneity and no comparison of the six selectors' picks across countries (th
 picks have existed since September). To be recorded in the registry entry with date
 and file timestamps before the re-ordering is registered.
 
+Full ARS reports behind 9.1–9.8: [`ars_reviews_2026-11/factcheck_section9.md`](ars_reviews_2026-11/factcheck_section9.md) (citation check) and [`ars_reviews_2026-11/review_section9_proposal.md`](ars_reviews_2026-11/review_section9_proposal.md) (editor, devil's advocate, ethics; includes the counter-evidence search log).
+
 ### 9.4 Annotated bibliography
 
 **A. LLMs as feature selectors / knowledge-driven tabular ML**
